@@ -50,6 +50,7 @@ free() {
    done 
 #   echo "chdef -t node $delhosts groups=all,nodes"
    chdef -t node $delhosts groups=all,nodes
+   makedhcp -d $delhosts
 
    # make /etc/hosts
 #   makehosts ${group} 2>/dev/null

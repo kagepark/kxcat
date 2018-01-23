@@ -69,6 +69,7 @@ define() {
    done 
    if [ -n "$addhosts" ]; then
       chdef -t node $addhosts groups=all,${group} || exit 1
+      makedhcp ${addhosts}
       nodeset ${addhosts} osimage=${group}
    else
       error_exit "not found host list"

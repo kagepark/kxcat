@@ -29,3 +29,5 @@ rm -fr /tmp/packimage*
 rm -fr /tmp/mknb*
 rm -f /etc/profile.d/kxcat.sh
 rm -fr /opt/xcat
+rm -f /var/lib/dhcpd/dhcpd.leases
+touch /var/lib/dhcpd/dhcpd.leases
