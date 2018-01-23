@@ -38,6 +38,10 @@ tag=k
 . $_KXC_HOME/etc/kxcat.cfg
 
 
+if [ "$#" == "0" ]; then
+  cat $_KXC_HOME/etc/kxcat.hlp
+  exit
+fi
 cmd=$1
 kcmd=$2
 cmd_str="$(cat $_KXC_HOME/etc/kxcat.hlp | grep -v "^#" | awk '{print $1}')"
