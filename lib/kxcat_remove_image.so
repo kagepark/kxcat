@@ -1,0 +1,19 @@
+####################################
+# Kage Park
+# Re-designed(2017/09) by Kage Park
+# Base design Using old xcat scripts(2011) of Kage
+# License : GPL
+####################################
+
+delete_image() {
+    local hostname opt
+    opt=($*)
+    if (( ${#opt[*]} < 1 )); then
+         echo "${FUNCNAME} <image name> [<image name2>...]"
+         exit
+    fi
+
+    for image in $*; do
+       rmdef -t osimage ${image}
+    done
+}

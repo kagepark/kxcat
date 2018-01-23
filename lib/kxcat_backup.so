@@ -1,0 +1,21 @@
+####################################
+# Kage Park
+# Re-designed(2017/09) by Kage Park
+# Base design Using old xcat scripts(2011) of Kage
+# License : GPL
+####################################
+
+backup() {
+    backup_date=$(date +"%Y%m%d-%H%M")
+    backup_dir=${1}
+    [ -n "$backup_dir" ] || backup_dir=$_KXC_HOME/etc/backup/$backup_date
+    [ -d $backup_dir ] || mkdir -p $backup_dir
+    dumpxCATdb -p $backup_dir
+}
+
+restore() {
+    backup_dir=$1
+    [ -n "$backup_dir" ] || backup_dir=$(ls $_KXC_HOME/etc/backup | tail -n1)
+    [ -d $backup_dir ] || error_exit "$backup_dir not found"
+    restorexCATdb -p $backup_dir
+}

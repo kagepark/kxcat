@@ -1,0 +1,20 @@
+####################################
+# Kage Park
+# Re-designed(2017/09) by Kage Park
+# Base design Using old xcat scripts(2011) of Kage
+# License : GPL
+####################################
+
+hosts() {
+   groups=$*
+   if [ ! -n "$groups" ]; then
+      groups=$(echo $(lsdef -t group | grep -v -e "^all" -e "^nodes" | awk '{print $1}'))
+   fi
+    for group in ${groups}; do
+       if ! lsdef -t group "$group" >& /dev/null; then
+           lsdef -t node ${group}
+       else
+           nodels ${group} hosts.ip
+       fi
+    done
+}

@@ -1,0 +1,16 @@
+####################################
+# Kage Park
+# Re-designed(2017/09) by Kage Park
+# Base design Using old xcat scripts(2011) of Kage
+# License : GPL
+####################################
+
+groups() {
+   group=$1
+   if [ -n "$group" ]; then
+       lsdef -t group $group | grep -v "^Object nam"
+       lsdef -t osimage $group | grep -v "^Object nam"
+   else
+       lsdef -t group | grep -v -e "^all" -e "^nodes"
+   fi
+}

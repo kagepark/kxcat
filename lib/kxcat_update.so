@@ -1,0 +1,53 @@
+####################################
+# Kage Park
+# Re-designed(2017/09) by Kage Park
+# Base design Using old xcat scripts(2011) of Kage
+# License : GPL
+####################################
+
+update() {
+   if [ "$#" == "0" ]; then
+       echo "update            : ${FUNCNAME} <host|group>"
+       echo "update syncfile   : ${FUNCNAME} <host|group> -F"
+       echo "update Software   : ${FUNCNAME} <host|group> -S"
+       echo "update ssh key    : ${FUNCNAME} <host|group> -K"
+       echo "update Postscript : ${FUNCNAME} <host|group> -P [<script1 [<arg1> <arg2>...]>,<script2 [<arg1> <arg2>...]>....]"
+       echo "Reinstall         : ${FUNCNAME} -I <host|group>"
+       exit
+   fi
+   if [ "$1" == "-I" ]; then
+       reinstall=1
+       shift 1
+   fi
+   dest=$1
+   for ii in $*; do
+      [ "$ii" == "-S" ] && netboot_ignore_image=1
+   done
+
+   if node_cnt=$(nodels $dest 2>/dev/null | wc -l); then
+       [ "$node_cnt" == "1" ] && osimage=$(lsdef $dest -i provmethod  | grep "provmethod=" | awk -F= '{print $2}')
+   fi
+   if [ ! -n "$osimage" ]; then
+       lsdef -t group $dest >& /dev/null && osimage=$dest
+   fi
+   if [ ! -n "$osimage" ]; then
+       echo "Not found $dest"
+       exit 1
+   fi
+   type=$(lsdef -t osimage $osimage  -i provmethod | grep "provmethod=" | awk -F= '{print $2}')
+   if [ "$type" == "netboot" ]; then
+      /opt/xcat/bin/updatenode $* 2>/dev/null
+      if [ "$netboot_ignore_image" != "1" ]; then
+         genimage $osimage
+         packimage $osimage
+      fi
+#      nodeset $dest osimage=$osimage ???
+   elif [ "$type" == "install" ]; then
+       if [ "$reinstall" == "1" ]; then
+          nodeset $dest osimage=$osimage
+       else
+          /opt/xcat/bin/updatenode $* 2>/dev/null
+          xdcp  $dest /install/postscripts/xcatpostinit1.install /opt/xcat/xcatpostinit1 2>/dev/null
+       fi
+   fi
+}

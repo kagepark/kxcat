@@ -1,0 +1,64 @@
+####################################
+# Kage Park
+# Re-designed(2017/09) by Kage Park
+# Base design Using old xcat scripts(2011) of Kage
+# License : GPL
+####################################
+
+power() {
+    local hostname opt
+    opt=($*)
+    if (( ${#opt[*]} < 1 )); then
+         echo "${FUNCNAME} <power cmd> [ -h ] <group name|hostname1> [<hostname2>...]"
+         echo
+         echo "<power cmd>"
+         echo "on      : power on via IPMI"
+         echo "off     : power off via IPMI"
+         echo "cycle   : power cycle via IPMI"
+         echo "reset   : power reset via IPMI"
+         echo "status  : power status via IPMI"
+         echo "shutdown: gracefull shutdown with linux command"
+         echo "reboot  : gracefull reboot with linux command"
+         echo
+         echo "with -h option example"
+         echo " -h prod-0[001-003,008] => prod-0001,prod-0002,prod-0003,prod-0008"
+         exit
+    fi
+
+    type=ipmi
+    #type=xcat
+
+    pwcmd=${opt[0]}
+    for ii in on off cycle reset shutdown reboot status; do
+       if [ "$ii" == "$pwcmd" ]; then 
+           pwcmd_ok=1
+           break
+       fi
+    done
+    [ "$pwcmd_ok" == "1" ] || error_exit "Unknown command $pwcmd"
+    shift 1
+
+    if [ "${opt[1]}" == "-h" ]; then
+       shift 1
+       hosts=$(echo $(_k_misc_braket $*))
+    else
+       hosts=$1
+    fi
+
+    if [ "$pwcmd" == "shutdown" -o "$pwcmd" == "reboot" ]; then
+       for ii in $(echo $(lsdef $hosts -i status |sed "s/status=/:/g")| sed "s/ //g" | sed "s/Objectname:/\n/g" | grep ":booted$" | sed "s/:booted//g"); do
+           ssh -f $ii $pwcmd -h
+       done
+       wait
+       echo
+    elif [ "$type" == "xcat" ]; then
+       [ "$pwcmd" == "status" ] && pwcmd=stat
+       rpower $(echo $hosts|sed "s/ /,/g") $pwcmd
+    else
+       for ii in $(echo $(lsdef $(echo $hosts|sed "s/ /,/g") -i bmc |sed "s/bmc=/:/g")| sed "s/ //g" | sed "s/Objectname:/ /g"); do
+          $_KXC_HOME/sbin/${type}_power $(echo $ii| awk -F: '{print $2}') ${pwcmd} &
+       done
+       wait
+       echo
+    fi
+}

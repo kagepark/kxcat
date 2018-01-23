@@ -1,0 +1,37 @@
+####################################
+# Kage Park
+# Re-designed(2017/09) by Kage Park
+# Base design Using old xcat scripts(2011) of Kage
+# License : GPL
+####################################
+
+GROUP_NETWORK=10.4
+GROUP_START=100
+MAX_NODES=20
+
+remove() {
+    local hostname opt
+    opt=($*)
+    if (( ${#opt[*]} < 1 )); then
+         echo "${FUNCNAME} <group name>"
+         exit
+    fi
+
+    for group in $*; do
+      echo "Deleting $group"
+      if lsdef -t group ${group} >&/dev/null ; then
+        nodes=$(lsdef -t group ${group} | grep "members=" |awk -F= '{print $2}')
+        if [ -n "$nodes" ]; then
+           echo "Please stop $nodes first. and delete group $group"
+        else
+           makehosts -d ${group}
+           rmdef -t group ${group}
+           rmdef -t osimage ${group}
+           [ -d /install/groups/${group} ] && rm -fr /install/groups/${group}
+           [ -d /global/kxcat_boot.d/${group} ] && rm -fr /global/kxcat_boot.d/${group}
+        fi
+      else
+        echo "group \"$group\" not found"
+      fi
+    done
+}

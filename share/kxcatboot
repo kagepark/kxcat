@@ -1,0 +1,54 @@
+#!/bin/sh
+# KG Feature for booting procedure
+
+if [ -d /xcatpost/kxcat_boot.d ]; then
+   cd /xcatpost/kxcat_boot.d
+   for ii in $(ls | sort -n); do
+      echo
+      echo "[[ Run $ii in /xcatpost/kxcat_boot.d ]]"
+      sh -x /xcatpost/kxcat_boot.d/$ii 
+   done >> /tmp/kxcat_boot.log
+fi
+
+for ii in $(cat /proc/cmdline); do
+   xcat_server_ip=$(echo $ii | awk -F= '{if($1=="XCAT") print $2}' | awk -F: '{print $1}')
+   [ -n "$xcat_server_ip" ] && break
+done
+[ -d /global ] || mkdir -p /global
+[ -f /opt/xcat/xcatinfo ] &&  . /opt/xcat/xcatinfo 
+if ping -c 2 $xcat_server_ip >& /dev/null; then
+   mount -o vers=3,nolock $xcat_server_ip:/global /global
+else
+   echo "Can't ping to $xcat_server_ip"
+fi
+
+if [ -f /xcatpost/mypostscript ]; then
+   cluster=$(awk -F= '{if($1=="GROUP") print $2}' /xcatpost/mypostscript | sed "s/'//g" | sed "s/all,servers//g" | sed "s/,//g")
+fi
+if [ -d /global/kxcat_boot.d ]; then
+   if [ -n "$cluster" -a -d "/global/kxcat_boot.d/$cluster" ]; then
+      cluster_shell=($(ls /global/kxcat_boot.d/$cluster | sort -n))
+      for ((ii=0; ii<${#cluster_shell[*]}; ii++)); do
+         if [ -f /global/kxcat_boot.d/${cluster}/${cluster_shell[$ii]} ]; then
+            echo 
+            echo "[[ Run ${cluster_shell[$ii]} in $cluster bootscript ]]"
+            sh -x /global/kxcat_boot.d/${cluster}/${cluster_shell[$ii]}
+         fi
+      done >> /tmp/kxcat_boot.log
+   fi
+   if [ -d /global/kxcat_boot.d/global ]; then
+      global_shell=($(ls /global/kxcat_boot.d/global | sort -n))
+      for ((ii=0;ii<${#cluster_shell[*]};ii++));do
+          for ((zz=0;zz<${#global_shell[*]};zz++)); do
+              [ "${cluster_shell[$ii]}" == "${global_shell[$zz]}" ] && unset global_shell[$zz]
+          done
+      done
+      for ((ii=0;ii<${#global_shell[*]};ii++)); do
+         if [ -f /global/kxcat_boot.d/global/${global_shell[$ii]} ]; then
+           echo 
+           echo "[[ Run ${global_shell[$ii]} in global bootscript ]]"
+           sh -x /global/kxcat_boot.d/global/${global_shell[$ii]}
+         fi
+      done >> /tmp/kxcat_boot.log
+   fi
+fi

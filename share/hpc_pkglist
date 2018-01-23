@@ -1,0 +1,95 @@
+# comment for package
+# @ <group name> : Install the <group name>
+# -<pkg name>    : remove the <pkg name>
+# <pkg name>     : Install the <pkg name>
+# #INCLUDE:<extra pkg list file># : Include <extra pkg list file>
+
+@ base
+@ compat-libraries
+@ core
+@ development
+@ hardware-monitoring
+@ network-file-system-client
+@ large-systems
+@ performance
+@ scientific
+@ fonts
+@ input-methods
+@ x11
+bash
+bzip2-libs
+compat-glibc
+compat-glibc-headers
+compat-libgfortran-41
+fuse-libs
+gcc
+gcc-c++
+gcc-gfortran
+gettext-devel
+glib2
+glibc
+glibc-common
+glibc-devel
+glibc-devel
+glibc-headers
+gzip
+ipmitool
+ipmitool
+jasper-libs
+kernel
+kernel-devel
+kexec-tools
+libcurl
+libexif
+libgcc
+libgcrypt
+libgfortran
+libICE
+libpng
+libstdc++
+libstdc++-devel
+libtiff
+libXau
+libXext
+libxml2
+libXmu
+libXpm
+libXrender
+libXres
+libXt
+libXv
+lm_sensors-libs
+mcelog
+mesa-libgbm
+mesa-libGL
+ncurses-libs
+net-snmp
+net-tools
+nfs-utils
+ntp
+ntpdate
+openjpeg-libs
+openssh-clients
+openssh-server
+openssh-server
+openssl
+openssl-devel
+pcp-libs
+pcre-devel
+perl-devel
+perl-libwww-perl
+rsync
+screen
+tar
+tcp_wrappers-devel
+tcsh
+util-linux
+wget
+xz
+xz-devel
+xz-libs
+yp-tools
+zlib
+zlib-devel
+-firewalld
+-firewalld-filesystem

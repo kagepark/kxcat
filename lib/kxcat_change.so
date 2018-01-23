@@ -1,0 +1,91 @@
+####################################
+# Kage Park
+# Re-designed(2017/09) by Kage Park
+# Base design Using old xcat scripts(2011) of Kage
+# License : GPL
+####################################
+
+node() {
+    #Get a group name
+    netboot_str="netboot=xnba"
+    powerm_str="mgt=ipmi"
+    arch_str="arch=x86_64"
+    for ii in $* ; do
+       tmp=($(echo $ii | sed "s/=/ /g"))
+       if [ "${tmp[0]}" == "emac" ]; then
+           mac_str="mac=${tmp[1]}"
+       elif [ "${tmp[0]}" == "bip" ]; then
+           bmcip_str="bmc=${tmp[1]}"
+       elif [ "${tmp[0]}" == "buser" ]; then
+           bmcuser_str="bmcusername=${tmp[1]}"
+       elif [ "${tmp[0]}" == "bpass" ]; then
+           bmcpass_str="bmcpassword=${tmp[1]}"
+       elif [ "${tmp[0]}" == "image" ]; then
+           image_str="provmethod=${tmp[1]}"
+       elif [ "${tmp[0]}" == "arch" ]; then
+           arch_str="arch=${tmp[1]}"
+       elif [ "${tmp[0]}" == "netboot" ]; then
+           netboot_str="netboot=${tmp[1]}"
+       elif [ "${tmp[0]}" == "powermethod" ]; then
+           powerm_str="mgt=${tmp[1]}"
+       elif [ "${tmp[0]}" == "postboot" ]; then
+           postboot_str="postbootscripts=${tmp[1]}"
+       elif [ "${tmp[0]}" == "postscript" ]; then
+           postscript_str="postscripts=${tmp[1]}"
+       elif [ "${tmp[0]}" == "bootmode" ]; then
+           bootmode="${tmp[1]}"
+       elif [ "${tmp[0]}" == "clean" ]; then
+           clean_str="status="
+       fi
+    done
+
+    if node_cnt=$(nodels $node 2>/dev/null | wc -l); then 
+       if [ "$node_cnt" == "1" ]; then
+          chdef -t node $node $arch_str $bmcip_str $bmcuser_str $bmcpass_str $mac_str $powerm_str $netboot_str $image_str $postboot_str $postscript_str $clean_str
+          # Need Check up the node is in the xCAT or not
+          osimage_str=$(lsdef $node | grep "provmethod=" | sed "s/provmethod=//g" | sed "s/ //g")
+          if [ "$bootmode" == "install" ]; then
+             if [ -n "${image_str}" ]; then
+                osimage_str=$(echo $image_str | sed "s/provmethod=//g")
+             fi 
+             nodeset ${node} osimage=$osimage_str
+          elif [ "$bootmode" == "boot" ]; then
+             nodeset ${node} boot
+          else
+             lsdef $node | grep "currstate=boot " >& /dev/null || nodeset ${node} osimage=$osimage_str
+          fi
+       else
+          echo "Looks $node is not host name"
+       fi
+    else 
+       echo "$node not found"
+    fi
+}
+
+image() {
+    echo 
+}
+
+change() {
+    local hostname opt
+    opt=($*)
+    if (( ${#opt[*]} < 3 )); then
+         echo "${FUNCNAME} <type> <name>" 
+         echo "  host options: "
+         echo "    emac=<eth0 mac> bip=<bmc ip> buser=<bmc_user> bpass=<bmc pass> image=<base_image> arch=<default:x86_64> powermethod=<default:ipmi> netboot=<default:xnba> postboot=<post boot scripts> postscript=<post scripts> bootmode=<install|boot> <clean:state>"
+         echo "  image options: "
+         exit
+    fi
+
+    type=$1
+    shift 1
+    node=$1
+    shift 1
+    if [ "$type" == "host" ]; then
+        node $*
+    elif [ "$type" == "image" ]; then
+        image $*
+    else
+        echo "Unkown options"
+    fi    
+}

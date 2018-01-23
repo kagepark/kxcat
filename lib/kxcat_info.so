@@ -1,0 +1,32 @@
+####################################
+# Kage Park
+# Re-designed(2017/09) by Kage Park
+# Base design Using old xcat scripts(2011) of Kage
+# License : GPL
+####################################
+node() {
+   lsdef $1
+}
+
+image() {
+   lsdef -t osimage $1
+}
+
+info() {
+    local hostname opt
+    opt=($*)
+    if (( ${#opt[*]} < 1 )); then
+         echo "${FUNCNAME} <type> <name>"
+         exit
+    fi
+
+    type=$1
+    node=$2
+    if [ "$type" == "host" ]; then 
+       node $node
+    elif [ "$type" == "image" ]; then
+       image $node
+    else
+       echo "Unknown options"
+    fi
+}

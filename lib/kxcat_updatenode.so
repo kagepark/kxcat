@@ -1,0 +1,14 @@
+####################################
+# Kage Park
+# Re-designed(2017/09) by Kage Park
+# Base design Using old xcat scripts(2011) of Kage
+# License : GPL
+####################################
+
+updatenode() {
+   if [ "$#" == "0" ]; then
+       echo "update packages : ${FUNCNAME} <host> --scripts otherpkgs"
+       exit
+   fi
+   /opt/xcat/bin/updatenode $*
+}

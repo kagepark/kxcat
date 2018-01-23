@@ -1,0 +1,64 @@
+#! /bin/sh
+##########################################################
+# Kage Park
+# Wrapper script for xCAT
+# Re-designed at 10/06/2017 by Kage Park
+# Base design Using old libraries(07/2006) of Kage
+# License : GPL
+# Upgrade it for Supermicro Computer (Start at 01/07/2018)
+##########################################################
+# Issues 
+#  - network conflict between many clusters (it has no issue during test with two clusters
+# Support Compute OS:
+#  - CentOS 7.4 :
+#    + install : good
+#    + netboot : post script has some issue when booting
+#  - CentOS 6.9 : Not good??? 
+#    + netboot is not correctly working for IP and root password
+#    + install is not correctly working for IP
+
+_KXC_VERSION=3.0.3
+
+_help() {
+    echo "Usage: $(basename $0) command [<arg1> <arg2>....]"
+    exit
+}
+
+error_exit() {
+    echo $*
+    exit 1
+}
+
+_KXC_HOME=$(dirname $(dirname $(readlink -f $0)))
+_K_LIB=$_KXC_HOME/lib
+tag=k
+[ -f $_K_LIB/klib.so ] || error_exit "klib.so file not found"
+. $_K_LIB/klib.so
+[ -f $_KXC_HOME/etc/kxcat.cfg ] || error_exit "kxcat.cfg file not found"
+. $_KXC_HOME/etc/kxcat.cfg
+
+
+cmd=$1
+kcmd=$2
+cmd_str="$(cat $_KXC_HOME/etc/kxcat.hlp | grep -v "^#" | awk '{print $1}')"
+
+if [ "$cmd" == "help" -o "$cmd" == "--help" ]; then
+    cat $_KXC_HOME/etc/kxcat.hlp
+    _help
+elif [ "$cmd" == "version" -o "$cmd" == "--version" ]; then
+    echo "$_KXC_VERSION"
+else
+   [ -f /etc/profile.d/xcat.sh ] && xcat_env=/etc/profile.d/xcat.sh
+   [ ! -n "$xcat_env" -a -f $_KXC_HOME/etc/xcat.sh ] && xcat_env=$_KXC_HOME/etc/xcat.sh
+   [ -n "$xcat_env" ] && source $xcat_env || error_exit "/etc/profile.d/xcat.sh not found"
+   for cmdname in $cmd_str; do
+      if [ "$cmd" == "$cmdname" ]; then
+          _k_load xcat_$cmd
+          shift 1
+          $cmd $*
+          exit
+      fi
+   done
+   echo "Unknown command ($cmd)"
+   #_help
+fi

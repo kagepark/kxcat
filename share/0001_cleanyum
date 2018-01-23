@@ -1,0 +1,6 @@
+if [ -d /etc/yum.repos.d ]; then
+    cd /etc/yum.repos.d
+    for ii in $(ls *.repo | grep -v -e "^xCAT" -e "^local"); do
+       rm -f "$ii"
+    done
+fi

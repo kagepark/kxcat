@@ -1,0 +1,18 @@
+# synclists=/install/post/custom/sync_file  at osimage object
+/etc/hosts -> /etc/hosts
+/etc/passwd -> /etc/passwd
+/etc/group -> /etc/group
+/etc/shadow -> /etc/shadow
+/etc/security/limits.conf -> /etc/security/limits.conf
+/root/.ssh/config -> /root/.ssh/config
+/install/post/hpc/post_env -> /tmp/post_env
+
+/install/post/hpc/post_exe.post -> /tmp/post_exe.post
+EXECUTE:
+/tmp/post_exe.post
+
+EXECUTEALWAYS:
+/tmp/post_env
+
+#MERGE:
+#/my/password -> /etc/passwd

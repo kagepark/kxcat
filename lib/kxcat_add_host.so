@@ -1,0 +1,29 @@
+####################################
+# Kage Park
+# Re-designed(2017/09) by Kage Park
+# Base design Using old xcat scripts(2011) of Kage
+# License : GPL
+####################################
+
+add_host() {
+    local hostname opt
+    opt=($*)
+    if (( ${#opt[*]} < 7 )); then
+         echo "${FUNCNAME} <node name> <eth0 mac> <bmc ip> <bmc_user> <bmc pass> <base_image> <base_arch>"
+         exit
+    fi
+
+    node=$1
+    #Get a group name
+    group=??
+    eth0_mac=$2
+    bmc_ip=$3
+    bmc_user=$4
+    bmc_pass=$5
+    base_image=$6
+    base_arch=$7
+
+    # Need Check up the node is in the xCAT or not
+
+    mkdef -t node $node groups=all,${group} arch=$base_arch bmc=$bmc_ip bmcusername=$bmc_user bmcpassword=$bmc_pass mac=$eth0_mac mgt=ipmi netboot=xnba provmethod=$base_image
+}

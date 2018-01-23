@@ -1,0 +1,365 @@
+####################################
+# Base library of Kage Tools
+# Copyright CEP(Kage Park)
+# License : GPL
+#   Since : March 1994
+####################################
+####################################
+#Sample base script info
+####################################
+##Kage Library  - <name>
+##\$lib_ver$:0.0.1
+#_k_loaded_${name}(){
+#   local null
+#}
+##_k_${name}(){
+##   start code here
+##}
+##_k_${name}_close(){
+## close code here
+##}
+####################################
+
+_k_load() {
+  local name  opt
+  name=$1
+  opt=$2
+  if [ $# -ne 1 ]; then
+     error_return "_k_load <lib name>"
+  else
+     if [ -f $_K_LIB/${tag}${name}.so ]; then
+         if [ "$opt" == "-f" ]; then
+             . $_K_LIB/${tag}${name}.so
+             declare -F -p | cut -d " " -f 3 | grep "^_k_${name}$" > /dev/null 2>&1 && _k_${name}
+         elif ! _k_list_lib | grep "^$name$" > /dev/null ; then
+             . $_K_LIB/${tag}${name}.so
+             declare -F -p | cut -d " " -f 3 | grep "^_k_${name}$" > /dev/null 2>&1 && _k_${name}
+         fi
+     elif [ -f $_K_LIB/${name} ]; then
+         . $_K_LIB/${name}
+     else
+        echo "File not found"
+        return 1
+     fi
+  fi
+  return 0
+}
+
+_k_unload() {
+  local name ln opt
+  name=$1
+  opt=$2
+  if [ $# -ne 1 ]; then
+     error_return "_k_unload <lib name>"
+  else
+     declare -F -p | cut -d " " -f 3 | grep "^_k_${name}_close$" > /dev/null 2>&1 && _k_${name}_close
+     for ln in $(grep "^_k_" $_K_LIB/${tag}${name}.so | awk -F\( '{print $1}'); do
+        unset $ln > /dev/null 2>&1
+     done
+  fi
+}
+
+_k_lexec() {
+    #ex : _k_lexec <lib name> <function> <options...>
+    local klib preload _k_preload_list pll _k_preload_list_arr
+    klib=$1
+    shift 1
+    _k_load $klib
+    if [ "$?" == "0" ]; then
+        _k_preload_list="$_k_preload_list $klib"
+    fi
+
+    _k_preload $klib
+
+    #EXEC
+    $*
+
+    if [ -n "$_k_preload_list" ]; then
+        _k_preload_list_arr=($_k_preload_list)
+        for ((i=$((${#_k_preload_list_arr[*]}-1)); i>=0; i--)); do
+           _k_unload ${_k_preload_list_arr[$i]}
+        done
+    fi
+}
+
+_k_list() {
+  #typeset -f | awk '/ \(\) $/ && !/^main / {print $1}'
+  #typeset -f | grep "^_k_" | awk '{print $1}'
+  declare -F -p | cut -d " " -f 3 | grep "^_k_"
+}
+
+_k_list_lib() {
+  declare -F -p | cut -d " " -f 3 | grep "^_k_loaded_" | sed "s#^_k_loaded_##g"
+}
+
+_k_function_list() {
+  local ln  lib_name
+  lib_name=$1
+  if [ -n "$lib_name" ]; then
+    grep "^_k_" $_K_LIB/${tag}${lib_name}.so | awk '/ \(\)\{$/ || / \(\) \{$/ || /\(\)\{$/ || /\(\) \{$/ || /\(\) $/ {print $1 }' | sed "s/(){//g" | sed "s/()//g" | sed "s/{//g" | sed "s/()//g" | sort
+  else
+    echo "<lib name>"
+  fi
+}
+
+_k_avail() {
+  local ln
+  for ln in  $(ls $_K_LIB/${tag}*.so); do
+        basename $ln | sed -e 's/^k//g' -e 's/\.so$//g'
+  done
+}
+
+_k_find_function() {
+  local func_name
+  func_name=$1
+  if [ -n "$func_name" ]; then
+    for libname in $( _k_avail ); do
+        _k_function_list $libname | grep -w $func_name >& /dev/null && echo "Filename : $_K_LIB/k${libname}.so"
+    done
+    typeset -f $func_name
+  else
+    echo "<function name>"
+  fi
+}
+
+_k_version() {
+  local name
+  name=$1
+  if [ -n "$name" ] ;then
+     if [ -f $_K_LIB/${tag}${name}.so ]; then
+         echo "$(head -n 10 $_K_LIB/${tag}${name}.so | grep "^#\$lib_ver\$:" | awk -F: '{print $2}')"
+         return 0
+     fi
+  else
+     echo "_k_version <lib name>"
+  fi
+  return 1
+}
+
+_k_loaded_misc(){
+   local null
+}
+
+_k_misc_screen_get_session() {
+  sessions=( )
+  [ -d /var/run/screen/S-$(id -u -n) ] && sessions=( $(ls /var/run/screen/S-$(id -u -n)/ ) )
+
+  _new_sessions=( $(ls /var/run/screen/S-$(id -u -n)/) )
+  i=$(expr ${#_new_sessions[*]} - 1)
+  while [ 0 -le $i ]; do
+    if [ "${sessions[$i]}" != "${_new_sessions[$i]}" ]; then
+       echo ${_new_sessions[$i]}
+       break
+    fi
+    i=$(expr $i - 1)
+  done
+}
+
+_k_misc_screen() { #run command on the screen
+  local _opt _cmd
+  _opt=$(_k_opt "$*" -o) && shift 2
+  _cmd=$*
+
+  while [ 1 ]; do
+    [ -f /tmp/S-$(id -u -n).lock ] || break
+    sleep 1
+  done
+  touch /tmp/S-$(id -u -n).lock
+
+  if [ -n "$_cmd" ]; then
+    if [ "$_opt" == "b" ]; then
+     screen -d -m $_cmd
+    elif [ "$_opt" == "lb" ];then
+     screen -L -d -m $_cmd
+    elif [ "$_opt" == "l" ]; then
+     screen -L $_cmd
+    else
+     screen $_cmd
+    fi
+    sleep 0.1
+    screen_session=$(_k_misc_screen_get_session)
+    rm -f /tmp/S-$(id -u -n).lock
+    [ -n "$screen_session" ] || return 1
+    echo $screen_session
+    return 0
+  else
+     error_return "_k_screen [ -o <option> ] <cmd> [ <opt of cmd>]"
+  fi
+}
+
+_k_misc_braket() {
+   IN=( $* )
+   if [ ${#IN[*]} -ge 1 ]; then
+
+     for A in ${IN[*]} ; do
+       if echo $A | grep "\[" >& /dev/null ; then
+         fval=$(echo $A | awk -F\[ '{print $1}' )
+         vval=$(echo $A | awk -F\[ '{print $2}' | sed 's/]//g')
+
+         ranges=( $(echo $vval | sed 's/,/ /g') )
+
+         for i in $(seq 0 $(( ${#ranges[*]} - 1 )) ); do
+           echo ${ranges[$i]} | grep "-" >&/dev/null && (
+             start=$(echo ${ranges[$i]} | awk -F- '{print $1}')
+             end=$(echo ${ranges[$i]} | awk -F- '{print $2}')
+             strlen=${#start}
+             for m in $(seq $start $end); do
+               printf "%s%0${strlen}d\n" "$fval" "$m"
+             done
+           ) || echo ${fval}${ranges[$i]}
+         done
+       else
+         echo $A
+       fi
+     done
+   fi
+}
+
+_k_misc_is_num() {
+    local src
+    src=$@
+    [ -n "$src" ] || return 1
+    if [ "$(echo $src | sed "s/^[-+0-9][0-9.]*//g" | wc -c 2> /dev/null)" == "1" ]; then
+       echo 1
+       return 0
+    else
+       echo 0
+       return 1
+    fi
+}
+
+_k_misc_skip_blank(){
+   local in
+   in="$*"
+   echo $(echo $in | sed 's/\ //g')
+}
+
+_k_opt_opt() {
+  local z opts find num n
+  opts=( $1 )
+  find=$2
+  num=$3
+  [ $# -lt 2 ] && error_return "_k_opt <src> <find> [<output num>]"
+  [ -n "$num" ] || num=1
+  for z in $(seq 0 $(( ${#opts[*]} - 1)) ); do
+    if [ "$find" == "${opts[$z]}" ]; then
+      for n in $(seq 1 $num); do
+        echo "${opts[$(($z + $n))]}"
+      done
+      return 0
+      break
+    fi
+  done
+  return 1
+}
+
+_k_opt_num() {
+  local z opts find n
+  opts=( $1 )
+  find=$2
+  [ $# -lt 2 ] && error_return "_k_opt <src> <find>"
+  for z in $(seq 0 $(( ${#opts[*]} - 1)) ); do
+    if [ "$find" == "${opts[$z]}" ]; then
+      for n in $(seq $(( $z+1))  $(( ${#opts[*]} - 1)) ); do
+        if echo ${opts[$n]} | grep "^-" > /dev/null ; then
+           echo $(( $n-$z -1))
+           return 0
+           break
+        fi
+      done
+      echo $(( $n-$z ))
+      return 0
+      break
+    fi
+  done
+  return 1
+}
+
+_k_opt_find() {
+  local z opts find n
+  opts=( $1 )
+  find=$2
+  [ $# -lt 2 ] && error_return "_k_opt <src> <find>"
+  for z in $(seq 0 $(( ${#opts[*]} - 1)) ); do
+    if [ "$find" == "${opts[$z]}" ]; then
+      echo $z
+      return 0
+      break
+    fi
+  done
+  return 1
+}
+
+_k_opt_end() {
+   local opts
+   opts=( $* )
+   echo ${opts[$(( ${#opts[*]}-1 ))]}
+}
+
+_k_make_hostname() {
+   _line_type=0
+   _k_opt_opt "$*" -l >/dev/null && _line_type=1
+   _k_opt_opt "$*" -w >/dev/null && _line_type_word=1
+   _host_num=$(_k_opt_num "$*" -h)
+   hosts=$(_k_opt_opt "$*" -h $_host_num)
+   _hosts=$(_k_misc_braket $hosts)
+
+   if [ "$_line_type" == "1" ]; then
+      if [ "$_line_type_word" == "1" ]; then
+          echo $_hosts | sed "s/ /,/g"
+      else
+          echo $_hosts
+      fi
+   else
+     for nh in $_hosts; do
+       echo $nh
+     done
+   fi
+}
+
+
+_k_net_ip2str() {
+    local num
+    num=$1
+    [ -n "$num" ] || error_exit "input not found"
+    echo $(( $(( $num/$((256*256*256)) ))% 256)).$(( $(($num/$((256*256)) ))%256)).$(( $(($num/256)) % 256)).$(($num%256))
+}
+
+_k_net_str2ip() {
+    [ -n "$1" ] || error_exit "input not found"
+    ip=( $(echo $1 | sed 's/\./ /g') )
+    echo $(( $((256*256*256*${ip[0]})) + $((256*256*${ip[1]})) + $((256*${ip[2]})) +${ip[3]} ))
+}
+
+_k_net_add_ip() {
+    [ -n "$1" ] || error_exit "IP not found"
+    [ -n "$2" ] || error_exit "add value not found"
+    echo $(_k_net_ip2str $(( $(_k_net_str2ip $1) + $2 )) )
+}
+
+_k_net_ip() {
+    network=$1
+    netmask=$2
+    network_ip=($(echo $network | sed "s/\./ /g"))
+    zz=0
+    for ii in $(echo $netmask | sed "s/\./ /g"); do
+       [ "$ii" == "0" ] && break
+       (( $zz > 0 )) && echo "."
+       echo "${network_ip[$zz]}"
+       zz=$(($zz+1))
+    done
+}
+
+_k_misc_get_realpath() {
+    local src
+    src=$1
+    while [ 1 ]; do
+        get_file=$(readlink -f $src)
+        if [ ! -L "$get_file" ]; then
+            echo "$get_file"
+            break
+        else
+            src="$get_file"
+        fi
+    done
+}

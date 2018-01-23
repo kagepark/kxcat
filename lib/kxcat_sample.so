@@ -1,0 +1,21 @@
+####################################
+# Kage Park
+# Re-designed(2017/09) by Kage Park
+# Base design Using old xcat scripts(2011) of Kage
+# License : GPL
+####################################
+
+#Kage Library  - <name>
+#\$lib_ver$:0.0.1
+_k_loaded_sample(){
+   local null
+}
+_k_sample(){
+   echo sample
+   #start code here
+}
+
+_k_sample_close(){
+   echo sample
+   # close code here
+}

@@ -1,0 +1,40 @@
+####################################
+# Kage Park
+# Re-designed(2017/09) by Kage Park
+# Base design Using old xcat scripts(2011) of Kage
+# License : GPL
+####################################
+
+hosts() {
+   nodels
+}
+
+nodes() {
+   srv_num=1
+   xor=0
+   mx_item=5 
+
+   printf "%13s " "Nodes"
+   printf "%15s " "Alias"
+   printf "%15s " "Hostname"
+   printf "%10s " "Power"
+   printf "%10s " "State"
+   echo
+
+   node_list=()
+   for line in $(echo $(lsdef -t node -o all -i id,power,status,hostnames) | sed -e "s/currstate=//g" -e "s/hostnames=//g" -e "s/id=//g" -e "s/status=//g" -e "s/power=//g" -e "s/ /,/g" | sed "s/Object,name:,/\n/g"); do
+       id=$(echo $line | awk -F, '{print $3}')
+       node_list[$id]="$(echo $line | awk -F, '{printf "%s,%s,%s,%s",$1,$2,$4,$5}')"
+   done
+
+   for ((ii=1;ii<=${#node_list[*]};ii++)); do
+       srv_name=node-$(printf "%05d" $ii)
+       host_name=$(echo ${node_list[$ii]} | awk -F, '{print $1}')
+       printf "%12s " $srv_name
+       printf "%15s " "$(echo ${node_list[$ii]} | awk -F, '{print $2}')"
+       [ "$srv_name" == "$host_name" ] &&  printf "%15s " "-" || printf "%15s " "$(echo ${node_list[$ii]} | awk -F, '{print $1}')"
+       printf "%10s " "$(echo ${node_list[$ii]} | awk -F, '{print $3}')"
+       printf "%10s " "$(echo ${node_list[$ii]} | awk -F, '{print $4}')"
+       echo
+   done
+}
