@@ -61,11 +61,10 @@ define() {
        [ -n "$nn" ] && lastnn=$nn || lastnn=$(($lastnn+1))
        host=${group}-$(printf "%04d" $lastnn)
        #echo "chdef -t node -o $ii -n $host $ii"
-       chdef -t node -o $ii -n $host $ii || break
+       chdef -t node -o $ii -n $host $ii || continue
        chdef $host status=
        [ -n "$addhosts" ] && addhosts="$addhosts,$host" || addhosts=$host
        nodelist[$lastnn]=$lastnn
-
    done 
    if [ -n "$addhosts" ]; then
       chdef -t node $addhosts groups=all,${group} || exit 1
@@ -75,10 +74,9 @@ define() {
       error_exit "not found host list"
    fi
    sleep 4
-   makehosts ${group} 2>/dev/null
-   for ((zz=1; zz<${#nodelist[*]}; zz++)); do
-      host=${group}-$(printf "%04d" ${nodelist[$zz]})
-      [ -f /opt/xcat/share/xcat/mypostscript/mypostscript.tmpl ] && cp -a /opt/xcat/share/xcat/mypostscript/mypostscript.tmpl /tftpboot/mypostscripts/mypostscript.${host} || touch /tftpboot/mypostscripts/mypostscript.${host}
+   makehosts ${addhosts} 2>/dev/null
+   for ii in $(echo $addhosts | sed "s/,/ /g"); do
+      [ -f /opt/xcat/share/xcat/mypostscript/mypostscript.tmpl ] && cp -a /opt/xcat/share/xcat/mypostscript/mypostscript.tmpl /tftpboot/mypostscripts/mypostscript.${ii} || touch /tftpboot/mypostscripts/mypostscript.${ii}
    done
 }
 

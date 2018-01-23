@@ -48,8 +48,7 @@ free() {
        rm -f /tftpboot/mypostscripts/mypostscript.${hostname}
        [ -n "$delhosts" ] && delhosts="$delhosts,node-$(printf "%05d" $hostid)" || delhosts=node-$(printf "%05d" $hostid)
    done 
-#   echo "chdef -t node $delhosts groups=all,nodes"
-   chdef -t node $delhosts groups=all,nodes
+   chdef -t node $delhosts groups=all,nodes status=
    makedhcp -d $delhosts
 
    # make /etc/hosts
