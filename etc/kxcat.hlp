@@ -12,7 +12,7 @@ change image <image name>    # change base OS image's information
 info image [<image name>]    # show base OS image's information
 
 # groups
-set            # define group to nodes
+define         # define group to nodes
 free           # undefine group to nodes
 clone          # clone group
 make           # make new group
