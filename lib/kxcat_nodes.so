@@ -14,7 +14,7 @@ nodes() {
    xor=0
    mx_item=5 
 
-   printf "%13s " "Nodes"
+   printf "%12s " "Nodes"
    printf "%15s " "Alias"
    printf "%15s " "Hostname"
    printf "%10s " "Power"
