@@ -30,3 +30,6 @@ Install:
 Help: 
  - it will keep changing command to grouped function and descriptions
  - This will be initial command and descriptions
+
+Not fully developed yet.
+it still has bugs
