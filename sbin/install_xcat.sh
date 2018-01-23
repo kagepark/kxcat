@@ -194,8 +194,8 @@ xcat_image() {
   kxcat create sys $base_image install
 } 
 
-#init
-#xcat_install
+init
+xcat_install
 xcat_env
 xcat_image
 
