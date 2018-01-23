@@ -38,7 +38,7 @@ free() {
        hostname=$(echo ${node_list[$ii]} | awk -F: '{print $1}')
        hostid=$(echo ${node_list[$ii]} | awk -F: '{print $2}')
        makehosts -d ${hostname} 2>/dev/null
-       if ! chdef -t node -o $hostname -n node-$(printf "%04d" $hostid) $ii; then
+       if ! chdef -t node -o $hostname -n node-$(printf "%05d" $hostid) $ii; then
             makehosts ${hostname} 2>/dev/null
             continue
        fi
