@@ -11,6 +11,7 @@ dumpxCATdb -p xcat.db
 lsdef -z all
 lsdef -z -t network -l
 nodeset all offline
+. /etc/profile.d/kxcat.sh
 for ii in $(kxcat groups | awk '{print $1}'); do
    makedhcp -d $ii
 done
@@ -26,4 +27,5 @@ rm -f /etc/profile.d/xcat.*
 rm -fr /tmp/genimage*
 rm -fr /tmp/packimage*
 rm -fr /tmp/mknb*
-
+rm -f /etc/profile.d/kxcat.sh
+rm -fr /opt/xcat

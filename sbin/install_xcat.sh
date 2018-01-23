@@ -6,7 +6,7 @@
 # Base design Using old libraries(2006/07) of Kage
 # License : GPL
 ###########################################################
-set +x
+set -x
 
 error_exit() {
    echo $*
@@ -19,7 +19,7 @@ _KXCAT_HOME=$(dirname $(dirname $(readlink -f $0)))
 [ -f $_KXCAT_HOME/etc/kxcat.cfg ] || error_exit "kxcat.cfg file not found"
 . $_KXCAT_HOME/etc/kxcat.cfg
 
-MGMT_IP=$(_k_net_add_ip $CLUSTER_NETWORK 1)
+MGT_IP=$(_k_net_add_ip $GROUP_NETWORK 1)
 
 # temporary disable
 init() {
@@ -28,13 +28,13 @@ init() {
   if [ -f /etc/hostname ]; then
       grep "^$MGMT_HOSTNAME$" /etc/hostname >& /dev/null || echo "$MGMT_HOSTNAME" > /etc/hostname
   fi
-  if ! grep "^$MGMT_IP  $MGMT_HOSTNAME" /etc/hosts >& /dev/null; then
-     echo "$MGMT_IP  $MGMT_HOSTNAME  ${MGMT_HOSTNAME}.${DOMAIN_NAME}" >> /etc/hosts
+  if ! grep "^$MGT_IP  $MGMT_HOSTNAME" /etc/hosts >& /dev/null; then
+     echo "$MGT_IP  $MGMT_HOSTNAME  ${MGMT_HOSTNAME}.${DOMAIN_NAME}" >> /etc/hosts
   fi
   echo "search $DOMAIN_NAME
-nameserver $MGMT_IP
+nameserver $MGT_IP
 $([ -n "$DNS_OUTSIDE" ] && echo nameserver $DNS_OUTSIDE)" > /etc/resolv.conf
-  echo "export PATH=${PATH}:$_KXCAT_HOME/bin" > /etc/profile.d/kxcat.sh
+  echo "export PATH=\${PATH}:$_KXCAT_HOME/bin" > /etc/profile.d/kxcat.sh
   . /etc/profile.d/kxcat.sh
   systemctl disable firewalld
   systemctl disable libvirtd
@@ -83,7 +83,7 @@ net.core.rmem_default = 262144
 }
 
 
-xcat_env() {
+xcat_install() {
   ping -c 2 www.google.com  >& /dev/null || error_exit "Please setup outside network for auto installation for xCAT"
   yum -y install dhcp dhcp-common dhcp-libs ntp nfs 
   systemctl stop dhcpd
@@ -95,10 +95,16 @@ xcat_env() {
   rm -f /tmp/go-xcat
   [ -f /etc/profile.d/xcat.sh ] || error_exit "/etc/profile.d/xcat.sh file not found"
   mv /etc/profile.d/xcat.* $_KXCAT_HOME/etc
+}
+
+xcat_env() {
   # Patch post.xcat file
-  if ! grep "^#KG post fix" > /opt/xcat/share/xcat/install/scripts/post.xcat >&/dev/null; then
-     mv /opt/xcat/share/xcat/install/scripts/post.xcat /opt/xcat/share/xcat/install/scripts/post.xcat.orig
-     echo "#KG post fix
+echo "/opt/xcat/share/xcat/install/scripts/post.xcat debug"
+read x
+  if [ -f /opt/xcat/share/xcat/install/scripts/post.xcat ]; then
+     if ! grep "^#KG post fix" /opt/xcat/share/xcat/install/scripts/post.xcat >&/dev/null; then
+        mv /opt/xcat/share/xcat/install/scripts/post.xcat /opt/xcat/share/xcat/install/scripts/post.xcat.orig
+        echo "#KG post fix
 if [ -d /etc/systemd/system ]; then 
   for ii in initial-setup.service initial-setup-text.service initial-setup-graphical.service firewalld.service libvirtd.service; do
     for jj in multi-user.target.wants graphical.target.wants; do
@@ -108,26 +114,18 @@ if [ -d /etc/systemd/system ]; then
     done
   done
 fi
-     " > /opt/xcat/share/xcat/install/scripts/post.xcat
-     cat /opt/xcat/share/xcat/install/scripts/post.xcat.orig >> /opt/xcat/share/xcat/install/scripts/post.xcat
-     chmod +x /opt/xcat/share/xcat/install/scripts/post.xcat
-  fi
-
-#  if ! grep "^#KG Added boot feature." /opt/xcat/share/xcat/install/scripts/post.xcat >&/dev/null; then
-#  sed -i '/^#INCLUDE:\/install\/postscripts\/xcatpostinit1.install#/a \
-#\
-##KG Added boot feature. \
-#if \[ -f \/xcatpost\/kxcatboot \]\; then \
-#   chmod +x \/xcatpost\/kxcatboot \
-#   \/xcatpost\/kxcatboot \> \/tmp\/kxcatboot.log\
-#fi\
-#\
-#' /opt/xcat/share/xcat/install/scripts/post.xcat
-#  fi
+        " > /opt/xcat/share/xcat/install/scripts/post.xcat
+        cat /opt/xcat/share/xcat/install/scripts/post.xcat.orig >> /opt/xcat/share/xcat/install/scripts/post.xcat
+        chmod +x /opt/xcat/share/xcat/install/scripts/post.xcat
+     fi
+   else
+     echo "/opt/xcat/share/xcat/install/scripts/post.xcat file not found"
+     read x
+   fi
 
   if ! grep "^#KG Added boot feature." /install/postscripts/xcatpostinit1.install >&/dev/null; then
-  nn=$(($(grep -n "^esac$" /install/postscripts/xcatpostinit1.install | awk -F: '{print $1}') - 1))
-  sed -i "${nn}i\
+     nn=$(($(grep -n "^esac$" /install/postscripts/xcatpostinit1.install | awk -F: '{print $1}') - 1))
+     sed -i "${nn}i\
 \
 \
 #KG Added boot feature. \n\
@@ -135,11 +133,11 @@ if [ -f \/xcatpost\/kxcatboot \]\; then\n\
    chmod +x \/xcatpost\/kxcatboot\n\
    \/xcatpost\/kxcatboot \> \/tmp\/kxcatboot.log \n\
 fi\
-" /install/postscripts/xcatpostinit1.install
+     " /install/postscripts/xcatpostinit1.install
   fi
   if ! grep "^#KG Added boot feature." /install/postscripts/xcatpostinit1.netboot >&/dev/null; then
-  nn=$(($(grep -n "^esac$" /install/postscripts/xcatpostinit1.netboot | awk -F: '{print $1}') - 1))
-  sed -i "${nn}i\
+     nn=$(($(grep -n "^esac$" /install/postscripts/xcatpostinit1.netboot | awk -F: '{print $1}') - 1))
+     sed -i "${nn}i\
 \
 \
 #KG Added boot feature. \n\
@@ -147,7 +145,7 @@ if [ -f \/xcatpost\/kxcatboot \]\; then\n\
    chmod +x \/xcatpost\/kxcatboot\n\
    \/xcatpost\/kxcatboot \> \/tmp\/kxcatboot.log \n\
 fi\
-" /install/postscripts/xcatpostinit1.netboot
+     " /install/postscripts/xcatpostinit1.netboot
   fi
 
   source $_KXCAT_HOME/etc/xcat.sh
@@ -166,18 +164,17 @@ fi\
 
   tabdump site
   chdef -t site -o clustersite domain=$DOMAIN_NAME
-  chdef -t site forwarders=$MGMT_IP
+  chdef -t site forwarders=$MGT_IP
   makedns all 2>/dev/null
 
-
-  chtab key=master site.value=$MGMT_IP
-  chtab key=dhcpinterfaces site.value=$CLUSTER_NET_DEV
-  network_name=$(tabdump networks | grep $CLUSTER_NET_DEV | awk -F\" '{print $2}')
-  [ -n "$network_name" ] || error_exit "network_name not found for $CLUSTER_NET_DEV device"
-  DHCP_IP_RANGE=$(_k_net_add_ip $CLUSTER_NETWORK $((65279-$(($MAX_SERVERS * 2)))))-$(_k_net_add_ip $CLUSTER_NETWORK 65279)
-  chtab netname=$network_name networks.net=$CLUSTER_NETWORK networks.mask=$CLUSTER_NETMASK networks.mgtifname=$CLUSTER_NET_DEV networks.dhcpserver=$MGMT_IP networks.tftpserver=$MGMT_IP networks.nameservers=$MGMT_IP networks.dynamicrange=$DHCP_IP_RANGE
+  chtab key=master site.value=$MGT_IP
+  chtab key=dhcpinterfaces site.value=$GROUP_NET_DEV
+  network_name=$(tabdump networks | grep $GROUP_NET_DEV | awk -F\" '{print $2}')
+  [ -n "$network_name" ] || error_exit "network_name not found for $GROUP_NET_DEV device"
+  DHCP_IP_RANGE=$(_k_net_add_ip $GROUP_NETWORK $((65279-$(($MAX_NODES * 2)))))-$(_k_net_add_ip $GROUP_NETWORK 65279)
+  chtab netname=$network_name networks.net=$GROUP_NETWORK networks.mask=$GROUP_NETMASK networks.mgtifname=$GROUP_NET_DEV networks.dhcpserver=$MGT_IP networks.tftpserver=$MGT_IP networks.nameservers=$MGT_IP networks.dynamicrange=$DHCP_IP_RANGE
   tabdump networks
-  grep "^DHCPDARGS=" /etc/sysconfig/dhcpd >& /dev/null || echo "DHCPDARGS=\"$CLUSTER_NET_DEV\"" >> /etc/sysconfig/dhcpd
+  grep "^DHCPDARGS=" /etc/sysconfig/dhcpd >& /dev/null || echo "DHCPDARGS=\"$GROUP_NET_DEV\"" >> /etc/sysconfig/dhcpd
 
   makedhcp -n
   systemctl start dhcpd
@@ -194,22 +191,23 @@ xcat_image() {
   base_image_str=$(tabdump osimage | sed "s/\"//g" | awk -F, '{if($6=="install") printf "%s,%s", $1,$13}')
   base_image=$(echo $base_image_str | awk -F, '{print $1}')
   base_arch=$(echo $base_image_str | awk -F, '{print $2}')
-  sce create sys $base_image install
+  kxcat create sys $base_image install
 } 
 
-init
+#init
+#xcat_install
 xcat_env
 xcat_image
 
 
-# Add Servers
-for ((srv_snum=1; srv_snum<=$MAX_SERVERS; srv_snum++)); do
-   srv_name=server-$(printf "%04d" $srv_snum)
+# Add Nodes
+for ((srv_snum=1; srv_snum<=$MAX_NODES; srv_snum++)); do
+   srv_name=node-$(printf "%05d" $srv_snum)
    echo "Setup $srv_name"
    srv_mac="00:00:00:00:00:00"
    srv_info=$([ -f server_list.cfg ] && grep "^${srv_snum}|" server_list.cfg | awk -F\| '{print $2}') 
    [ -n "$srv_info" ] && srv_mac=$srv_info
-   mkdef -t node $srv_name groups=all,servers id=$srv_snum arch=$base_arch bmc=$(_k_net_add_ip $BMC_NETWORK $srv_snum) bmcusername=$BMC_USER bmcpassword=$BMC_PASS mac=$srv_mac mgt=ipmi netboot=xnba provmethod=$base_image
+   mkdef -t node $srv_name groups=all,nodes id=$srv_snum arch=$base_arch bmc=$(_k_net_add_ip $BMC_NETWORK $srv_snum) bmcusername=$BMC_USER bmcpassword=$BMC_PASS mac=$srv_mac mgt=ipmi netboot=xnba provmethod=$base_image
 done
 
 makehosts all 2>/dev/null
