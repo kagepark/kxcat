@@ -12,7 +12,7 @@ update() {
        echo "update Software   : ${FUNCNAME} <host|group> -S"
        echo "update ssh key    : ${FUNCNAME} <host|group> -K"
        echo "update Postscript : ${FUNCNAME} <host|group> -P [<script1 [<arg1> <arg2>...]>,<script2 [<arg1> <arg2>...]>....]"
-       echo "Reinstall         : ${FUNCNAME} -I <host|group>"
+       echo "Reinstall OS      : ${FUNCNAME} -I <host|group>"
        exit
    fi
    if [ "$1" == "-I" ]; then
@@ -41,7 +41,6 @@ update() {
          genimage $osimage
          packimage $osimage
       fi
-#      nodeset $dest osimage=$osimage ???
    elif [ "$type" == "install" ]; then
        if [ "$reinstall" == "1" ]; then
           nodeset $dest osimage=$osimage

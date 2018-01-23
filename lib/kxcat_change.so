@@ -63,17 +63,39 @@ node() {
 }
 
 image() {
-    echo 
+    for ii in $* ; do
+       tmp=($(echo $ii | sed "s/=/ /g"))
+       if [ "${tmp[0]}" == "pkglist" ]; then
+          pkglist_str="pkglist=${tmp[1]}"
+       elif [ "${tmp[0]}" == "synclists" ] ; then
+          synclists_str="synclists=${tmp[1]}"
+       elif [ "${tmp[0]}" == "template" ] ; then
+          template_str="template=${tmp[1]}"
+       fi
+    done
+    chdef -t osimage ${node} $pkglist_str $synclists_str $template_str
 }
 
 change() {
     local hostname opt
     opt=($*)
     if (( ${#opt[*]} < 3 )); then
-         echo "${FUNCNAME} <type> <name>" 
+         echo "${FUNCNAME} <host|image> <name> <arg1=val1> ...." 
          echo "  host options: "
-         echo "    emac=<eth0 mac> bip=<bmc ip> buser=<bmc_user> bpass=<bmc pass> image=<base_image> arch=<default:x86_64> powermethod=<default:ipmi> netboot=<default:xnba> postboot=<post boot scripts> postscript=<post scripts> bootmode=<install|boot> <clean:state>"
+         echo "    emac=<eth0 mac>"
+         echo "    bip=<bmc ip>"
+         echo "    buser=<bmc_user>"
+         echo "    bpass=<bmc pass>"
+         echo "    powermethod=<default:ipmi>"
+         echo "    netboot=<default:xnba>"
+         echo "    postboot=<post boot scripts>"
+         echo "    postscript=<post scripts>"
+         echo "    bootmode=<install|boot>"
+         echo "    <clean:state>"
          echo "  image options: "
+         echo "    pkglist=<Package list file>"
+         echo "    synclists=<Sync file list file>"
+         echo "    template=<Install template file>"
          exit
     fi
 
