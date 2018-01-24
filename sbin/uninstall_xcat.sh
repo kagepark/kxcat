@@ -19,6 +19,8 @@ done
 makedns -n
 systemctl stop xcatd 
 systemctl stop dhcpd
+systemctl stop nfs
+systemctl stop httpd
 rpm -e $(echo $(rpm -qa |grep -i xcat))
 rm -fr ~/.xcat
 rm -fr /install
