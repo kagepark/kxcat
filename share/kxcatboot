@@ -10,15 +10,15 @@ if [ -d /xcatpost/kxcat_boot.d ]; then
    done >> /tmp/kxcat_boot.log
 fi
 
+[ -d /global ] || mkdir -p /global
 for ii in $(cat /proc/cmdline); do
    xcat_server_ip=$(echo $ii | awk -F= '{if($1=="XCAT") print $2}' | awk -F: '{print $1}')
    [ -n "$xcat_server_ip" ] && break
 done
-[ -d /global ] || mkdir -p /global
 [ -f /opt/xcat/xcatinfo ] &&  . /opt/xcat/xcatinfo 
-if [ ! -n "$xcat_server_ip" && -n "$XCATSERVER" ]; then
+if [ ! -n "$xcat_server_ip" -a -n "$XCATSERVER" ]; then
     xcat_server_ip=$XCATSERVER
-else
+elif [ -f /xcatpost/mypostscript ]; then
     xcat_server_ip=$(awk -F= '{if("^MASTER_IP" == $1) print $2}' /xcatpost/mypostscript)
 fi
 if [ -n "$xcat_server_ip" ]; then

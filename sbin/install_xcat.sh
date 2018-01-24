@@ -147,10 +147,16 @@ if [ -f \/xcatpost\/kxcatboot \]\; then\n\
 fi\
      " /install/postscripts/xcatpostinit1.netboot
   fi
+  if ! grep "^#KG disable mypostscript.<node>" /install/postscripts/xcatdsklspost >& /dev/null; then
+      sed -i "/# try short hostname first/a\
+#KG disable mypostscript.<node> \n\
+node_short=" /install/postscripts/xcatdsklspost
+  fi
 
   source $_KXCAT_HOME/etc/xcat.sh
   cp -a $_KXCAT_HOME/share/kxcatboot /install/postscripts
   [ -d /install/postscripts/kxcat_boot.d ] || mkdir -p /install/postscripts/kxcat_boot.d
+  cp -a $_KXCAT_HOME/share/0000_update_state /install/postscripts/kxcat_boot.d
   cp -a $_KXCAT_HOME/share/0001_cleanyum /install/postscripts/kxcat_boot.d
   [ -d /global/kxcat_boot.d/global ] || mkdir -p /global/kxcat_boot.d/global
   if ! grep "^/global" /etc/exports >& /dev/null; then

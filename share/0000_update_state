@@ -1,0 +1,22 @@
+#!/bin/sh
+get_master_ip() {
+   for ii in $(cat /proc/cmdline); do
+      xcat_server_ip=$(echo $ii | awk -F= '{if($1=="XCAT") print $2}' | awk -F: '{print $1}')
+      [ -n "$xcat_server_ip" ] && break
+   done
+   [ -f /opt/xcat/xcatinfo ] &&  . /opt/xcat/xcatinfo
+   [ ! -n "$xcat_server_ip" -a -n "$XCATSERVER" ] &&  xcat_server_ip=$XCATSERVER
+   [ ! -n "$xcat_server_ip" -a -f /xcatpost/mypostscript ] && xcat_server_ip=$(awk -F= '{if("^MASTER_IP" == $1) print $2}' /xcatpost/mypostscript)
+   [ -n "$xcat_server_ip" ] && echo $xcat_server_ip
+}
+
+update_boot_state() {
+   xcat_server_ip=$(get_master_ip)
+   while [ 1 ] ; do
+       /xcatpost/updateflag.awk $xcat_server_ip 3002 "installstatus booted"
+       sleep 700
+   done
+}
+
+update_boot_state &
+
