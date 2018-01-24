@@ -17,11 +17,8 @@ for ii in $(cat /proc/cmdline); do
    [ -n "$xcat_server_ip" ] && break
 done
 [ -f /opt/xcat/xcatinfo ] &&  . /opt/xcat/xcatinfo 
-if [ ! -n "$xcat_server_ip" -a -n "$XCATSERVER" ]; then
-    xcat_server_ip=$XCATSERVER
-elif [ -f /xcatpost/mypostscript ]; then
-    xcat_server_ip=$(awk -F= '{if("^MASTER_IP" == $1) print $2}' /xcatpost/mypostscript)
-fi
+[ ! -n "$xcat_server_ip" -a -n "$XCATSERVER" ] && xcat_server_ip=$XCATSERVER
+[ ! -n "$xcat_server_ip" -a -f /xcatpost/mypostscript ] && xcat_server_ip=$(awk -F= '{if("^MASTER_IP" == $1) print $2}' /xcatpost/mypostscript)
 if [ -n "$xcat_server_ip" ]; then
   if ping -c 2 $xcat_server_ip >& /dev/null; then
      mount -o vers=3,nolock $xcat_server_ip:/global /global
