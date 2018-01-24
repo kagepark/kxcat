@@ -28,11 +28,6 @@ nodes() {
        node_list[$id]=$x; 
    done < <(echo $(lsdef -t node -o all -i id,power,status,hostnames,status,currstate,statustime) | sed -e "s/currstate=/,/g" -e "s/hostnames=/,/g" -e "s/id=/,/g" -e "s/status=/,/g" -e "s/power=/,/g" -e "s/statustime=/,/g" | sed "s/Object name: /\n/g" | sed "s/ ,/,/g")
 
-#   for line in $(echo $(lsdef -t node -o all -i id,power,status,hostnames,statustime) | sed -e "s/currstate=/,/g" -e "s/hostnames=/,/g" -e "s/id=/,/g" -e "s/status=/,/g" -e "s/power=/,/g" -e "s/statustime=/,/g" | sed "s/Object,name:,/\n/g"); do
-#       id=$(echo $line | awk -F, '{print $3}')
-#       node_list[$id]="$line"
-#   done
-
    for ((ii=1;ii<=${#node_list[*]};ii++)); do
        node_name=N$(printf "%05d" $ii)
        host_name=$(echo ${node_list[$ii]} | awk -F, '{print $1}')
