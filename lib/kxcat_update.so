@@ -40,6 +40,9 @@ update() {
       if [ "$netboot_ignore_image" != "1" ]; then
          genimage $osimage
          [ -d /install/groups/${osimage}/rootimg/xcatpost ] || mkdir -p /install/groups/${osimage}/rootimg/xcatpost
+         [ -d /install/groups/${osimage}/rootimg/opt/xcat ] || mkdir -p /install/groups/${osimage}/rootimg/opt/xcat
+         cp -a /install/postscripts/xcatpostinit1.netboot /install/groups/${osimage}/rootimg/opt/xcat/xcatpostinit1 2>/dev/null
+         cp -a /install/postscripts/xcatdsklspost /install/groups/${osimage}/rootimg/opt/xcat/ 2>/dev/null
          rsync -a /install/postscripts/ /install/groups/${osimage}/rootimg/xcatpost/
          packimage $osimage
       fi
@@ -49,7 +52,7 @@ update() {
        else
           /opt/xcat/bin/updatenode $* 2>/dev/null
           xdcp  $dest /install/postscripts/xcatpostinit1.install /opt/xcat/xcatpostinit1 2>/dev/null
-          xdcp  $dest /install/postscripts /xcatpost
+          xdcp  $dest /install/postscripts /xcatpost 2>/dev/null
        fi
    fi
 }

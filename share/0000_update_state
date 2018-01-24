@@ -12,9 +12,11 @@ get_master_ip() {
 
 update_boot_state() {
    xcat_server_ip=$(get_master_ip)
+   [ -f /xcatpost/mypostscript ] && boot_mode=$(awk -F= '{if("NODESETSTATE" == $1) print $2}' /xcatpost/mypostscript)
+   [ "$boot_mode" == "netboot" ] && boot_state="netbooted" || boot_state="booted"
    while [ 1 ] ; do
-       /xcatpost/updateflag.awk $xcat_server_ip 3002 "installstatus booted"
-       sleep 700
+       /xcatpost/updateflag.awk $xcat_server_ip 3002 "installstatus ${boot_state}"
+       sleep 400
    done
 }
 
