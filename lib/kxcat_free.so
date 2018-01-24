@@ -42,7 +42,7 @@ free() {
             makehosts ${hostname} 2>/dev/null
             continue
        fi
-       sed "/${hostname}/,/^}/d" -i /var/lib/dhcpd/dhcpd.leases
+       sed -i "/host ${hostname} {/,/^}/d" /var/lib/dhcpd/dhcpd.leases
        rm -f /install/autoinst/${hostname}*
        rm -f /tftpboot/xcat/xnba/nodes/${hostname}*
        rm -f /tftpboot/mypostscripts/mypostscript.${hostname}

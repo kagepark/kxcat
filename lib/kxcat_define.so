@@ -68,16 +68,16 @@ define() {
    done 
    if [ -n "$addhosts" ]; then
       chdef -t node $addhosts groups=all,${group} || exit 1
+      sleep 3
       makedhcp ${addhosts}
+      makehosts ${addhosts} 2>/dev/null
       nodeset ${addhosts} osimage=${group}
    else
       error_exit "not found host list"
    fi
-   sleep 4
-   makehosts ${addhosts} 2>/dev/null
-   for ii in $(echo $addhosts | sed "s/,/ /g"); do
-      [ -f /opt/xcat/share/xcat/mypostscript/mypostscript.tmpl ] && cp -a /opt/xcat/share/xcat/mypostscript/mypostscript.tmpl /tftpboot/mypostscripts/mypostscript.${ii} || touch /tftpboot/mypostscripts/mypostscript.${ii}
-   done
+#   for ii in $(echo $addhosts | sed "s/,/ /g"); do
+#      [ -f /opt/xcat/share/xcat/mypostscript/mypostscript.tmpl ] && cp -a /opt/xcat/share/xcat/mypostscript/mypostscript.tmpl /tftpboot/mypostscripts/mypostscript.${ii} || touch /tftpboot/mypostscripts/mypostscript.${ii}
+#   done
 }
 
 

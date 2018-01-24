@@ -116,6 +116,7 @@ xcat_install() {
   rm -f /tmp/go-xcat
   [ -f /etc/profile.d/xcat.sh ] || error_exit "/etc/profile.d/xcat.sh file not found"
   mv /etc/profile.d/xcat.* $_KXCAT_HOME/etc
+  [ ! -f /tftpboot/xcat/xnba.efi -o ! -f /tftpboot/xcat/xnba.kpxe ] && (rpm -e --nodeps $(rpm -qa | grep xnba-undi); yum -y install xnba-undi)
 }
 
 xcat_env() {
