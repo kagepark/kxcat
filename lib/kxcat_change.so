@@ -34,6 +34,8 @@ node() {
            postscript_str="postscripts=${tmp[1]}"
        elif [ "${tmp[0]}" == "bootmode" ]; then
            bootmode="${tmp[1]}"
+       elif [ "${tmp[0]}" == "alias" ]; then
+           alias_str="hostnames=${tmp[1]}"
        elif [ "${tmp[0]}" == "clean" ]; then
            clean_str="status="
        fi
@@ -41,7 +43,7 @@ node() {
 
     if node_cnt=$(nodels $node 2>/dev/null | wc -l); then 
        if [ "$node_cnt" == "1" ]; then
-          chdef -t node $node $arch_str $bmcip_str $bmcuser_str $bmcpass_str $mac_str $powerm_str $netboot_str $image_str $postboot_str $postscript_str $clean_str
+          chdef -t node $node $arch_str $bmcip_str $bmcuser_str $bmcpass_str $mac_str $powerm_str $netboot_str $image_str $postboot_str $postscript_str $clean_str $alias_str
           # Need Check up the node is in the xCAT or not
           osimage_str=$(lsdef $node | grep "provmethod=" | sed "s/provmethod=//g" | sed "s/ //g")
           if [ "$bootmode" == "install" ]; then
@@ -91,6 +93,7 @@ change() {
          echo "    postboot=<post boot scripts>"
          echo "    postscript=<post scripts>"
          echo "    bootmode=<install|boot>"
+         echo "    alias=<add alias hostname to host>"
          echo "    <clean:state>"
          echo "  image options: "
          echo "    pkglist=<Package list file>"

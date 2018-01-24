@@ -231,10 +231,9 @@ for ((node_snum=1; node_snum<=$MAX_NODES; node_snum++)); do
    node_name=N$(printf "%05d" $node_snum)
    echo "Setup $node_name"
    node_mac="00:00:00:00:00:00"
-   node_info=$([ -f server_list.cfg ] && grep "^${node_snum}|" server_list.cfg | awk -F\| '{print $2}') 
+   node_info=$([ -f server_list.cfg ] && grep "^${node_snum}|" server_list.cfg |head -n1| awk -F\| '{print $2}') 
    [ -n "$node_info" ] && node_mac=$node_info
    mkdef -t node $node_name groups=all,N id=$node_snum arch=$base_arch bmc=$(_k_net_add_ip $BMC_NETWORK $node_snum) bmcusername=$BMC_USER bmcpassword=$BMC_PASS mac=$node_mac mgt=ipmi netboot=xnba provmethod=$base_image
 done
 
-makehosts all 2>/dev/null
-
+#makehosts all 2>/dev/null
