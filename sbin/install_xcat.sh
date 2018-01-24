@@ -6,7 +6,7 @@
 # Base design Using old libraries(2006/07) of Kage
 # License : GPL
 ###########################################################
-set -x
+set +x
 
 error_exit() {
    echo $*
@@ -120,8 +120,6 @@ xcat_install() {
 
 xcat_env() {
   # Patch post.xcat file
-echo "/opt/xcat/share/xcat/install/scripts/post.xcat debug"
-read x
   if [ -f /opt/xcat/share/xcat/install/scripts/post.xcat ]; then
      if ! grep "^#KG post fix" /opt/xcat/share/xcat/install/scripts/post.xcat >&/dev/null; then
         mv /opt/xcat/share/xcat/install/scripts/post.xcat /opt/xcat/share/xcat/install/scripts/post.xcat.orig
@@ -141,6 +139,7 @@ fi
      fi
    else
      echo "/opt/xcat/share/xcat/install/scripts/post.xcat file not found"
+     echo " anykey to continue"
      read x
    fi
 

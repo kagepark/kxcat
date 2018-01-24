@@ -18,6 +18,7 @@ for ii in $(kxcat groups | awk '{print $1}'); do
 done
 makedns -n
 systemctl stop xcatd 
+systemctl stop dhcpd
 rpm -e $(echo $(rpm -qa |grep -i xcat))
 rm -fr ~/.xcat
 rm -fr /install
