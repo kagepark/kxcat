@@ -217,7 +217,6 @@ xcat_image() {
   base_image_str=$(tabdump osimage | sed "s/\"//g" | awk -F, '{if($6=="install") printf "%s,%s", $1,$13}')
   base_image=$(echo $base_image_str | awk -F, '{print $1}')
   base_arch=$(echo $base_image_str | awk -F, '{print $2}')
-  kxcat create sys $base_image install
 } 
 
 init
