@@ -65,7 +65,7 @@ $([ -n "$DNS_OUTSIDE" ] && echo nameserver $DNS_OUTSIDE)" > /etc/resolv.conf
     chmod 644 /root/.ssh/config
   fi
 
-  #ARP FIX
+  #ARP & NFS FIX
   echo 512 > /proc/sys/net/ipv4/neigh/default/gc_thresh1
   echo 2048 > /proc/sys/net/ipv4/neigh/default/gc_thresh2
   echo 4096 > /proc/sys/net/ipv4/neigh/default/gc_thresh3
@@ -73,6 +73,7 @@ $([ -n "$DNS_OUTSIDE" ] && echo nameserver $DNS_OUTSIDE)" > /etc/resolv.conf
 
   echo 268435456 > /proc/sys/kernel/shmmax
   echo 1048576 > /proc/sys/net/core/wmem_max
+  echo 8388608 > /proc/sys/net/core/rmem_default
   echo 8388608 > /proc/sys/net/core/rmem_max
 
   if ! grep "^### HPC_KXCAT_ENV ###" /etc/sysctl.conf >& /dev/null; then
@@ -106,7 +107,7 @@ net.core.rmem_default = 262144
 
 xcat_install() {
   ping -c 2 www.google.com  >& /dev/null || error_exit "Please setup outside network for auto installation for xCAT"
-  yum -y install dhcp dhcp-common dhcp-libs ntp nfs 
+  yum -y install dhcp dhcp-common dhcp-libs ntp nfs httpd tftp
   systemctl stop dhcpd
   yum erase libvirt-client
   [ -f ./go-xcat ] && rm -f go-xcat
@@ -120,6 +121,28 @@ xcat_install() {
 }
 
 xcat_env() {
+  # NFS patch
+  if ! grep "^RPCNFSDCOUNT=" /etc/sysconfig/nfs >&/dev/null; then
+      echo "RPCNFSDCOUNT=128" >> /etc/sysconfig/nfs
+  fi
+  systemctl restart nfs
+  systemctl enable nfs
+  # APACHE
+  if ! grep "^<IfModule mpm_worker_module>" /etc/httpd/conf/httpd.conf >& /dev/null; then
+      echo "<IfModule mpm_worker_module>
+    ServerLimit              250
+    StartServers              10
+    MinSpareThreads           75
+    MaxSpareThreads          250
+    ThreadLimit               64
+    ThreadsPerChild           32
+    MaxRequestWorkers       8000
+    MaxConnectionsPerChild 10000
+</IfModule>" >> /etc/httpd/conf/httpd.conf
+  fi
+  systemctl restart httpd
+  systemctl enable httpd
+
   # Patch post.xcat file
   if [ -f /opt/xcat/share/xcat/install/scripts/post.xcat ]; then
      if ! grep "^#KG post fix" /opt/xcat/share/xcat/install/scripts/post.xcat >&/dev/null; then
