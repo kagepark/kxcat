@@ -50,7 +50,7 @@ $([ -n "$DNS_OUTSIDE" ] && echo nameserver $DNS_OUTSIDE)" > /etc/resolv.conf
       cp -a ~/.ssh/id_rsa.pub ~/.ssh/authorized_keys
   fi
   if [ -f /root/.ssh/config ]; then
-    grep -w CheckHostIP /root/.ssh/config || ( echo ' host *
+    grep -w CheckHostIP /root/.ssh/config >& /dev/null || ( echo ' host *
     StrictHostKeyChecking no
     CheckHostIP no
     ForwardX11 no
