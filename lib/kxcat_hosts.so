@@ -8,13 +8,25 @@
 hosts() {
    groups=$*
    if [ ! -n "$groups" ]; then
-      groups=$(echo $(lsdef -t group | grep -v -e "^all" -e "^nodes" | awk '{print $1}'))
+      groups=$(echo $(lsdef -t group | grep -v -e "^all " -e "^N " | awk '{print $1}'))
    fi
-    for group in ${groups}; do
+   xx=0
+   for group in ${groups}; do
        if ! lsdef -t group "$group" >& /dev/null; then
            lsdef -t node ${group}
        else
-           nodels ${group} hosts.ip
+            if [ "$xx" == "0" ]; then
+            printf "%22s " "hostname"
+            printf "%15s " "BMC IP"
+            printf "%15s " "Node IP"
+            printf "%17s" "Node MAC"
+            echo 
+            xx=1
+            fi
+            while read x; do
+                [ -n "$x" ] && echo $x | awk -F, '{printf "%22s %15s %15s %17s\n",$1,$2,$3,$4}'
+            done < <(echo $(lsdef -t node -o $group -i bmc,ip,mac | sed -e "s/bmc=/,/g" -e "s/ip=/,/g" -e "s/mac=/,/g" )| sed "s/Object name: /\n/g" | sed "s/ ,/,/g")
+#           nodels ${group} hosts.ip
        fi
     done
 }
