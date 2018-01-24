@@ -44,6 +44,27 @@ $([ -n "$DNS_OUTSIDE" ] && echo nameserver $DNS_OUTSIDE)" > /etc/resolv.conf
   fi
   [ "$(getenforce)" == "Disabled" ] || setenforce 0
 
+  #SSH password-less
+  if ! ssh -q -o ConnectTimeout=1 -o CheckHostIP=no -o StrictHostKeychecking=no -o PasswordAuthentication=no localhost hostname >& /dev/null; then
+      ssh-keygen -t rsa 
+      cp -a ~/.ssh/id_rsa.pub ~/.ssh/authorized_keys
+  fi
+  if [ -f /root/.ssh/config ]; then
+    grep -w CheckHostIP /root/.ssh/config || ( echo ' host *
+    StrictHostKeyChecking no
+    CheckHostIP no
+    ForwardX11 no
+    ForwardAgent yes'  > /root/.ssh/config
+   chmod 644 /root/.ssh/config )
+  else
+    echo ' host *
+    StrictHostKeyChecking no
+    CheckHostIP no
+    ForwardX11 no
+    ForwardAgent yes'  > /root/.ssh/config
+    chmod 644 /root/.ssh/config
+  fi
+
   #ARP FIX
   echo 512 > /proc/sys/net/ipv4/neigh/default/gc_thresh1
   echo 2048 > /proc/sys/net/ipv4/neigh/default/gc_thresh2

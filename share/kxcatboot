@@ -6,6 +6,7 @@ if [ -d /xcatpost/kxcat_boot.d ]; then
    for ii in $(ls | sort -n); do
       echo
       echo " ** Run /xcatpost/kxcat_boot.d/$ii at $(date)"
+      [ "${group_shell[$ii]}" == "0000_update_state" ] && sh  /xcatpost/kxcat_boot.d/$ii || \
       sh -x /xcatpost/kxcat_boot.d/$ii 
    done >> /tmp/kxcat_boot.log
 fi
