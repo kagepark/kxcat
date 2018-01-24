@@ -8,12 +8,13 @@ read dx
 [ "$dx" == "y" ] || error_exit "stopped uninstall"
 
 dumpxCATdb -p xcat.db
-lsdef -z all
-lsdef -z -t network -l
-nodeset all offline
+lsdef -z all > xcat.db.log
+lsdef -z -t network -l >> xcat.db.log
+nodeset all offline 
 . /etc/profile.d/kxcat.sh
 for ii in $(kxcat groups | awk '{print $1}'); do
    makedhcp -d $ii
+   makehosts -d $ii
 done
 makedns -n
 systemctl stop xcatd 

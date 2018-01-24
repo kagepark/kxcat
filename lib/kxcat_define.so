@@ -20,20 +20,20 @@ define() {
         echo "group $group  not found"
         exit
    fi
-   if [ "$group" == "nodes" ]; then
-        error_exit "Not allowed group name 'nodes'"
+   if [ "$group" == "N" ]; then
+        error_exit "Not allowed group name 'N'"
    fi
 
    shift 1
    host_num=$1
    if [ ! -n "$host_num" ]; then
-       nodes=($(lsdef -t group nodes | grep "members=" | sed "s/members=//g" | sed "s/,/ /g"))
+       nodes=($(lsdef -t group N | grep "members=" | sed "s/members=//g" | sed "s/,/ /g"))
        host_num=${#nodes[*]}
    else
        _k_misc_is_num $host_num >& /dev/null || error_exit "${FUNCNAME} <group name> [<host count#> [<node name1> <node name2>...]]"
        shift 1
        nodes=($*)
-       (( ${#nodes[*]} == 0 )) && nodes=($(lsdef -t group nodes | grep "members=" | sed "s/members=//g" | sed "s/,/ /g"))
+       (( ${#nodes[*]} == 0 )) && nodes=($(lsdef -t group N | grep "members=" | sed "s/members=//g" | sed "s/,/ /g"))
    fi
 
    ((${host_num} > $MAX_NODES)) && error_exit "defined too many <host count>. Please type less $MAX_NODES"

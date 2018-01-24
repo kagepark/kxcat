@@ -12,7 +12,7 @@ free() {
          exit
    fi
    group=$1
-   [ "$group" == "nodes" ] && error_exit "'nodes' is not group name"
+   [ "$group" == "N" ] && error_exit "'N' is not group name"
    if ! lsdef -t group $group >& /dev/null; then
         echo "group $group  not found"
         exit
@@ -38,7 +38,7 @@ free() {
        hostname=$(echo ${node_list[$ii]} | awk -F: '{print $1}')
        hostid=$(echo ${node_list[$ii]} | awk -F: '{print $2}')
        makehosts -d ${hostname} 2>/dev/null
-       if ! chdef -t node -o $hostname -n node-$(printf "%05d" $hostid) $ii; then
+       if ! chdef -t node -o $hostname -n N$(printf "%05d" $hostid) $ii; then
             makehosts ${hostname} 2>/dev/null
             continue
        fi
@@ -46,9 +46,9 @@ free() {
        rm -f /install/autoinst/${hostname}*
        rm -f /tftpboot/xcat/xnba/nodes/${hostname}*
        rm -f /tftpboot/mypostscripts/mypostscript.${hostname}
-       [ -n "$delhosts" ] && delhosts="$delhosts,node-$(printf "%05d" $hostid)" || delhosts=node-$(printf "%05d" $hostid)
+       [ -n "$delhosts" ] && delhosts="$delhosts,N$(printf "%05d" $hostid)" || delhosts=N$(printf "%05d" $hostid)
    done 
-   chdef -t node $delhosts groups=all,nodes status=
+   chdef -t node $delhosts groups=all,N status=
    makedhcp -d $delhosts
 
    # make /etc/hosts
