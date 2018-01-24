@@ -11,6 +11,6 @@ groups() {
        lsdef -t group $group | grep -v "^Object nam"
        lsdef -t osimage $group | grep -v "^Object nam"
    else
-       lsdef -t group | grep -v -e "^all" -e "^nodes"
+       lsdef -t group | grep -v -e "^all " -e "^N "
    fi
 }
