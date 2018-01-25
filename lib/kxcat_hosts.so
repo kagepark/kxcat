@@ -7,13 +7,18 @@
 
 hosts() {
    groups=$*
+   for ii in $groups; do
+       if [ "$ii" == "n" ]; then
+            error_exit "'n' not support"
+       fi
+   done
    if [ ! -n "$groups" ]; then
       groups=$(echo $(lsdef -t group | grep -v -e "^all " -e "^n " | awk '{print $1}'))
    fi
    xx=0
    for group in ${groups}; do
        if ! lsdef -t group "$group" >& /dev/null; then
-           lsdef -t node ${group}
+            lsdef -t node ${group}
        else
             if [ "$xx" == "0" ]; then
             printf "%22s " "hostname"
@@ -26,7 +31,6 @@ hosts() {
             while read x; do
                 [ -n "$x" ] && echo $x | awk -F, '{printf "%22s %15s %15s %17s\n",$1,$2,$3,$4}'
             done < <(echo $(lsdef -t node -o $group -i bmc,ip,mac 2>/dev/null | sed -e "s/bmc=/,/g" -e "s/ip=/,/g" -e "s/mac=/,/g" )| sed "s/Object name: /\n/g" | sed "s/ ,/,/g")
-#           nodels ${group} hosts.ip
        fi
     done
 }

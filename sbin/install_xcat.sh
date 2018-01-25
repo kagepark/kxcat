@@ -266,10 +266,12 @@ xcat_image
 for ((node_snum=1; node_snum<=$MAX_NODES; node_snum++)); do
    node_name=n$(printf "%05d" $node_snum)
    echo "Setup $node_name"
-   node_mac="00:00:00:00:00:00"
-   node_info=$([ -f server_list.cfg ] && grep "^${node_snum}|" server_list.cfg |head -n1| awk -F\| '{print $2}') 
-   [ -n "$node_info" ] && node_mac=$node_info
-   mkdef -t node $node_name groups=all,n id=$node_snum arch=$base_arch bmc=$(_k_net_add_ip $BMC_NETWORK $node_snum) bmcusername=$BMC_USER bmcpassword=$BMC_PASS mac=$node_mac mgt=ipmi netboot=xnba provmethod=$base_image
+   node_info=$([ -f server_list.cfg ] && awk -F\| -v num=$node_snum '{if($1==num) print}' server_list.cfg)
+   node_mac=$(echo $node_info | awk -F\| '{print $2}')
+   node_bmc_IP=$(echo $node_info | awk -F\| '{print $3}')
+   [ -n "$node_mac" ] || node_mac="00:00:00:00:00:00"
+   [ -n "$node_bmc_IP" ] || node_bmc_IP=$(_k_net_add_ip $BMC_NETWORK $node_snum)
+   mkdef -t node $node_name groups=all,n id=$node_snum arch=$base_arch bmc=$node_bmc_IP bmcusername=$BMC_USER bmcpassword=$BMC_PASS mac=$node_mac mgt=ipmi netboot=xnba provmethod=
 done
 
 #makehosts all 2>/dev/null
