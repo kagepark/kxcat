@@ -21,7 +21,7 @@ power() {
          echo "reboot  : graceful reboot with linux command"
          echo
          echo "with -h option example"
-         echo " -h prod-0[001-003,008] => prod-0001,prod-0002,prod-0003,prod-0008"
+         echo " -h prod-0[001-003,008] => prod-0001 prod-0002 prod-0003 prod-0008"
          exit
     fi
 
