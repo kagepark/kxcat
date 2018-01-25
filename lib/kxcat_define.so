@@ -65,9 +65,9 @@ define() {
        [ -n "$addhosts" ] && addhosts="$addhosts,$host" || addhosts=$host
        nodelist[$lastnn]=$lastnn
    done 
+   sleep 3
    if [ -n "$addhosts" ]; then
       chdef -t node $addhosts groups=all,${group} || exit 1
-      sleep 3
       nodeset ${addhosts} osimage=${group}
       makehosts ${addhosts} 2>/dev/null
       makedns -n
