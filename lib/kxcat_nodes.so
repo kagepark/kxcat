@@ -26,7 +26,7 @@ nodes() {
    while read x ; do 
        id=$(echo $x | awk -F, '{print $4}'); 
        [ -n "$id" ] && node_list[$id]=$x; 
-   done < <(echo $(lsdef -t node -o all -i id,power,status,hostnames,status,currstate,statustime) | sed -e "s/currstate=/,/g" -e "s/hostnames=/,/g" -e "s/id=/,/g" -e "s/status=/,/g" -e "s/power=/,/g" -e "s/statustime=/,/g" | sed "s/Object name: /\n/g" | sed "s/ ,/,/g")
+   done < <(echo $(lsdef -t node -o all -i id,mgt,status,hostnames,status,currstate,statustime) | sed -e "s/currstate=/,/g" -e "s/hostnames=/,/g" -e "s/id=/,/g" -e "s/status=/,/g" -e "s/mgt=/,/g" -e "s/statustime=/,/g" | sed "s/Object name: /\n/g" | sed "s/ ,/,/g")
 
    for ((ii=1;ii<=${#node_list[*]};ii++)); do
        node_name=n$(printf "%05d" $ii)
