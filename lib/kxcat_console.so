@@ -1,0 +1,21 @@
+####################################
+# Kage Park
+# Re-designed(2017/09) by Kage Park
+# Base design Using old xcat scripts(2011) of Kage
+# License : GPL
+####################################
+
+console() {
+    local hostname opt
+    opt=($*)
+    if (( ${#opt[*]} != 1 )); then
+         echo "${FUNCNAME} <hostname>"
+         exit
+    fi
+
+    if [ "$CONSOLE_MODE" == "xcat" ]; then
+       rcons $1
+    else
+       $_KXC_HOME/sbin/${type}_console $(echo $ii | sed "s/ //g" | awk -F= '{if($1== "bmc") print $2}')
+    fi
+}

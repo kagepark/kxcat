@@ -25,9 +25,6 @@ power() {
          exit
     fi
 
-    #type=ipmi
-    type=xcat
-
     pwcmd=${opt[0]}
     for ii in on off cycle reset shutdown reboot status; do
        if [ "$ii" == "$pwcmd" ]; then 
@@ -51,7 +48,7 @@ power() {
        done
        wait
        echo
-    elif [ "$type" == "xcat" ]; then
+    elif [ "$POWER_MODE" == "xcat" ]; then
        [ "$pwcmd" == "status" ] && pwcmd=stat
        rpower $(echo $hosts|sed "s/ /,/g") $pwcmd
     else
