@@ -30,7 +30,7 @@ _KXCAT_HOME=$(dirname $(dirname $(readlink -f $0)))
 [ ! -n "$MGT_IP" ] && error_exit "MGT_IP not found"
 [ ! -n "$MAX_NODES" ] && error_exit "MAX_NODES not found"
 [ -d /sys/class/net/$GROUP_NET_DEV ] || error_exit "GROUP_NET_DEV($GROUP_NET_DEV) not found"
-MGT_IP_INFO=($(ifconfig $GROUP_NET_DEV | grep "inet " | awk '{printf "%s %s",$2,$3}'))
+MGT_IP_INFO=($(ifconfig $GROUP_NET_DEV | grep "inet " | awk '{printf "%s %s",$2,$4}'))
 [ "$MGT_IP" == "${MGT_IP_INFO[0]}" ] || error_exit "MGT_IP and ${GROUP_NET_DEV} IPs are different"
 [ "$GROUP_NETMASK" == "${MGT_IP_INFO[1]}" ] || error_exit "GROUP_NETMASK and ${GROUP_NET_DEV} NETMASKs are different"
 #MGT_IP=$(_k_net_add_ip $GROUP_NETWORK 1)
