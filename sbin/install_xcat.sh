@@ -271,7 +271,7 @@ for ((node_snum=1; node_snum<=$MAX_NODES; node_snum++)); do
    node_bmc_IP=$(echo $node_info | awk -F\| '{print $3}')
    [ -n "$node_mac" ] || node_mac="00:00:00:00:00:00"
    [ -n "$node_bmc_IP" ] || node_bmc_IP=$(_k_net_add_ip $BMC_NETWORK $node_snum)
-   mkdef -t node $node_name groups=all,n id=$node_snum arch=$base_arch bmc=$node_bmc_IP bmcusername=$BMC_USER bmcpassword=$BMC_PASS mac=$node_mac mgt=ipmi netboot=xnba provmethod=
+   mkdef -t node $node_name groups=all,n id=$node_snum arch=$base_arch bmc=$node_bmc_IP bmcusername=$BMC_USER bmcpassword=$BMC_PASS mac=$node_mac mgt=ipmi netboot=xnba provmethod= cons=ipmi
 done
 
 #makehosts all 2>/dev/null
