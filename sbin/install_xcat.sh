@@ -19,7 +19,21 @@ _KXCAT_HOME=$(dirname $(dirname $(readlink -f $0)))
 [ -f $_KXCAT_HOME/etc/kxcat.cfg ] || error_exit "kxcat.cfg file not found"
 . $_KXCAT_HOME/etc/kxcat.cfg
 
-MGT_IP=$(_k_net_add_ip $GROUP_NETWORK 1)
+[ ! -n "$OS_ISO" -o ! -f "$OS_ISO" ] && error_exit "$OS_ISO file not found"
+
+[ ! -n "$GROUP_NETWORK" ] && error_exit "GROUP_NETWORK not found"
+[ ! -n "$GROUP_NETMASK" ] && error_exit "GROUP_NETMASK not found"
+[ ! -n "$GROUP_NET_DEV" ] && error_exit "GROUP_NET_DEV not found"
+[ ! -n "$BMC_NETWORK" ] && error_exit "BMC_NETWORK not found"
+[ ! -n "$DOMAIN_NAME" ] && error_exit "DOMAIN_NAME not found"
+[ ! -n "$MGT_HOSTNAME" ] && error_exit "MGT_HOSTNAME not found"
+[ ! -n "$MGT_IP" ] && error_exit "MGT_IP not found"
+[ ! -n "$MAX_NODES" ] && error_exit "MAX_NODES not found"
+[ -d /sys/class/net/$GROUP_NET_DEV ] || error_exit "GROUP_NET_DEV($GROUP_NET_DEV) not found"
+MGT_IP_INFO=($(ifconfig $GROUP_NET_DEV | grep "inet " | awk '{printf "%s %s",$2,$3}'))
+[ "$MGT_IP" == "${MGT_IP_INFO[0]}" ] || error_exit "MGT_IP and ${GROUP_NET_DEV} IPs are different"
+[ "$GROUP_NETMASK" == "${MGT_IP_INFO[1]}" ] || error_exit "GROUP_NETMASK and ${GROUP_NET_DEV} NETMASKs are different"
+#MGT_IP=$(_k_net_add_ip $GROUP_NETWORK 1)
 
 # temporary disable
 init() {
@@ -235,7 +249,6 @@ xcat_image() {
 # OS Image
   source $_KXCAT_HOME/etc/xcat.sh
   source /etc/profile.d/kxcat.sh
-  [ -f "$OS_ISO" ] || error_exit "$OS_ISO file not found"
   copycds $OS_ISO
   lsdef -t osimage
   base_image_str=$(tabdump osimage | sed "s/\"//g" | awk -F, '{if($6=="install") printf "%s,%s", $1,$13}')
