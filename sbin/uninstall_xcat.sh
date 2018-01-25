@@ -7,10 +7,11 @@ echo -n "Are you sure remove xCAT and KxCAT (y/[n])?"
 read dx
 [ "$dx" == "y" ] || error_exit "stopped uninstall"
 
-echo "Backup DB"
-dumpxCATdb -p xcat.db
-lsdef -z all > xcat.db.log
-lsdef -z -t network -l >> xcat.db.log
+#echo "Backup DB"
+#dumpxCATdb -p xcat.db
+#lsdef -z all > xcat.db.log
+#lsdef -z -t site >> xcat.db.log
+#lsdef -z -t network -l >> xcat.db.log
 echo "Power off whole nodes"
 nodeset all offline 
 echo "Remove nodes"
@@ -26,7 +27,7 @@ systemctl stop dhcpd
 systemctl stop nfs
 systemctl stop httpd
 echo "Uninstall xCAT"
-rpm -e $(echo $(rpm -qa |grep -i xcat))
+rpm -e $(echo $(rpm -qa |grep -i xcat)) xnba-undi
 echo "clean up"
 rm -fr ~/.xcat
 rm -fr /install

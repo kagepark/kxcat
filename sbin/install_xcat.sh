@@ -121,7 +121,7 @@ net.core.rmem_default = 262144
 
 xcat_install() {
   ping -c 2 www.google.com  >& /dev/null || error_exit "Please setup outside network for auto installation for xCAT"
-  yum -y install dhcp dhcp-common dhcp-libs ntp nfs httpd tftp
+  yum -y install dhcp dhcp-common dhcp-libs ntp nfs httpd tftp bind
   systemctl stop dhcpd
   yum erase libvirt-client
   [ -f ./go-xcat ] && rm -f go-xcat
