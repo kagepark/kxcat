@@ -115,6 +115,7 @@ make() {
     fi
 
     group=$1
+    [ "$group" == "n" ] && error_exit "not support group 'n'"
     image=$2
 
     [ -n "$(echo "$group" | sed "s/[^0-9]*//g")" ] && error_exit "Group name not support digital number. Please remove any number in group name string"
@@ -173,6 +174,7 @@ clone() {
          echo "Alread $new_group image exist"
          exit
     fi
+    [ "$new_group" == "n" ] && error_exit "not support group 'n'"
     if [ "$clone_boot_script" == "1" ]; then
        [ -d /global/kxcat_boot.d/${old_group} ] || error_exit "/global/kxcat_boot.d/${old_group} directory not found"
        [ -d /global/kxcat_boot.d/${new_group} ] && rm -fr /global/kxcat_boot.d/${new_group}

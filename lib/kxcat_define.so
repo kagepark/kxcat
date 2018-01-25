@@ -20,20 +20,20 @@ define() {
         echo "group $group  not found"
         exit
    fi
-   if [ "$group" == "N" ]; then
-        error_exit "Not allowed group name 'N'"
+   if [ "$group" == "n" ]; then
+        error_exit "Not allowed group name 'n'"
    fi
 
    shift 1
    host_num=$1
    if [ ! -n "$host_num" ]; then
-       nodes=($(lsdef -t group N | grep "members=" | sed "s/members=//g" | sed "s/,/ /g"))
+       nodes=($(lsdef -t group n | grep "members=" | sed "s/members=//g" | sed "s/,/ /g"))
        host_num=${#nodes[*]}
    else
        _k_misc_is_num $host_num >& /dev/null || error_exit "${FUNCNAME} <group name> [<host count#> [<node name1> <node name2>...]]"
        shift 1
        nodes=($*)
-       (( ${#nodes[*]} == 0 )) && nodes=($(lsdef -t group N | grep "members=" | sed "s/members=//g" | sed "s/,/ /g"))
+       (( ${#nodes[*]} == 0 )) && nodes=($(lsdef -t group n | grep "members=" | sed "s/members=//g" | sed "s/,/ /g"))
    fi
 
    ((${host_num} > $MAX_NODES)) && error_exit "defined too many <host count>. Please type less $MAX_NODES"
@@ -60,7 +60,6 @@ define() {
        nn=$(find_bid)
        [ -n "$nn" ] && lastnn=$nn || lastnn=$(($lastnn+1))
        host=${group}-$(printf "%04d" $lastnn)
-       #echo "chdef -t node -o $ii -n $host $ii"
        chdef -t node -o $ii -n $host $ii || continue
        chdef $host status=
        [ -n "$addhosts" ] && addhosts="$addhosts,$host" || addhosts=$host
