@@ -1,1 +1,1 @@
-echo ipmitool -I lanplus -H $1 -U ADMIN -P ADMIN chassis power $2
+ipmitool -I lanplus -H $1 -U ADMIN -P ADMIN chassis power $2 &

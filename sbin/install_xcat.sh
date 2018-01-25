@@ -226,7 +226,7 @@ node_short=" /install/postscripts/xcatdsklspost
   root_pass=$(awk -F: '{if($1=="root") print $2}' /etc/shadow)
   tabch key=system passwd.username=root passwd.password=$root_pass
 
-  tabdump site
+#  tabdump site
   chdef -t site -o clustersite domain=$DOMAIN_NAME
   chdef -t site forwarders=$MGT_IP
   makedns all 2>/dev/null
@@ -237,7 +237,7 @@ node_short=" /install/postscripts/xcatdsklspost
   [ -n "$network_name" ] || error_exit "network_name not found for $GROUP_NET_DEV device"
   DHCP_IP_RANGE=$(_k_net_add_ip $GROUP_NETWORK $((65279-$(($MAX_NODES * 2)))))-$(_k_net_add_ip $GROUP_NETWORK 65279)
   chtab netname=$network_name networks.net=$GROUP_NETWORK networks.mask=$GROUP_NETMASK networks.mgtifname=$GROUP_NET_DEV networks.dhcpserver=$MGT_IP networks.tftpserver=$MGT_IP networks.nameservers=$MGT_IP networks.dynamicrange=$DHCP_IP_RANGE
-  tabdump networks
+#  tabdump networks
   grep "^DHCPDARGS=" /etc/sysconfig/dhcpd >& /dev/null || echo "DHCPDARGS=\"$GROUP_NET_DEV\"" >> /etc/sysconfig/dhcpd
 
   makedhcp -n
