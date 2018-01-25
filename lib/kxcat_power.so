@@ -25,8 +25,8 @@ power() {
          exit
     fi
 
-    type=ipmi
-    #type=xcat
+    #type=ipmi
+    type=xcat
 
     pwcmd=${opt[0]}
     for ii in on off cycle reset shutdown reboot status; do
@@ -42,7 +42,7 @@ power() {
        shift 1
        hosts=$(echo $(_k_misc_braket $*))
     else
-       hosts=$1
+       hosts=$*
     fi
 
     if [ "$pwcmd" == "shutdown" -o "$pwcmd" == "reboot" ]; then
