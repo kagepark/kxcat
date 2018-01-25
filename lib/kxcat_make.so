@@ -170,7 +170,7 @@ clone() {
          echo "Alread $new_group exist"
          exit
     fi
-    if ! lsdef -t osimage $new_group >& /dev/null; then
+    if lsdef -t osimage $new_group >& /dev/null; then
          echo "Alread $new_group image exist"
          exit
     fi
