@@ -36,9 +36,25 @@ free() {
    for ((ii=$((${#node_list[*]}-1)); ii>=$((${#node_list[*]} - $node_count)); ii--)); do
        hostname=$(echo ${node_list[$ii]} | awk -F: '{print $1}')
        hostid=$(echo ${node_list[$ii]} | awk -F: '{print $2}')
-       makehosts -d ${hostname} 2>/dev/null
+       [ -n "$delnodes" ] && delnodes="$delnodes,${hostname}" || delnodes="${hostname}"
+   done
+   makehosts -d ${delnodes} 2>/dev/null
+   makedns -d ${delnodes} 2>/dev/null
+   makedhcp -d ${delnodes} 2>/dev/null
+   makeconservercf -d ${delnodes} 2>/dev/null
+
+   for ((ii=$((${#node_list[*]}-1)); ii>=$((${#node_list[*]} - $node_count)); ii--)); do
+       hostname=$(echo ${node_list[$ii]} | awk -F: '{print $1}')
+       hostid=$(echo ${node_list[$ii]} | awk -F: '{print $2}')
+#       makehosts -d ${hostname} 2>/dev/null
+#       makedns -d ${hostname} 2>/dev/null
+#       makedhcp -d ${hostname} 2>/dev/null
+#       makeconservercf -d ${hostname} 2>/dev/null
        if ! chdef -t node -o $hostname -n n$(printf "%05d" $hostid) $ii; then
-            makehosts ${hostname} 2>/dev/null
+            makehosts ${hostname} >&/dev/null
+            makedns ${hotsname} >&/dev/null
+            makedhcp ${hostname} >&/dev/null 
+            makeconservercf ${hostname} >&/dev/null
             continue
        fi
        sed -i "/host ${hostname} {/,/^}/d" /var/lib/dhcpd/dhcpd.leases
@@ -46,12 +62,12 @@ free() {
        rm -f /tftpboot/xcat/xnba/nodes/${hostname}*
        rm -f /tftpboot/mypostscripts/mypostscript.${hostname}
        [ -n "$delhosts" ] && delhosts="$delhosts,n$(printf "%05d" $hostid)" || delhosts=n$(printf "%05d" $hostid)
-       [ -n "$delnodes" ] && delnodes="$delnodes,${hostname}" || delnodes=${hostname}
+#       delnodes="$delnodes ${hostname}"
    done 
    chdef -t node $delhosts groups=all,n status=
-   makedns -d $delnodes
-   makedhcp -d $delnodes
-   makeconservercf -d $delnodes
+#   makedns -d $(echo $(echo $delnodes | sed "s/ /\n/g" | sort -n) | sed "s/ /,/g")
+#   makedhcp -d $(echo $(echo $delnodes | sed "s/ /\n/g" | sort -n) | sed "s/ /,/g")
+#   makeconservercf -d $(echo $(echo $delnodes | sed "s/ /\n/g" | sort -n) | sed "s/ /,/g")
 
    # make /etc/hosts
 #   makehosts ${group} 2>/dev/null
