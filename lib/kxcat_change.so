@@ -10,8 +10,10 @@ node() {
     netboot_str="netboot=xnba"
     powerm_str="mgt=ipmi"
     arch_str="arch=x86_64"
-    for ii in $* ; do
-       tmp=($(echo $ii | sed "s/=/ /g"))
+    args=$@
+    for ((ii=0; ii<${#args[@]}; ii++)); do
+       tmp[0]=$(echo ${args[$ii]} | awk -F= '{print $1}')
+       tmp[1]=$(echo ${args[$ii]} | awk -F= '{print $2}')
        if [ "${tmp[0]}" == "emac" ]; then
            mac_str="mac=${tmp[1]}"
        elif [ "${tmp[0]}" == "bip" ]; then
@@ -36,37 +38,53 @@ node() {
            bootmode="${tmp[1]}"
        elif [ "${tmp[0]}" == "alias" ]; then
            alias_str="hostnames=${tmp[1]}"
+       elif [ "${tmp[0]}" == "kernel_arg" ]; then
+           kernel_arg_str="addkcmdline=\"${tmp[1]}\""
+       elif [ "${tmp[0]}" == "sol_port" ]; then
+           sol_str="$sol_str serialport=${tmp[1]}"
+       elif [ "${tmp[0]}" == "sol_speed" ]; then
+           sol_str="$sol_str serialspeed=${tmp[1]}"
+       elif [ "${tmp[0]}" == "sol_flow" ]; then
+           sol_str="$sol_str serialflow=${tmp[1]}"
        elif [ "${tmp[0]}" == "clean" ]; then
            clean_str="status="
        fi
     done
 
-    if node_cnt=$(nodels $node 2>/dev/null | wc -l); then 
-       if [ "$node_cnt" == "1" ]; then
-          chdef -t node $node $arch_str $bmcip_str $bmcuser_str $bmcpass_str $mac_str $powerm_str $netboot_str $image_str $postboot_str $postscript_str $clean_str $alias_str
-          # Need Check up the node is in the xCAT or not
-          osimage_str=$(lsdef $node | grep "provmethod=" | sed "s/provmethod=//g" | sed "s/ //g")
-          if [ "$bootmode" == "install" ]; then
-             if [ -n "${image_str}" ]; then
-                osimage_str=$(echo $image_str | sed "s/provmethod=//g")
-             fi 
-             nodeset ${node} osimage=$osimage_str
-          elif [ "$bootmode" == "boot" ]; then
-             nodeset ${node} boot
-          else
-             lsdef $node | grep "currstate=boot " >& /dev/null || nodeset ${node} osimage=$osimage_str
-          fi
-       else
-          echo "Looks $node is not host name"
-       fi
-    else 
-       echo "$node not found"
-    fi
+#    if node_cnt=$(nodels $node 2>/dev/null | wc -l); then 
+#       if [ "$node_cnt" == "1" ]; then
+          chdef -t node $destname $arch_str $bmcip_str $bmcuser_str $bmcpass_str $mac_str $powerm_str $netboot_str $image_str $postboot_str $postscript_str $clean_str $alias_str $kernel_arg_str $sol_str || exit 1
+          change_boot_mode=$(echo $(echo $(lsdef $destname -i currstate) | sed "s/Object name: /\n/g" | grep "currstate=boot" | awk '{print $1}') | sed "s/ /,/g")
+          nodeset $destname osimage
+          [ -n "$change_boot_mode" ] && nodeset $change_boot_mode boot 
+
+
+#          # Need Check up the node is in the xCAT or not
+#          osimage_str=$(lsdef $node | grep "provmethod=" | sed "s/provmethod=//g" | sed "s/ //g")
+#          
+#          if [ "$bootmode" == "install" ]; then
+#             if [ -n "${image_str}" ]; then
+#                osimage_str=$(echo $image_str | sed "s/provmethod=//g")
+#             fi 
+#             nodeset ${destname} osimage=$osimage_str
+#          elif [ "$bootmode" == "boot" ]; then
+#             nodeset ${destname} boot
+#          else
+#             lsdef $destname | grep "currstate=boot " >& /dev/null || nodeset ${node} osimage=$osimage_str
+#          fi
+#       else
+#          echo "Looks $destname is not host name"
+#       fi
+#    else 
+#       echo "$node not found"
+#    fi
 }
 
 image() {
-    for ii in $* ; do
-       tmp=($(echo $ii | sed "s/=/ /g"))
+    args=$@
+    for ((ii=0; ii<${#args[@]}; ii++)); do
+       tmp[0]=$(echo ${args[$ii]} | awk -F= '{print $1}')
+       tmp[1]=$(echo ${args[$ii]} | awk -F= '{print $2}')
        if [ "${tmp[0]}" == "pkglist" ]; then
           pkglist_str="pkglist=${tmp[1]}"
        elif [ "${tmp[0]}" == "synclists" ] ; then
@@ -75,13 +93,13 @@ image() {
           template_str="template=${tmp[1]}"
        fi
     done
-    chdef -t osimage ${node} $pkglist_str $synclists_str $template_str
+    chdef -t osimage ${destname} $pkglist_str $synclists_str $template_str
 }
 
 change() {
     local hostname opt
-    opt=($*)
-    if (( ${#opt[*]} < 3 )); then
+    opt=($@)
+    if (( ${#opt[@]} < 3 )); then
          echo "${FUNCNAME} <host|image> <name> <arg1=val1> ...." 
          echo "  host options: "
          echo "    emac=<eth0 mac>"
@@ -94,6 +112,10 @@ change() {
          echo "    postscript=<post scripts>"
          echo "    bootmode=<install|boot>"
          echo "    alias=<add alias hostname to host>"
+         echo "    kernel_arg=\"<kernel parameters>\""
+         echo "    sol_port=<0|1|2|3>
+         echo "    sol_speed=<9600|19200|115200>
+         echo "    sol_flow=<none|hard>
          echo "    <clean:state>"
          echo "  image options: "
          echo "    pkglist=<Package list file>"
@@ -104,12 +126,12 @@ change() {
 
     type=$1
     shift 1
-    node=$1
+    destname=$1
     shift 1
     if [ "$type" == "host" ]; then
-        node $*
+        node $@
     elif [ "$type" == "image" ]; then
-        image $*
+        image $@
     else
         echo "Unkown options"
     fi    

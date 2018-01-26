@@ -29,6 +29,10 @@ _KXCAT_HOME=$(dirname $(dirname $(readlink -f $0)))
 [ ! -n "$MGT_HOSTNAME" ] && error_exit "MGT_HOSTNAME not found"
 [ ! -n "$MGT_IP" ] && error_exit "MGT_IP not found"
 [ ! -n "$MAX_NODES" ] && error_exit "MAX_NODES not found"
+[ ! -n "$POWER_MODE" ] && error_exit "POWER_MODE not found"
+[ ! -n "$CONSOLE_MODE" ] && error_exit "CONSOLE_MODE not found"
+[ ! -n "$SOL_DEV" ] && error_exit "SOL_DEV not found"
+[ ! -n "$SOL_SPEED" ] && error_exit "SOL_SPEED not found"
 [ -d /sys/class/net/$GROUP_NET_DEV ] || error_exit "GROUP_NET_DEV($GROUP_NET_DEV) not found"
 MGT_IP_INFO=($(ifconfig $GROUP_NET_DEV | grep "inet " | awk '{printf "%s %s",$2,$4}'))
 [ "$MGT_IP" == "${MGT_IP_INFO[0]}" ] || error_exit "MGT_IP and ${GROUP_NET_DEV} IPs are different"
@@ -271,7 +275,7 @@ for ((node_snum=1; node_snum<=$MAX_NODES; node_snum++)); do
    node_bmc_IP=$(echo $node_info | awk -F\| '{print $3}')
    [ -n "$node_mac" ] || node_mac="00:00:00:00:00:00"
    [ -n "$node_bmc_IP" ] || node_bmc_IP=$(_k_net_add_ip $BMC_NETWORK $node_snum)
-   mkdef -t node $node_name groups=all,n id=$node_snum arch=$base_arch bmc=$node_bmc_IP bmcusername=$BMC_USER bmcpassword=$BMC_PASS mac=$node_mac mgt=ipmi netboot=xnba provmethod= cons=ipmi
+   mkdef -t node $node_name groups=all,n id=$node_snum arch=$base_arch bmc=$node_bmc_IP bmcusername=$BMC_USER bmcpassword=$BMC_PASS mac=$node_mac mgt=ipmi netboot=xnba provmethod= cons=ipmi addkcmdline="console=tty0 console=${SOL_DEV},${SOL_SPPED}" serialflow=none serialport=$(echo $SOL_DEV| sed "s/ttyS//g") serialspeed=${SOL_SPEED}
 done
 
 #makehosts all 2>/dev/null
