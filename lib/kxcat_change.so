@@ -51,14 +51,16 @@ node() {
        fi
     done
 
-    chdef -t node $destname $arch_str $bmcip_str $bmcuser_str $bmcpass_str $mac_str $powerm_str $netboot_str $image_str $postboot_str $postscript_str $clean_str $alias_str $kernel_arg_str $sol_str || exit 1
+    desthost=$(echo $destname|sed "s/ /,/g")
+    echo chdef -t node $desthost $arch_str $bmcip_str $bmcuser_str $bmcpass_str $mac_str $powerm_str $netboot_str $image_str $postboot_str $postscript_str $clean_str $alias_str $kernel_arg_str $sol_str || exit 1
+    chdef -t node $desthost $arch_str $bmcip_str $bmcuser_str $bmcpass_str $mac_str $powerm_str $netboot_str $image_str $postboot_str $postscript_str $clean_str $alias_str $kernel_arg_str $sol_str || exit 1
     if [ "$bootmode" == "boot" ]; then
-        nodeset $destname boot
+        nodeset $desthost boot
     elif [ "$bootmode" == "install" ]; then
-        nodeset $destname osimage
+        nodeset $desthost osimage
     else
-        change_boot_mode=$(echo $(echo $(lsdef $destname -i currstate) | sed "s/Object name: /\n/g" | grep "currstate=boot" | awk '{print $1}') | sed "s/ /,/g")
-        nodeset $destname osimage
+        change_boot_mode=$(echo $(echo $(lsdef $desthost -i currstate) | sed "s/Object name: /\n/g" | grep "currstate=boot" | awk '{print $1}') | sed "s/ /,/g")
+        nodeset $desthost osimage
         [ -n "$change_boot_mode" ] && nodeset $change_boot_mode boot 
     fi
 }
@@ -78,7 +80,7 @@ image() {
           template_str="template=${tmp[1]}"
        fi
     done
-    chdef -t osimage ${destname} $pkglist_str $synclists_str $template_str $otherpkglist_str
+    chdef -t osimage $(echo ${destname}|sed 's/ /,/g') $pkglist_str $synclists_str $template_str $otherpkglist_str
 }
 
 change() {
