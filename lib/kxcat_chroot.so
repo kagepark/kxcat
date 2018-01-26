@@ -20,7 +20,14 @@ chroot() {
     type=$(lsdef -t osimage $1 -i provmethod | sed "s/ //g"| awk -F= '{if($1 == "provmethod") print $2}')
     if [ "$type" == "netboot" ]; then
        root_path=$(lsdef -t osimage $1 -i rootimgdir | sed "s/ //g"| awk -F= '{if($1 == "rootimgdir") print $2}')
-       [ -n "$root_path" -a -d "${root_path}/rootimg" ] && echo "Run \"chroot ${root_path}/rootimg\" command"
+       if [ -n "$root_path" -a -d "${root_path}/rootimg" ]; then
+             echo "1. Run \"chroot ${root_path}/rootimg\" command"
+             echo "2. Modify netboot image"
+             echo "3. \"Control + d\" for exit"
+             echo "4. Run \"scix update $1\" command for update to image file"
+       else
+           echo "${root_path}/rootimg directory not found"
+       fi
     else
        echo "$1 is not netboot image"
     fi
