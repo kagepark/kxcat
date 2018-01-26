@@ -10,6 +10,7 @@ make_image <iso file>        # build image from ISO file
 remove_image <image name>    # remove image
 change image <image name>    # change base OS image's information
 info image [<image name>]    # show base OS image's information
+chroot <image name>          # configure netboot(disk-less) image
 
 # groups
 define         # define group to nodes

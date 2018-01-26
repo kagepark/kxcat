@@ -1,0 +1,27 @@
+####################################
+# Kage Park
+# Re-designed(2017/09) by Kage Park
+# Base design Using old xcat scripts(2011) of Kage
+# License : GPL
+####################################
+
+chroot() {
+    local hostname opt
+    opt=($*)
+    if (( ${#opt[*]} != 1 )); then
+         echo "${FUNCNAME} <group name>"
+         exit
+    fi
+
+    if ! lsdef -t group $1 >&/dev/null; then
+       error_exit "$1 is not group name"
+    fi
+
+    type=$(lsdef -t osimage $1 -i provmethod | sed "s/ //g"| awk -F= '{if($1 == "provmethod") print $2}')
+    if [ "$type" == "netboot" ]; then
+       root_path=$(lsdef -t osimage $1 -i rootimgdir | sed "s/ //g"| awk -F= '{if($1 == "rootimgdir") print $2}')
+       [ -n "$root_path" -a -d "${root_path}/rootimg" ] && echo "Run \"chroot ${root_path}/rootimg\" command"
+    else
+       echo "$1 is not netboot image"
+    fi
+}
