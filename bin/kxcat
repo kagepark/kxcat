@@ -59,7 +59,7 @@ else
       if [ "$cmd" == "$cmdname" ]; then
           _k_load xcat_$cmd
           shift 1
-          $cmd $*
+          $cmd "${@}"
           exit
       fi
    done

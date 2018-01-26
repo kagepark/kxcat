@@ -10,7 +10,7 @@ node() {
     netboot_str="netboot=xnba"
     powerm_str="mgt=ipmi"
     arch_str="arch=x86_64"
-    args=$@
+    args=("$@")
     for ((ii=0; ii<${#args[@]}; ii++)); do
        tmp[0]=$(echo ${args[$ii]} | awk -F= '{print $1}')
        tmp[1]=$(echo ${args[$ii]} | awk -F= '{print $2}')
@@ -51,41 +51,20 @@ node() {
        fi
     done
 
-#    if node_cnt=$(nodels $node 2>/dev/null | wc -l); then 
-#       if [ "$node_cnt" == "1" ]; then
-          chdef -t node $destname $arch_str $bmcip_str $bmcuser_str $bmcpass_str $mac_str $powerm_str $netboot_str $image_str $postboot_str $postscript_str $clean_str $alias_str $kernel_arg_str $sol_str || exit 1
-          if [ "$bootmode" == "boot" ]; then
-              nodeset $destname boot
-          else
-              change_boot_mode=$(echo $(echo $(lsdef $destname -i currstate) | sed "s/Object name: /\n/g" | grep "currstate=boot" | awk '{print $1}') | sed "s/ /,/g")
-              nodeset $destname osimage
-              [ -n "$change_boot_mode" ] && nodeset $change_boot_mode boot 
-          fi
-
-
-#          # Need Check up the node is in the xCAT or not
-#          osimage_str=$(lsdef $node | grep "provmethod=" | sed "s/provmethod=//g" | sed "s/ //g")
-#          
-#          if [ "$bootmode" == "install" ]; then
-#             if [ -n "${image_str}" ]; then
-#                osimage_str=$(echo $image_str | sed "s/provmethod=//g")
-#             fi 
-#             nodeset ${destname} osimage=$osimage_str
-#          elif [ "$bootmode" == "boot" ]; then
-#             nodeset ${destname} boot
-#          else
-#             lsdef $destname | grep "currstate=boot " >& /dev/null || nodeset ${node} osimage=$osimage_str
-#          fi
-#       else
-#          echo "Looks $destname is not host name"
-#       fi
-#    else 
-#       echo "$node not found"
-#    fi
+    chdef -t node $destname $arch_str $bmcip_str $bmcuser_str $bmcpass_str $mac_str $powerm_str $netboot_str $image_str $postboot_str $postscript_str $clean_str $alias_str $kernel_arg_str $sol_str || exit 1
+    if [ "$bootmode" == "boot" ]; then
+        nodeset $destname boot
+    elif [ "$bootmode" == "install" ]; then
+        nodeset $destname osimage
+    else
+        change_boot_mode=$(echo $(echo $(lsdef $destname -i currstate) | sed "s/Object name: /\n/g" | grep "currstate=boot" | awk '{print $1}') | sed "s/ /,/g")
+        nodeset $destname osimage
+        [ -n "$change_boot_mode" ] && nodeset $change_boot_mode boot 
+    fi
 }
 
 image() {
-    args=$@
+    args=("$@")
     for ((ii=0; ii<${#args[@]}; ii++)); do
        tmp[0]=$(echo ${args[$ii]} | awk -F= '{print $1}')
        tmp[1]=$(echo ${args[$ii]} | awk -F= '{print $2}')
@@ -104,7 +83,7 @@ image() {
 
 change() {
     local hostname opt
-    opt=($@)
+    opt=("$@")
     if (( ${#opt[@]} < 3 )); then
          echo "${FUNCNAME} <host|image> <name> <arg1=val1> ...." 
          echo "  host options: "
@@ -131,14 +110,14 @@ change() {
          exit
     fi
 
-    type=$1
-    shift 1
-    destname=$1
-    shift 1
+    type=${opt[0]}
+    unset opt[0]
+    destname=${opt[1]}
+    unset opt[1]
     if [ "$type" == "host" ]; then
-        node $@
+        node "${opt[@]}"
     elif [ "$type" == "image" ]; then
-        image $@
+        image "${opt[@]}"
     else
         echo "Unkown options"
     fi    
