@@ -54,5 +54,7 @@ update() {
       xdcp  $dest /install/postscripts/xcatpostinit1.install /opt/xcat/xcatpostinit1 2>/dev/null
    fi
    nodeset $dest osimage=$osimage
-   [ "$reinstall" == "1" ] || nodeset $dest boot
+   if [ "$type" == "install" ]; then
+       [ "$reinstall" == "1" ] || nodeset $dest boot
+   fi
 }
