@@ -83,6 +83,8 @@ screen
 tar
 tcp_wrappers-devel
 tcsh
+tcl 
+tk
 util-linux
 wget
 xz
@@ -93,3 +95,8 @@ zlib
 zlib-devel
 -firewalld
 -firewalld-filesystem
+-libibverbs 
+-librdmacm 
+-libibverbs 
+-librdmacm 
+-rdma-core 

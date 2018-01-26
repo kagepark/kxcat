@@ -89,11 +89,13 @@ image() {
           pkglist_str="pkglist=${tmp[1]}"
        elif [ "${tmp[0]}" == "synclists" ] ; then
           synclists_str="synclists=${tmp[1]}"
+       elif [ "${tmp[0]}" == "otherpkglist" ] ; then
+          otherpkglist_str="otherpkglist=${tmp[1]}"
        elif [ "${tmp[0]}" == "template" ] ; then
           template_str="template=${tmp[1]}"
        fi
     done
-    chdef -t osimage ${destname} $pkglist_str $synclists_str $template_str
+    chdef -t osimage ${destname} $pkglist_str $synclists_str $template_str $otherpkglist_str
 }
 
 change() {
@@ -113,12 +115,13 @@ change() {
          echo "    bootmode=<install|boot>"
          echo "    alias=<add alias hostname to host>"
          echo "    kernel_arg=\"<kernel parameters>\""
-         echo "    sol_port=<0|1|2|3>
-         echo "    sol_speed=<9600|19200|115200>
-         echo "    sol_flow=<none|hard>
+         echo "    sol_port=<0|1|2|3>"
+         echo "    sol_speed=<9600|19200|115200>"
+         echo "    sol_flow=<none|hard>"
          echo "    <clean:state>"
          echo "  image options: "
          echo "    pkglist=<Package list file>"
+         echo "    otherpkglist=<Other Package list file>"
          echo "    synclists=<Sync file list file>"
          echo "    template=<Install template file>"
          exit
