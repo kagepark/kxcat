@@ -9,8 +9,7 @@ update() {
    if [ "$#" == "0" ]; then
        echo "update            : ${FUNCNAME} <host|group>"
        echo "update syncfile   : ${FUNCNAME} <host|group> -F"
-       echo "update Software   : ${FUNCNAME} <host|group> -S"
-       echo "update ssh key    : ${FUNCNAME} <host|group> -K"
+       echo "update Other PKGs : ${FUNCNAME} <host|group> -S"
        echo "update Postscript : ${FUNCNAME} <host|group> -P [<script1 [<arg1> <arg2>...]>,<script2 [<arg1> <arg2>...]>....]"
        echo "Reinstall OS      : ${FUNCNAME} -I <host|group>"
        exit
