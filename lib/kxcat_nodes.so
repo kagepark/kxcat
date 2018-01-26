@@ -21,8 +21,8 @@ nodes() {
    printf "%15s " "Hostname"
    printf "%15s " "Alias"
    printf "%10s " "Mode"
-   printf "%10s " "Power"
-   printf "%10s " "OS State"
+   printf "%5s " "H.C."
+   printf "%13s " "OS State"
    echo
 
    node_list=()
@@ -40,7 +40,7 @@ nodes() {
        printf "%15s " "$(echo ${node_list[$ii]} | awk -F, '{print $3}')"
        [ "$host_name" == "-" ] && printf "%10s " "-" || \
        printf "%10s " "$(booting_mode=$(echo ${node_list[$ii]} | awk -F, '{print $2}' |awk '{print $1}'); [ -n "$booting_mode" ] && echo $booting_mode || echo "-")"
-       printf "%10s " "$(echo ${node_list[$ii]} | awk -F, '{print $5}')"
+       printf "%5s " "$(echo ${node_list[$ii]} | awk -F, '{print $5}')"
        boot_mode=$(echo ${node_list[$ii]} | awk -F, '{print $6}')
        if [ "$boot_mode" == "booted" ]; then
           boot_date=$(echo ${node_list[$ii]} | awk -F, '{print $7}' | sed "s/-/\//g")
@@ -48,7 +48,7 @@ nodes() {
           now_time=$(date +%s)
           (( $(( $now_time - $((400 * 2)) )) > $boot_status_time )) && boot_mode="unknown"
        fi
-       printf "%10s " "$boot_mode"
+       printf "%13s " "$boot_mode"
        echo
    done
 }
