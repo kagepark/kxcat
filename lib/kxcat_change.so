@@ -54,9 +54,13 @@ node() {
 #    if node_cnt=$(nodels $node 2>/dev/null | wc -l); then 
 #       if [ "$node_cnt" == "1" ]; then
           chdef -t node $destname $arch_str $bmcip_str $bmcuser_str $bmcpass_str $mac_str $powerm_str $netboot_str $image_str $postboot_str $postscript_str $clean_str $alias_str $kernel_arg_str $sol_str || exit 1
-          change_boot_mode=$(echo $(echo $(lsdef $destname -i currstate) | sed "s/Object name: /\n/g" | grep "currstate=boot" | awk '{print $1}') | sed "s/ /,/g")
-          nodeset $destname osimage
-          [ -n "$change_boot_mode" ] && nodeset $change_boot_mode boot 
+          if [ "$bootmode" == "boot" ]; then
+              nodeset $destname boot
+          else
+              change_boot_mode=$(echo $(echo $(lsdef $destname -i currstate) | sed "s/Object name: /\n/g" | grep "currstate=boot" | awk '{print $1}') | sed "s/ /,/g")
+              nodeset $destname osimage
+              [ -n "$change_boot_mode" ] && nodeset $change_boot_mode boot 
+          fi
 
 
 #          # Need Check up the node is in the xCAT or not
