@@ -55,6 +55,7 @@ gen_create() {
     mkdir -p /install/groups/${new_group}/env
     chdef -t osimage ${new_group} rootimgdir=/install/groups/${new_group}
     env_files=""
+set -x
     for ii in $(lsdef -t osimage ${old_group} -i exlist,pkglist,otherpkglist,synclists,postscripts,postinstall,template | grep -v "^Object name:"); do
         src_file=$(echo $ii | awk -F= '{print $2}')
         src_type=$(echo $ii | awk -F= '{print $1}')
@@ -65,19 +66,20 @@ gen_create() {
               if [ "$multi_file" == "0" ]; then
                  jj_real=$(_k_misc_get_realpath $jj)
                  if [ -n "$jj_real" -a -e "$jj_real" ]; then
-                     cp -a $(_k_misc_get_realpath $jj) /install/groups/$new_group/env/$(basename $jj) && env_files="${env_files}/install/groups/$new_group/env/$(basename $jj)"
-                     multi_file=1
                      if [ "$src_type" == "pkglist" ]; then
+                         cp -a $(_k_misc_get_realpath $jj) /install/groups/$new_group/env/$(basename $jj) && env_files="${env_files}/install/groups/$new_group/env/$(basename $jj)"
+                         multi_file=1
                          grep "^#INCLUDE:$_KXC_HOME/share/hpc_pkglist#$" /install/groups/$new_group/env/$(basename $jj) >& /dev/null || echo "#INCLUDE:$_KXC_HOME/share/hpc_pkglist#" >> /install/groups/$new_group/env/$(basename $jj)
                      elif [ "$src_type" == "synclists" ]; then
-                         env_files="${env_files}/install/groups/$new_group/env/$(basename $jj),$_KXC_HOME/share/hpc_syncfile"
+                         if [ "$jj" == "$_KXC_HOME/share/hpc_syncfile" ]; then
+                             env_files="${env_files}$jj"
+                         else
+                             cp -a $(_k_misc_get_realpath $jj) /install/groups/$new_group/env/$(basename $jj) && env_files="${env_files}/install/groups/$new_group/env/$(basename $jj),${_KXC_HOME}/share/hpc_syncfile"
+                             multi_file=1
+                         fi
                      fi
                  else
-                     if [ "$src_type" == "synclists" ]; then
-                         env_files="${env_files}$_KXC_HOME/share/hpc_syncfile"
-                     else
-                         echo "$jj not found"
-                     fi
+                     echo "$jj not found"
                  fi
               else
                  if [ "$_KXC_HOME/share/hpc_syncfile" != "$jj" ]; then
@@ -96,11 +98,14 @@ gen_create() {
            fi
         fi
     done
+set +x
 
     [ -n "$env_files" ] && chdef -t osimage ${new_group} $env_files
 
     GROUP_NETWORK_IP=$(echo $(_k_net_ip $GROUP_NETWORK $GROUP_NETMASK) | sed "s/ //g")
-    chdef -t group ${new_group} ip="|${GROUP_NETWORK_IP}.(((\$1/256)%256)+$GROUP_START_1).((\$1%256)+$GROUP_START_2)|"
+    MPI_NETWORK_IP=$(echo $(_k_net_ip $MPI_NETWORK $GROUP_NETMASK) | sed "s/ //g")
+    #chdef -t group ${new_group} ip="|${GROUP_NETWORK_IP}.(((\$1/256)%256)+$GROUP_START_1).((\$1%256)+$GROUP_START_2)|"
+    chdef -t group ${new_group} ip="|${GROUP_NETWORK_IP}.(((\$1/256)%256)+$GROUP_START_1).((\$1%256)+$GROUP_START_2)|${new_group}-${MPI_DEV}:${MPI_NETWORK_IP}.(((\$1/256)%256)+$GROUP_START_1).((\$1%256)+$GROUP_START_2)"
     [ -d /global/kxcat_boot.d/${new_group} ] || mkdir -p /global/kxcat_boot.d/${new_group}
 }
 
@@ -108,6 +113,7 @@ make() {
     local hostname opt
     opt=($*)
     if (( ${#opt[*]} != 2 )); then
+         #echo "${FUNCNAME} <group> <Image> [otherpkglist=... synclists=... postinstall=... exlist=...]"
          echo "${FUNCNAME} <group> <Image>"
          echo
          echo "   get image names : sce info image"
@@ -116,7 +122,9 @@ make() {
 
     group=$1
     [ "$group" == "n" ] && error_exit "not support group 'n'"
-    image=$2
+    shift 1
+    image=$1
+    shift 1
 
     [ -n "$(echo "$group" | sed "s/[^0-9]*//g")" ] && error_exit "Group name not support digital number. Please remove any number in group name string"
     for ii in netboot; do
@@ -136,7 +144,7 @@ make() {
     fi
 
     type=$(lsdef -t osimage ${image} -i provmethod | sed "s/ //g" | awk -F= '{if($1 == "provmethod") print $2}')
-    gen_create "$image" "$group"
+    gen_create "$image" "$group"  $@
     if [ "$type" == "netboot" ]; then
         genimage ${new_group}
         packimage ${new_group}
