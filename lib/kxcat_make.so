@@ -55,7 +55,6 @@ gen_create() {
     mkdir -p /install/groups/${new_group}/env
     chdef -t osimage ${new_group} rootimgdir=/install/groups/${new_group}
     env_files=""
-set -x
     for ii in $(lsdef -t osimage ${old_group} -i exlist,pkglist,otherpkglist,synclists,postscripts,postinstall,template | grep -v "^Object name:"); do
         src_file=$(echo $ii | awk -F= '{print $2}')
         src_type=$(echo $ii | awk -F= '{print $1}')
@@ -98,7 +97,6 @@ set -x
            fi
         fi
     done
-set +x
 
     [ -n "$env_files" ] && chdef -t osimage ${new_group} $env_files
 
