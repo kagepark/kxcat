@@ -5,14 +5,14 @@
 /etc/shadow -> /etc/shadow
 /etc/security/limits.conf -> /etc/security/limits.conf
 /root/.ssh/config -> /root/.ssh/config
-/install/post/hpc/post_env -> /tmp/post_env
+#/install/post/hpc/post_env -> /tmp/post_env
 
-/install/post/hpc/post_exe.post -> /tmp/post_exe.post
-EXECUTE:
-/tmp/post_exe.post
+#/install/post/hpc/post_exe.post -> /tmp/post_exe.post
+#EXECUTE:
+#/tmp/post_exe.post
 
-EXECUTEALWAYS:
-/tmp/post_env
+#EXECUTEALWAYS:
+#/tmp/post_env
 
 #MERGE:
 #/my/password -> /etc/passwd
