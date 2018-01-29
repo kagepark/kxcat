@@ -52,8 +52,8 @@ node() {
     done
 
     desthost=$(echo $destname|sed "s/ /,/g")
-    echo chdef -t node $desthost $arch_str $bmcip_str $bmcuser_str $bmcpass_str $mac_str $powerm_str $netboot_str $image_str $postboot_str $postscript_str $clean_str $alias_str $kernel_arg_str $sol_str || exit 1
     chdef -t node $desthost $arch_str $bmcip_str $bmcuser_str $bmcpass_str $mac_str $powerm_str $netboot_str $image_str $postboot_str $postscript_str $clean_str $alias_str $kernel_arg_str $sol_str || exit 1
+    [ -n "$alias_str" ] && makehosts $desthost
     if [ "$bootmode" == "boot" ]; then
         nodeset $desthost boot
     elif [ "$bootmode" == "install" ]; then
