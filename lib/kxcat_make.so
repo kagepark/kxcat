@@ -105,9 +105,12 @@ gen_create() {
     [ -n "$env_files" ] && chdef -t osimage ${new_group} $env_files
 
     GROUP_NETWORK_IP=$(echo $(_k_net_ip $GROUP_NETWORK $GROUP_NETMASK) | sed "s/ //g")
-    MPI_NETWORK_IP=$(echo $(_k_net_ip $MPI_NETWORK $GROUP_NETMASK) | sed "s/ //g")
+    if [ -n "$MPI_NETWORK" ]; then
+       MPI_NETWORK_IP=$(echo $(_k_net_ip $MPI_NETWORK $GROUP_NETMASK) | sed "s/ //g")
+       MPI_NETWORK_IP_STR="otherinterfaces=|${new_group}(sprintf('-%04d',\$1))-${MPI_DEV}:${MPI_NETWORK_IP}.(((\$1/256)%256)+$GROUP_START_1).((\$1%256)+$GROUP_START_2)|"
+    fi
     #chdef -t group ${new_group} ip="|${GROUP_NETWORK_IP}.(((\$1/256)%256)+$GROUP_START_1).((\$1%256)+$GROUP_START_2)|"
-    chdef -t group ${new_group} ip="|${GROUP_NETWORK_IP}.(((\$1/256)%256)+$GROUP_START_1).((\$1%256)+$GROUP_START_2)|${new_group}-${MPI_DEV}:${MPI_NETWORK_IP}.(((\$1/256)%256)+$GROUP_START_1).((\$1%256)+$GROUP_START_2)"
+    chdef -t group ${new_group} ip="|${GROUP_NETWORK_IP}.(((\$1/256)%256)+$GROUP_START_1).((\$1%256)+$GROUP_START_2)|" $MPI_NETWORK_IP_STR
     [ -d /global/kxcat_boot.d/${new_group} ] || mkdir -p /global/kxcat_boot.d/${new_group}
 }
 

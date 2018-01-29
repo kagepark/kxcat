@@ -18,20 +18,20 @@ remove() {
     fi
 
     for group in $*; do
-      echo "Deleting $group"
       if lsdef -t group ${group} >&/dev/null ; then
         nodes=$(lsdef -t group ${group} | grep "members=" |awk -F= '{print $2}')
         if [ -n "$nodes" ]; then
-           echo "Please stop $nodes first. and delete group $group"
+           error_exit "Please stop $nodes first. and delete group $group"
         else
            makehosts -d ${group}
            rmdef -t group ${group}
            rmdef -t osimage ${group}
            [ -d /install/groups/${group} ] && rm -fr /install/groups/${group}
            [ -d /global/kxcat_boot.d/${group} ] && rm -fr /global/kxcat_boot.d/${group}
+           echo "Deleted $group"
         fi
       else
-        echo "group \"$group\" not found"
+        error_exit "group \"$group\" not found"
       fi
     done
 }
