@@ -49,6 +49,25 @@ init() {
   if ! grep "^$MGT_IP  $MGMT_HOSTNAME" /etc/hosts >& /dev/null; then
      echo "$MGT_IP  $MGMT_HOSTNAME  ${MGMT_HOSTNAME}.${DOMAIN_NAME}" >> /etc/hosts
   fi
+
+  if [ -n "$MPI_NETWORK" -a -n "$MPI_DEV" ]; then
+     [ -d /sys/class/net/${MPI_DEV} ] || error_exit "Please Install OFED/OPA and setup device first"
+     [ -f /etc/sysconfig/network-scripts/ifcfg-${MPI_DEV} ] || error_exit "not found ifcfg-${MPI_DEV} config file"
+     echo "CONNECTED_MODE=no
+PROXY_METHOD=none
+BROWSER_ONLY=no
+BOOTPROTO=static
+DEFROUTE=yes
+IPV4_FAILURE_FATAL=no
+NAME=${MPI_DEV}
+DEVICE=${MPI_DEV}
+ONBOOT=no
+IPADDR=${MPI_MGT_IP}
+NETMASK=${GROUP_NETMASK} " > /etc/sysconfig/network-scripts/ifcfg-${MPI_DEV}
+  fi
+
+
+
   echo "search $DOMAIN_NAME
 nameserver $MGT_IP
 $([ -n "$DNS_OUTSIDE" ] && echo nameserver $DNS_OUTSIDE)" > /etc/resolv.conf
@@ -220,6 +239,7 @@ node_short=" /install/postscripts/xcatdsklspost
   [ -d /install/postscripts/kxcat_boot.d ] || mkdir -p /install/postscripts/kxcat_boot.d
   cp -a $_KXCAT_HOME/share/0000_update_state /install/postscripts/kxcat_boot.d
   cp -a $_KXCAT_HOME/share/0001_cleanyum /install/postscripts/kxcat_boot.d
+  cp -a $_KXCAT_HOME/share/0002_mpi_net /install/postscripts/kxcat_boot.d
   [ -d /global/kxcat_boot.d/global ] || mkdir -p /global/kxcat_boot.d/global
   if ! grep "^/global" /etc/exports >& /dev/null; then
      echo "/global *(rw,no_root_squash,sync,no_subtree_check)" >> /etc/exports
@@ -241,6 +261,9 @@ node_short=" /install/postscripts/xcatdsklspost
   [ -n "$network_name" ] || error_exit "network_name not found for $GROUP_NET_DEV device"
   DHCP_IP_RANGE=$(_k_net_add_ip $GROUP_NETWORK $((65279-$(($MAX_NODES * 2)))))-$(_k_net_add_ip $GROUP_NETWORK 65279)
   chtab netname=$network_name networks.net=$GROUP_NETWORK networks.mask=$GROUP_NETMASK networks.mgtifname=$GROUP_NET_DEV networks.dhcpserver=$MGT_IP networks.tftpserver=$MGT_IP networks.nameservers=$MGT_IP networks.dynamicrange=$DHCP_IP_RANGE
+  if [ -n "$MPI_NETWORK" ]; then
+      chtab netname=MPI networks.net=$MPI_NETWORK networks.mask=$GROUP_NETMASK networks.mgtifname=$MPI_DEV
+  fi
 #  tabdump networks
   grep "^DHCPDARGS=" /etc/sysconfig/dhcpd >& /dev/null || echo "DHCPDARGS=\"$GROUP_NET_DEV\"" >> /etc/sysconfig/dhcpd
 

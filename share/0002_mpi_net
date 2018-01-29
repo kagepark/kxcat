@@ -1,0 +1,34 @@
+get_val() {
+   [ -f /xcatpost/mypostscript ] || return 1
+   if [ "$1" == "NETWORKS" ]; then
+      grep "netname=MPI" /xcatpost/mypostscript | sed "s/||/\n/g" | grep "^${2}" | awk -F= '{print $2}'
+   else
+      grep "^${1}" /xcatpost/mypostscript | awk -F= '{print $2}'
+   fi
+}
+
+convert_ip() {
+   mpi_net_arr=($(echo $mpi_net | sed "s/\./ /g"))
+   mpi_netmask_arr=($(echo $mpi_netmask | sed "s/\./ /g"))
+   host_ip_arr=($(echo $host_ip | sed "s/\./ /g"))
+
+   mpi_ip=""
+   for ((ii=0;ii<${#mpi_netmask_arr[*]};ii++)); do
+       if [ "${mpi_netmask_arr[$ii]}" == "255" ]; then
+           [ -n "$mpi_ip" ] && mpi_ip="${mpi_ip}.${mpi_net_arr[$ii]}"  || mpi_ip=${mpi_net_arr[$ii]}
+       else
+           mpi_ip="${mpi_ip}.${host_ip_arr[$ii]}"
+       fi
+   done
+   echo $mpi_ip
+}
+
+mpi_net=$(get_val NETWORKS net) || error_exit "/xcatpost/mypostscript file not found"
+mpi_netmask=$(get_val NETWORKS mask) || error_exit "/xcatpost/mypostscript file not found"
+mpi_dev=$(get_val NETWORKS mgtifname) || error_exit "/xcatpost/mypostscript file not found"
+host_ip=$(get_val IPADDR)
+
+if [ -n "$mpi_dev" -a -d /sys/class/net/$mpi_dev ]; then
+    mpi_ip=$(convert_ip)
+    [ -n "$mpi_ip" ] && ifconfig $mpi_dev $mpi_ip netmask $mpi_netmask up
+fi
