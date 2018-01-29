@@ -19,7 +19,8 @@ _KXCAT_HOME=$(dirname $(dirname $(readlink -f $0)))
 [ -f $_KXCAT_HOME/etc/kxcat.cfg ] || error_exit "kxcat.cfg file not found"
 . $_KXCAT_HOME/etc/kxcat.cfg
 
-[ ! -n "$OS_ISO" -o ! -f "$OS_ISO" ] && error_exit "$OS_ISO file not found"
+#[ ! -n "$OS_ISO" -o ! -f "$OS_ISO" ] && error_exit "$OS_ISO file not found"
+[ ! -n "$OS_ISO" ] && error_exit "OS_ISO not found"
 
 [ ! -n "$GROUP_NETWORK" ] && error_exit "GROUP_NETWORK not found"
 [ ! -n "$GROUP_NETMASK" ] && error_exit "GROUP_NETMASK not found"
@@ -276,7 +277,14 @@ xcat_image() {
 # OS Image
   source $_KXCAT_HOME/etc/xcat.sh
   source /etc/profile.d/kxcat.sh
-  copycds $OS_ISO
+  echo $OS_ISO | sed "s/,/\n/g" | while read line; do
+     if [ ! -f "$line" ]; then
+         echo "$line not found"
+         continue
+     fi
+     echo "Make base name from $line"
+     copycds "$line"
+  done
   lsdef -t osimage
   base_image_str=$(tabdump osimage | sed "s/\"//g" | awk -F, '{if($6=="install") printf "%s,%s", $1,$13}')
   base_image=$(echo $base_image_str | awk -F, '{print $1}')
