@@ -5,7 +5,7 @@
 # License : GPL
 ####################################
 
-delete_image() {
+remove_image() {
     local hostname opt
     opt=($*)
     if (( ${#opt[*]} < 1 )); then

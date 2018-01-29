@@ -4,11 +4,6 @@
 # Base design Using old xcat scripts(2011) of Kage
 # License : GPL
 ####################################
-
-GROUP_NETWORK=10.4
-GROUP_START=100
-MAX_NODES=20
-
 remove() {
     local hostname opt
     opt=($*)
