@@ -1,0 +1,23 @@
+if [ -f /opt/xcat/xcatinfo ]; then
+  . /opt/xcat/xcatinfo
+fi
+if [ ! -n "$XCATSERVER" ]; then
+    XCATSERVER=$(awk -F= '{if($1 == "MASTER") print $2}' /xcatpost/mypostscript | sed "s/'//g")
+fi
+if [ ! -n "$XCATSERVER" ]; then
+    echo "XCATSERVER not found"
+    exit 1
+fi
+
+if [ -f /etc/ntp.conf ]; then
+   echo "/etc/ntp.conf file not found"
+   exit 1
+fi
+
+if ! grep "^server $XCATSERVER" /etc/ntp.conf >& /dev/null; then
+    echo "server $XCATSERVER" >> /etc/ntp.conf
+fi
+
+[ -f /etc/init.d/ntp ] && /etc/init.d/ntp stop || systemctl stop ntpd
+ntpdate $XCATSERVER
+[ -f /etc/init.d/ntp ] && /etc/init.d/ntp start || systemctl start ntpd
