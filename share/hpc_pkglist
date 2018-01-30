@@ -21,6 +21,7 @@ bzip2-libs
 compat-glibc
 compat-glibc-headers
 compat-libgfortran-41
+cpp
 fuse-libs
 gcc
 gcc-c++
@@ -96,7 +97,3 @@ zlib-devel
 -firewalld
 -firewalld-filesystem
 -libibverbs 
--librdmacm 
--libibverbs 
--librdmacm 
--rdma-core 
