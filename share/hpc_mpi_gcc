@@ -1,9 +1,7 @@
 gcc
 gcc-gfortran
 libgfortran
-#compat-libgfortran
 mpich
-#mpitests-mpich
 mpich-3.0-devel
 cpp
 gcc-c++
@@ -14,6 +12,4 @@ libquadmath-devel
 libstdc++
 libstdc++-devel
 environment-modules
-blas-devel
 blas
-blas-static
