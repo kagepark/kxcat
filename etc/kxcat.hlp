@@ -36,6 +36,9 @@ power          # compute node's power handle
 #tools
 backup         # Backup DB
 restore        # Restore DB
+sh             # remote shell
+cp             # copy from MGT to remote node
+ping           # ping to multi node
 
 #Logs
 Look /var/log/xcat directory

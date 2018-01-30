@@ -1,0 +1,11 @@
+####################################
+# Kage Park
+# Re-designed(2017/09) by Kage Park
+# Base design Using old xcat scripts(2011) of Kage
+# License : GPL
+####################################
+
+cp() {
+    (( $# < 3 )) && error_exit "${FUNCNAME} <group name|hostname> <src file> <dest dir>"
+    xdcp $@
+}

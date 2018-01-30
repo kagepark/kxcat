@@ -5,9 +5,6 @@
 /etc/shadow -> /etc/shadow
 /etc/security/limits.conf -> /etc/security/limits.conf
 /root/.ssh/config -> /root/.ssh/config
-/root/test_exe -> /tmp/test_exe
-EXECUTE:
-/tmp/test_exe abc
 
 #/install/post/hpc/post_env -> /tmp/post_env
 
