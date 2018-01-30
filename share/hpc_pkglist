@@ -17,6 +17,7 @@
 @ input-methods
 @ x11
 bash
+bc
 bzip2-libs
 compat-glibc
 compat-glibc-headers
