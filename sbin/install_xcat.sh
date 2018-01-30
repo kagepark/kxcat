@@ -259,6 +259,7 @@ node_short=" /install/postscripts/xcatdsklspost
   cp -a $_KXCAT_HOME/share/0000_update_state /install/postscripts/kxcat_boot.d
   cp -a $_KXCAT_HOME/share/0001_cleanyum /install/postscripts/kxcat_boot.d
   cp -a $_KXCAT_HOME/share/0002_mpi_net /install/postscripts/kxcat_boot.d
+  cp -a $_KXCAT_HOME/share/0003_ntp /install/postscripts/kxcat_boot.d
   [ -d /global/kxcat_boot.d/global ] || mkdir -p /global/kxcat_boot.d/global
   if ! grep "^/global" /etc/exports >& /dev/null; then
      echo "/global *(rw,no_root_squash,sync,no_subtree_check)" >> /etc/exports

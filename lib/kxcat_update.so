@@ -10,6 +10,7 @@ update() {
        echo "update                   : ${FUNCNAME} <host|group>"
        echo "update syncfile          : ${FUNCNAME} <host|group> -F"
        echo "update Software(OS/Other): ${FUNCNAME} <host|group> -S"
+       echo "update boot script       : ${FUNCNAME} <host|group> -b"
        echo "update Postscript        : ${FUNCNAME} <host|group> -P [<script1 [<arg1> <arg2>...]>,<script2 [<arg1> <arg2>...]>....]"
        echo "Reinstall OS             : ${FUNCNAME} -I <host|group>"
        exit
@@ -21,6 +22,7 @@ update() {
    dest=$1
    for ii in $*; do
       [ "$ii" == "-S" ] && netboot_ignore_image=1
+      [ "$ii" == "-b" ] && boot_script_update=1
    done
 
    if node_cnt=$(nodels $dest 2>/dev/null | wc -l); then
@@ -37,7 +39,7 @@ update() {
    if [ "$type" == "netboot" ]; then
       /opt/xcat/bin/updatenode $* 2>/dev/null
       if [ "$netboot_ignore_image" != "1" ]; then
-         genimage $osimage
+         [ "$boot_script_update" != "1" ] && genimage $osimage
          [ -d /install/groups/${osimage}/rootimg/xcatpost ] || mkdir -p /install/groups/${osimage}/rootimg/xcatpost
          [ -d /install/groups/${osimage}/rootimg/opt/xcat ] || mkdir -p /install/groups/${osimage}/rootimg/opt/xcat
          cp -a /install/postscripts/xcatpostinit1.netboot /install/groups/${osimage}/rootimg/opt/xcat/xcatpostinit1 2>/dev/null
@@ -52,14 +54,19 @@ update() {
       fi
       nodeset $dest osimage=$osimage
    elif [ "$type" == "install" ]; then
-      if [ "$reinstall" != "1" ]; then
+      if [ "$boot_script_update" != "1" ]; then
+        if [ "$reinstall" != "1" ]; then
           change_boot_mode=$(echo $(echo $(lsdef $dest -i currstate) | sed "s/Object name: /\n/g" | grep "currstate=boot" | awk '{print $1}') | sed "s/ /,/g")
           /opt/xcat/bin/updatenode $* 2>/dev/null
+        fi
       fi
       xdcp  $dest /install/postscripts/xcatpostinit1.install /opt/xcat/xcatpostinit1 >& /dev/null
-      nodeset $dest osimage=$osimage
-      if [ "$reinstall" != "1" ]; then
+      xdcp  $dest /install/postscripts/kxcat_boot.d/*  /xcatpost/kxcat_boot.d/ >& /dev/null
+      if [ "$boot_script_update" != "1" ]; then
+         nodeset $dest osimage=$osimage
+         if [ "$reinstall" != "1" ]; then
            [ -n "$change_boot_mode" ] && nodeset $change_boot_mode boot
+         fi
       fi
    else
       echo "Unknown image type"

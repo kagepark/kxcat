@@ -2,14 +2,14 @@ if [ -f /opt/xcat/xcatinfo ]; then
   . /opt/xcat/xcatinfo
 fi
 if [ ! -n "$XCATSERVER" ]; then
-    XCATSERVER=$(awk -F= '{if($1 == "MASTER") print $2}' /xcatpost/mypostscript | sed "s/'//g")
+    [ -f /xcatpost/mypostscript ] && XCATSERVER=$(awk -F= '{if($1 == "MASTER") print $2}' /xcatpost/mypostscript | sed "s/'//g")
 fi
 if [ ! -n "$XCATSERVER" ]; then
     echo "XCATSERVER not found"
     exit 1
 fi
 
-if [ -f /etc/ntp.conf ]; then
+if [ ! -f /etc/ntp.conf ]; then
    echo "/etc/ntp.conf file not found"
    exit 1
 fi
