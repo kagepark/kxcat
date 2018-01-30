@@ -2,8 +2,9 @@ SCIX command help based on grouped xCAT functionings
 
 # Display information
 nodes         # shows node list
-groups        # Show group list
-images        # Show base image list
+groups        # Show group list or info
+images        # Show base image list or info
+hosts         # show host list or info
 
 #Images
 make_image <iso file>        # build image from ISO file
@@ -20,7 +21,6 @@ remove         # remove a group
 
 
 #Host
-hosts          # show host info
 change node    # change node's information
 updatenode     # Update information to node
 update         # Update information to node or group
