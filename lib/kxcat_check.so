@@ -1,0 +1,37 @@
+check() {
+  printf "%13s " "Hostname"
+  printf "%9s " "CPUs"
+  printf "%2s " "HT"
+  printf "%8s " "MHz"
+  printf "%6s " "Mem(G)"
+  printf "%3s " "NTP"
+  printf "%7s " "/global"
+  printf "%5s " "/home"
+  printf "%3s " "NIC"
+  printf "%3s " "IB"
+  echo
+
+  for ii in $(nodels $*); do
+     printf "%13s " "$ii"
+     ssh $ii "
+       #printf \"%4s \" \$(grep \"^processor\" /proc/cpuinfo | wc -l)
+       lscpuinfo=\$(lscpu)
+       cpunum=\$(echo \"\$lscpuinfo\" | grep \"^CPU(s)\" | awk '{print \$2}')
+       socketnum=\$(echo \"\$lscpuinfo\" | grep \"^Socket\" | awk '{print \$2}')
+       corenum=\$(echo \"\$lscpuinfo\" | grep \"^Core(s)\" | awk '{print \$4}')
+       hz=\$(echo \"\$lscpuinfo\" | grep \"^CPU MHz\" | awk '{print \$3}')
+       hyper=\$(echo \"\$lscpuinfo\" | grep \"^Thread(s) per core\" | awk '{print \$4}')
+       
+       printf \"%9s \" \"\${cpunum}(\${corenum}*\${socketnum})\"
+       printf \"%2s \" \"\$hyper\"
+       printf \"%8s \" \"\$hz\"
+       printf \"%6s \" \$((\$(grep \"^MemTotal\" /proc/meminfo  | awk '{print \$2}')/\$((1024*1024))))
+       printf \"%3s \" \$(ps -ef |grep ntpd | grep -v grep >& /dev/null && echo Run || echo \"-\")
+       printf \"%7s \" \$(mountpoint /global >& /dev/null && echo OK || echo \"-\")
+       printf \"%5s \" \$(mountpoint /home >& /dev/null && echo OK || echo \"-\")
+       printf \"%3s \" \$(ls /sys/class/net/ | grep -v -e "^ib" -e "lo" | wc -l)
+       printf \"%3s \" \$(ls /sys/class/net/ | grep \"ib[0-9]\" | wc -l)
+     "
+     echo
+  done
+}
