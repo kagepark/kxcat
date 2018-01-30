@@ -121,7 +121,7 @@ make() {
          #echo "${FUNCNAME} <group> <Image> [otherpkglist=... synclists=... postinstall=... exlist=...]"
          echo "${FUNCNAME} <group> <Image>"
          echo
-         echo "   get image names : sce info image"
+         echo "   get image names : sce images"
          exit
     fi
 
