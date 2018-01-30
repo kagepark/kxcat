@@ -123,7 +123,7 @@ gen_create() {
 make() {
     local hostname opt
     opt=($*)
-    if (( ${#opt[*]} != 2 )); then
+    if (( ${#opt[*]} < 2 || ${#opt[*]} > 3 )); then
          echo "${FUNCNAME} <group> <Image> [pkglist=<pkglist file1>,<pkglist file2>,....]"
 #         echo "${FUNCNAME} <group> <Image>"
          echo
