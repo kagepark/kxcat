@@ -1,8 +1,3 @@
-mvapich2 
-mpitests-mvapich2 
-mvapich2-2.0-psm 
-mvapich2-2.0-devel 
-mvapich2-2.0-psm-devel
 gcc
 gcc-gfortran
 libgfortran
@@ -10,8 +5,6 @@ compat-libgfortran
 mpich
 mpitests-mpich
 mpich-3.0-devel
-openmpi
-openmpi-devel
 cpp
 gcc-c++
 libgcc
@@ -21,3 +14,4 @@ libquadmath-devel
 libstdc++
 libstdc++-devel
 environment-modules
+

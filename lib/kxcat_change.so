@@ -39,7 +39,8 @@ node() {
        elif [ "${tmp[0]}" == "alias" ]; then
            alias_str="hostnames=${tmp[1]}"
        elif [ "${tmp[0]}" == "kernel_arg" ]; then
-           kernel_arg_str="addkcmdline=\"${tmp[1]}\""
+           #kernel_arg_str="addkcmdline=\"${tmp[1]}\""
+           kernel_arg_str="${tmp[1]}"
        elif [ "${tmp[0]}" == "sol_port" ]; then
            sol_str="$sol_str serialport=${tmp[1]}"
        elif [ "${tmp[0]}" == "sol_speed" ]; then
@@ -52,7 +53,14 @@ node() {
     done
 
     desthost=$(echo $destname|sed "s/ /,/g")
-    chdef -t node $desthost $arch_str $bmcip_str $bmcuser_str $bmcpass_str $mac_str $powerm_str $netboot_str $image_str $postboot_str $postscript_str $clean_str $alias_str $kernel_arg_str $sol_str || exit 1
+
+#    echo chdef -t node -o $desthost $arch_str $bmcip_str $bmcuser_str $bmcpass_str $mac_str $powerm_str $netboot_str $image_str $postboot_str $postscript_str $clean_str $alias_str $kernel_arg_str $sol_str 
+    if [ -n "$kernel_arg_str" ]; then
+       chdef -t node -o $desthost $arch_str $bmcip_str $bmcuser_str $bmcpass_str $mac_str $powerm_str $netboot_str $image_str $postboot_str $postscript_str $clean_str $alias_str addkcmdline="$kernel_arg_str" $sol_str || exit 1
+    else
+       chdef -t node -o $desthost $arch_str $bmcip_str $bmcuser_str $bmcpass_str $mac_str $powerm_str $netboot_str $image_str $postboot_str $postscript_str $clean_str $alias_str $sol_str || exit 1
+    fi
+
     [ -n "$alias_str" ] && makehosts $desthost
     if [ "$bootmode" == "boot" ]; then
         nodeset $desthost boot
