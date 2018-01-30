@@ -159,6 +159,24 @@ xcat_install() {
 }
 
 xcat_env() {
+  # NTP config
+  if ! grep "^fudge 127.127.1.0" /etc/ntp.conf >& /dev/null; then
+      echo "fudge 127.127.1.0 stratum 10" >> /etc/ntp.conf
+  fi
+  if [ -n "$NTP_IP" ]; then
+     if ! grep "^server $NTP_IP" /etc/ntp.conf >& /dev/null ; then
+        echo "server $NTP_IP" >> /etc/ntp.conf
+     fi
+  else
+     if ! grep "^server $MGT_IP" /etc/ntp.conf >& /dev/null ; then
+        echo "server $MGT_IP" >> /etc/ntp.conf
+     fi
+  fi
+  systemctl stop ntpd
+  systemctl start ntpdate
+  systemctl start ntpd
+  systemctl enable ntpd
+
   # NFS patch
   if ! grep "^RPCNFSDCOUNT=" /etc/sysconfig/nfs >&/dev/null; then
       echo "RPCNFSDCOUNT=128" >> /etc/sysconfig/nfs
