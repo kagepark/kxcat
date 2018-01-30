@@ -1,9 +1,9 @@
 gcc
 gcc-gfortran
 libgfortran
-compat-libgfortran
+#compat-libgfortran
 mpich
-mpitests-mpich
+#mpitests-mpich
 mpich-3.0-devel
 cpp
 gcc-c++
