@@ -70,7 +70,8 @@ define() {
       chdef -t node $addhosts groups=all,${group} || exit 1
       nodeset ${addhosts} osimage=${group}
       makehosts ${addhosts} 2>/dev/null
-      makedns -n
+      #makedns -n
+      makedns ${addhosts}
       makedhcp ${addhosts}
       makeconservercf ${addhosts}
    else
