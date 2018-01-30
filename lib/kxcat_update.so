@@ -45,6 +45,7 @@ update() {
          cp -a /install/postscripts/xcatpostinit1.netboot /install/groups/${osimage}/rootimg/opt/xcat/xcatpostinit1 2>/dev/null
          cp -a /install/postscripts/xcatdsklspost /install/groups/${osimage}/rootimg/opt/xcat/ 2>/dev/null
          rsync -a /install/postscripts/ /install/groups/${osimage}/rootimg/xcatpost/
+         chmod +x /install/groups/${osimage}/rootimg/xcatpost/kxcatboot
          [ -d /install/groups/${osimage}/rootimg/root ] || mkdir -p /install/groups/${osimage}/rootimg/root
          [ -d /install/groups/${osimage}/rootimg/root/.ssh ] && rm -fr /install/groups/${osimage}/rootimg/root/.ssh
          rsync -a /root/.ssh  /install/groups/${osimage}/rootimg/root
@@ -62,6 +63,7 @@ update() {
       fi
       xdcp  $dest /install/postscripts/xcatpostinit1.install /opt/xcat/xcatpostinit1 >& /dev/null
       xdcp  $dest /install/postscripts/kxcat_boot.d/*  /xcatpost/kxcat_boot.d/ >& /dev/null
+      xdcp  $dest /install/postscripts/kxcatboot /xcatpost/kxcatboot >& /dev/null
       if [ "$boot_script_update" != "1" ]; then
          nodeset $dest osimage=$osimage
          if [ "$reinstall" != "1" ]; then
