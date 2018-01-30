@@ -9,7 +9,6 @@ images        # Show base image list
 make_image <iso file>        # build image from ISO file
 remove_image <image name>    # remove image
 change image <image name>    # change base OS image's information
-info image [<image name>]    # show base OS image's information
 chroot <image name>          # configure netboot(disk-less) image
 
 # groups
@@ -23,13 +22,10 @@ remove         # remove a group
 #Host
 hosts          # show host info
 change node    # change node's information
-info node      # show node's information
 updatenode     # Update information to node
 update         # Update information to node or group
 clone_host <base host> <hostname> <ip> <mac> # clone to host from <base host> template
 add_host <base host> <hostname> <ip> <mac>   # Add new host
-
-#MISC
 console        # ompute node's console
 power          # compute node's power handle
 
