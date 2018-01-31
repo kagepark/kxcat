@@ -19,11 +19,6 @@
 
 _KXC_VERSION=3.0.3
 
-_help() {
-    echo "Usage: $(basename $0) command [<arg1> <arg2>....]"
-    exit
-}
-
 error_exit() {
     echo $*
     exit 1
@@ -38,6 +33,14 @@ tag=k
 . $_KXC_HOME/etc/kxcat.cfg
 
 
+_help() {
+    echo "Base xCAT $(lsxcatd -v)"
+    echo
+    cat $_KXC_HOME/etc/kxcat.hlp
+    echo "Usage: $(basename $0) command [<arg1> <arg2>....]"
+    exit
+}
+
 if [ "$#" == "0" ]; then
   cat $_KXC_HOME/etc/kxcat.hlp
   exit
@@ -47,7 +50,6 @@ kcmd=$2
 cmd_str="$(cat $_KXC_HOME/etc/kxcat.hlp | grep -v "^#" | awk '{print $1}')"
 
 if [ "$cmd" == "help" -o "$cmd" == "--help" ]; then
-    cat $_KXC_HOME/etc/kxcat.hlp
     _help
 elif [ "$cmd" == "version" -o "$cmd" == "--version" ]; then
     echo "$_KXC_VERSION"

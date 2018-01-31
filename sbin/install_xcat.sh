@@ -74,9 +74,9 @@ nameserver $MGT_IP
 $([ -n "$DNS_OUTSIDE" ] && echo nameserver $DNS_OUTSIDE)" > /etc/resolv.conf
   echo "export PATH=\${PATH}:$_KXCAT_HOME/bin" > /etc/profile.d/kxcat.sh
   . /etc/profile.d/kxcat.sh
-  systemctl disable firewalld
-  systemctl disable libvirtd
-  systemctl disable NetworkManager
+  [ -d /usr/lib/systemd/system ] && systemctl disable firewalld || chkconfig --del firewalld
+  [ -d /usr/lib/systemd/system ] && systemctl disable libvirtd || chkconfig --del libvirtd
+  [ -d /usr/lib/systemd/system ] && systemctl disable NetworkManager || chkconfig --del NetworkManager 
   if [ -f /etc/sysconfig/selinux ]; then
     grep -v "^#" /etc/sysconfig/selinux  | grep enforcing >& /dev/null && sed -i "s/SELINUX=enforcing/SELINUX=disabled/g" /etc/sysconfig/selinux
   fi
@@ -161,7 +161,7 @@ net.core.rmem_default = 262144
 xcat_install() {
   ping -c 2 www.google.com  >& /dev/null || error_exit "Please setup outside network for auto installation for xCAT"
   yum -y install dhcp dhcp-common dhcp-libs ntp nfs httpd tftp bind
-  systemctl stop dhcpd
+  [ -d /usr/lib/systemd/system ] && systemctl stop dhcpd || service dhcpd stop
   yum erase libvirt-client
   [ -f ./go-xcat ] && rm -f go-xcat
   wget https://raw.githubusercontent.com/xcat2/xcat-core/master/xCAT-server/share/xcat/tools/go-xcat -O - > /tmp/go-xcat
@@ -187,17 +187,17 @@ xcat_env() {
         echo "server $MGT_IP" >> /etc/ntp.conf
      fi
   fi
-  systemctl stop ntpd
-  systemctl start ntpdate
-  systemctl start ntpd
-  systemctl enable ntpd
+  [ -d /usr/lib/systemd/system ] && systemctl stop ntpd || service ntpd stop
+  [ -d /usr/lib/systemd/system ] && systemctl start ntpdate || service ntpdate start
+  [ -d /usr/lib/systemd/system ] && systemctl start ntpd || service ntpd start
+  [ -d /usr/lib/systemd/system ] && systemctl enable ntpd || ( chkconfig --add ntpd ; chkconfig --level 35 on ntpd )
 
   # NFS patch
   if ! grep "^RPCNFSDCOUNT=" /etc/sysconfig/nfs >&/dev/null; then
       echo "RPCNFSDCOUNT=128" >> /etc/sysconfig/nfs
   fi
-  systemctl restart nfs
-  systemctl enable nfs
+  [ -d /usr/lib/systemd/system ] && systemctl restart nfs || service nfs restart
+  [ -d /usr/lib/systemd/system ] && systemctl enable nfs || ( chkconfig --add nfs ; chkconfig --level 35 on nfs )
   # APACHE
   if ! grep "^<IfModule mpm_worker_module>" /etc/httpd/conf/httpd.conf >& /dev/null; then
       echo "<IfModule mpm_worker_module>
@@ -211,8 +211,8 @@ xcat_env() {
     MaxConnectionsPerChild 10000
 </IfModule>" >> /etc/httpd/conf/httpd.conf
   fi
-  systemctl restart httpd
-  systemctl enable httpd
+  [ -d /usr/lib/systemd/system ] && systemctl restart httpd || service httpd restart
+  [ -d /usr/lib/systemd/system ] && systemctl enable httpd || (chkconfig --add httpd ; chkconfig --level 35 on httpd )
 
   # Patch post.xcat file
   if [ -f /opt/xcat/share/xcat/install/scripts/post.xcat ]; then
@@ -308,8 +308,8 @@ node_short=" /install/postscripts/xcatdsklspost
   grep "^DHCPDARGS=" /etc/sysconfig/dhcpd >& /dev/null || echo "DHCPDARGS=\"$GROUP_NET_DEV\"" >> /etc/sysconfig/dhcpd
 
   makedhcp -n
-  systemctl start dhcpd
-  systemctl enable dhcpd
+  [ -d /usr/lib/systemd/system ] && systemctl start dhcpd || service dhcpd start
+  [ -d /usr/lib/systemd/system ] && systemctl enable dhcpd || (chkconfig --add dhcpd; chkconfig --level 35 on dhcpd )
 }
 
 xcat_image() {

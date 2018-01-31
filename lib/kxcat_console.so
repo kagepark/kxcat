@@ -13,8 +13,8 @@ console() {
          exit
     fi
 
-    if node_cnt=$(nodels $1 2>/dev/null | wc -l); then
-       [ "$node_cnt" == "1" ] || error_exit "$1 is not hostname"
+    if node_chk=$(nodels $1 2>/dev/null); then
+       [ "$node_chk" == "$1" ] || error_exit "$1 is not hostname"
     fi
     if [ "$CONSOLE_MODE" == "xcat" ]; then
        rcons $1

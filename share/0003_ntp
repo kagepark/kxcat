@@ -18,7 +18,7 @@ if ! grep "^server $XCATSERVER" /etc/ntp.conf >& /dev/null; then
     echo "server $XCATSERVER" >> /etc/ntp.conf
 fi
 
-[ -f /etc/init.d/ntp ] && /etc/init.d/ntp stop || systemctl stop ntpd
+[ -d /usr/lib/systemd/system ] && systemctl stop ntpd || /etc/init.d/ntp stop
 ntpdate $XCATSERVER
 /sbin/hwclock --systohc
-[ -f /etc/init.d/ntp ] && /etc/init.d/ntp start || systemctl start ntpd
+[ -d /usr/lib/systemd/system ] && systemctl start ntpd || /etc/init.d/ntp start

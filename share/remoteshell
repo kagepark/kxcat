@@ -18,4 +18,4 @@ grep -e "^${IMAGENAME}-" -e "^${MONSERVER} " /etc/ssh/ssh_known_hosts > /etc/ssh
 [ -s /etc/ssh/ssh_known_hosts_ ] && cp -a /etc/ssh/ssh_known_hosts_ /etc/ssh/ssh_known_hosts
 rm -f /root/.ssh/known_hosts
 touch /root/.ssh/known_hosts
-systemctl restart sshd
+[ -d /usr/lib/systemd/system ] && systemctl restart sshd || /etc/init.d/sshd restart
