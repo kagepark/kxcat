@@ -1,0 +1,21 @@
+#!/bin/bash 
+
+if [ "$(uname -s|tr 'A-Z' 'a-z')" = "linux" ];then
+   str_dir_name=`dirname $0`
+   . $str_dir_name/xcatlib.sh
+fi
+
+for ii in 0 1 2 3 4 5 6 7 8  9 10; do
+    if [ -f /etc/ssh/ssh_known_hosts ]; then
+        sleep 5
+        continue
+    fi
+done
+sleep 10
+. /opt/xcat/xcatinfo
+MONSERVER=$(awk -F= '{if($1=="MONSERVER") print $2}' /xcatpost/mypostscript | sed "s/'//g")
+grep -e "^${IMAGENAME}-" -e "^${MONSERVER} " /etc/ssh/ssh_known_hosts > /etc/ssh/ssh_known_hosts_
+[ -s /etc/ssh/ssh_known_hosts_ ] && cp -a /etc/ssh/ssh_known_hosts_ /etc/ssh/ssh_known_hosts
+rm -f /root/.ssh/known_hosts
+touch /root/.ssh/known_hosts
+systemctl restart sshd

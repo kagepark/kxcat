@@ -267,6 +267,11 @@ fi\
 #KG disable mypostscript.<node> \n\
 node_short=" /install/postscripts/xcatdsklspost
   fi
+  if [ ! -f /install/postscripts/remoteshell.orig ]; then
+      cp -a /install/postscripts/remoteshell /install/postscripts/remoteshell.orig
+      cp -a ${_KXCAT_HOME}/share/remoteshell /install/postscripts/remoteshell
+      chmod +x /install/postscripts/remoteshell
+  fi
 
   source $_KXCAT_HOME/etc/xcat.sh
   cp -a $_KXCAT_HOME/share/kxcatboot /install/postscripts
