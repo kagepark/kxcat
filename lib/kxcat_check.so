@@ -1,5 +1,5 @@
 check() {
-  printf "%13s " "Hostname"
+  printf "%17s " "Hostname"
   printf "%9s " "CPUs"
   printf "%3s " "HT"
   printf "%4s " "MHz"
@@ -17,7 +17,7 @@ check() {
   echo
 
   for ii in $(nodels $(echo $* |sed "s/ /,/g") | grep -v "^n0"); do
-     printf "%13s " "$ii"
+     printf "%17s " "$ii"
      ssh -o ConnectTimeout=2 $ii "
        #printf \"%4s \" \$(grep \"^processor\" /proc/cpuinfo | wc -l)
        lscpuinfo=\$(lscpu)

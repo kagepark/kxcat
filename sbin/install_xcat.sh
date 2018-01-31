@@ -86,6 +86,8 @@ $([ -n "$DNS_OUTSIDE" ] && echo nameserver $DNS_OUTSIDE)" > /etc/resolv.conf
   if ! ssh -q -o ConnectTimeout=1 -o CheckHostIP=no -o StrictHostKeychecking=no -o PasswordAuthentication=no localhost hostname >& /dev/null; then
       ssh-keygen -t rsa 
       cp -a ~/.ssh/id_rsa.pub ~/.ssh/authorized_keys
+      chmod 644 ~/.ssh/authorized_keys
+      chmod 600 ~/.ssh/id_rsa
   fi
   if [ -f /root/.ssh/config ]; then
     grep -w CheckHostIP /root/.ssh/config >& /dev/null || ( echo ' host *
@@ -101,6 +103,19 @@ $([ -n "$DNS_OUTSIDE" ] && echo nameserver $DNS_OUTSIDE)" > /etc/resolv.conf
     ForwardX11 no
     ForwardAgent yes'  > /root/.ssh/config
     chmod 644 /root/.ssh/config
+  fi
+  if [ ! -f /etc/ssh/sshd_config.ORIG ]; then
+    cp /etc/ssh/sshd_config /etc/ssh/sshd_config.ORIG
+    sed -i '/X11Forwarding /'d /etc/ssh/sshd_config
+    echo "X11Forwarding yes" >>/etc/ssh/sshd_config
+    sed -i '/KeyRegenerationInterval /'d /etc/ssh/sshd_config
+    echo "KeyRegenerationInterval 0" >>/etc/ssh/sshd_config
+    sed -i '/MaxStartups /'d /etc/ssh/sshd_config
+    echo "MaxStartups 1024" >>/etc/ssh/sshd_config
+    sed -i '/StrictHostKeyChecking /'d /etc/ssh/ssh_config
+    echo "StrictHostKeyChecking no" >> /etc/ssh/ssh_config
+    sed -i '/CheckHostIP /'d /etc/ssh/ssh_config
+    echo "CheckHostIP no" >> /etc/ssh/ssh_config
   fi
 
   #ARP & NFS FIX
