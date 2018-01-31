@@ -20,9 +20,19 @@ update() {
        shift 1
    fi
    dest=$1
-   for ii in $*; do
-      [ "$ii" == "-S" ] && netboot_ignore_image=1
-      [ "$ii" == "-b" ] && boot_script_update=1
+   shift 1
+   opts=($*)
+   for ((ii=0; ii<${#opts[*]}; ii++)); do #ii in $*; do
+      if [ "${opts[$ii]}" == "-S" ]; then
+          netboot_ignore_image=1
+          unset opts[$ii]
+      fi
+      if [ "${opts[$ii]}" == "-b" ]; then
+          boot_script_update=1
+          unset opts[$ii]
+      fi
+      #[ "$ii" == "-S" ] && netboot_ignore_image=1
+      #[ "$ii" == "-b" ] && boot_script_update=1
    done
 
    if node_cnt=$(nodels $dest 2>/dev/null | wc -l); then
@@ -37,7 +47,8 @@ update() {
    fi
    type=$(lsdef -t osimage $osimage  -i provmethod | grep "provmethod=" | awk -F= '{print $2}')
    if [ "$type" == "netboot" ]; then
-      /opt/xcat/bin/updatenode $* 2>/dev/null
+      #/opt/xcat/bin/updatenode $* 2>/dev/null
+      /opt/xcat/bin/updatenode $dest ${opts[*]} 2>/dev/null
       if [ "$netboot_ignore_image" != "1" ]; then
          [ "$boot_script_update" != "1" ] && genimage $osimage
          [ -d /install/groups/${osimage}/rootimg/xcatpost ] || mkdir -p /install/groups/${osimage}/rootimg/xcatpost
@@ -58,7 +69,8 @@ update() {
       if [ "$boot_script_update" != "1" ]; then
         if [ "$reinstall" != "1" ]; then
           change_boot_mode=$(echo $(echo $(lsdef $dest -i currstate) | sed "s/Object name: /\n/g" | grep "currstate=boot" | awk '{print $1}') | sed "s/ /,/g")
-          /opt/xcat/bin/updatenode $* 2>/dev/null
+          #/opt/xcat/bin/updatenode $* 2>/dev/null
+          /opt/xcat/bin/updatenode $dest ${opts[*]} 2>/dev/null
         fi
       fi
       xdcp  $dest /install/postscripts/xcatpostinit1.install /opt/xcat/xcatpostinit1 >& /dev/null

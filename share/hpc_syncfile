@@ -4,7 +4,8 @@
 /etc/group -> /etc/group
 /etc/shadow -> /etc/shadow
 /etc/security/limits.conf -> /etc/security/limits.conf
-/root/.ssh/config -> /root/.ssh/config
+/root/.ssh/* -> /root/.ssh/
+/etc/ssh/* -> /etc/ssh/
 
 #/install/post/hpc/post_env -> /tmp/post_env
 
