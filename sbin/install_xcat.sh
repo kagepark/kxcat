@@ -275,12 +275,12 @@ node_short=" /install/postscripts/xcatdsklspost
 
   source $_KXCAT_HOME/etc/xcat.sh
   cp -a $_KXCAT_HOME/share/kxcatboot /install/postscripts
-  [ -d /install/postscripts/kxcat_boot.d ] || mkdir -p /install/postscripts/kxcat_boot.d
-  cp -a $_KXCAT_HOME/share/0000_update_state /install/postscripts/kxcat_boot.d
-  cp -a $_KXCAT_HOME/share/0001_cleanyum /install/postscripts/kxcat_boot.d
-  cp -a $_KXCAT_HOME/share/0002_mpi_net /install/postscripts/kxcat_boot.d
-  cp -a $_KXCAT_HOME/share/0003_ntp /install/postscripts/kxcat_boot.d
-  [ -d /global/kxcat_boot.d/global ] || mkdir -p /global/kxcat_boot.d/global
+  [ -d /install/postscripts/xcat_boot.d ] || mkdir -p /install/postscripts/xcat_boot.d
+  cp -a $_KXCAT_HOME/share/0000_update_state /install/postscripts/xcat_boot.d
+  cp -a $_KXCAT_HOME/share/0001_cleanyum /install/postscripts/xcat_boot.d
+  cp -a $_KXCAT_HOME/share/0002_mpi_net /install/postscripts/xcat_boot.d
+  cp -a $_KXCAT_HOME/share/0003_ntp /install/postscripts/xcat_boot.d
+  [ -d /global/xcat_boot.d/global ] || mkdir -p /global/xcat_boot.d/global
   if ! grep "^/global" /etc/exports >& /dev/null; then
      echo "/global *(rw,no_root_squash,sync,no_subtree_check)" >> /etc/exports
      exportfs -ra
