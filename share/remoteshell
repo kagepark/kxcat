@@ -6,21 +6,31 @@ if [ "$(uname -s|tr 'A-Z' 'a-z')" = "linux" ];then
 fi
 
 rm -f /etc/ssh/ssh_known_hosts*
+sleep 5
+for ii in $(seq 0 10); do
+   [ -f /opt/xcat/xcatinfo ] && break
+   sleep 3
+done
+for ii in $(seq 0 10); do
+   [ -f /xcatpost/mypostscript ] && break
+   sleep 3
+done
+. /opt/xcat/xcatinfo
+MONSERVER=$(awk -F= '{if($1=="MONSERVER") print $2}' /xcatpost/mypostscript | sed "s/'//g")
 
-ssh_conf() {
-  for ii in $(seq 0 50); do
+echo "
+  for ii in \$(seq 0 50); do
     [ -f /etc/ssh/ssh_known_hosts ] && break
-    echo "Wait($ii) /etc/ssh/ssh_known_hosts file" >> /tmp/remoteshell.log
+    echo \"Wait(\$ii) /etc/ssh/ssh_known_hosts file\" >> /tmp/remoteshell.log
     sleep 6
   done
   sleep 10
-  . /opt/xcat/xcatinfo
-  MONSERVER=$(awk -F= '{if($1=="MONSERVER") print $2}' /xcatpost/mypostscript | sed "s/'//g")
-  grep -e "^${IMAGENAME}-" -e "^${MONSERVER} " /etc/ssh/ssh_known_hosts > /etc/ssh/ssh_known_hosts_
+  grep -e \"^${IMAGENAME}-\" -e \"^${MONSERVER} \" /etc/ssh/ssh_known_hosts > /etc/ssh/ssh_known_hosts_
   [ -s /etc/ssh/ssh_known_hosts_ ] && cp -a /etc/ssh/ssh_known_hosts_ /etc/ssh/ssh_known_hosts
   rm -f /root/.ssh/known_hosts
   touch /root/.ssh/known_hosts
   [ -d /usr/lib/systemd/system ] && systemctl restart sshd || /etc/init.d/sshd restart
-}
-
-ssh_conf &
+  rm -f /tmp/ssh_re_config
+" > /tmp/ssh_re_config
+chmod +x /tmp/ssh_re_config
+nohup /tmp/ssh_re_config >& /dev/null &
