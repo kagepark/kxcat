@@ -1,3 +1,11 @@
+####################################
+# Kage Park
+# Re-designed(2017/09) by Kage Park
+# Base design Using from old Kage's code
+# License : GPL
+####################################
+
+
 check() {
   printf "%17s " "Hostname"
   printf "%9s " "CPUs"
