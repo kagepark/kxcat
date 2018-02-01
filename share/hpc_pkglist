@@ -60,6 +60,7 @@ libXrender
 libXres
 libXt
 libXv
+lm_sensors
 lm_sensors-libs
 mcelog
 mesa-libgbm

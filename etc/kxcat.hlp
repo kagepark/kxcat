@@ -37,6 +37,7 @@ cp             # copy from MGT to remote node
 ping           # ping to multi node
 check          # Check basic information
 top            # Check cpu utils
+ctemp          # Check cpu temperature
 
 #Logs
 Look /var/log/xcat directory
