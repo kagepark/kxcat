@@ -246,7 +246,7 @@ fi
 #KG Added boot feature. \n\
 if [ -f \/xcatpost\/kxcatboot \]\; then\n\
    chmod +x \/xcatpost\/kxcatboot\n\
-   \/xcatpost\/kxcatboot \> \/tmp\/kxcatboot.log \n\
+   \/xcatpost\/kxcatboot \> \/tmp\/xcat_boot.log \n\
 fi\
      " /install/postscripts/xcatpostinit1.install
   fi
