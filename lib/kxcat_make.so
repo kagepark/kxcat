@@ -123,6 +123,7 @@ gen_create() {
     ssh_key=$(cat /etc/ssh/ssh_host_rsa_key.pub)
     for ((ii=1; ii<${MAX_NODES}; ii++)); do
         echo "${new_group}-$(printf "%04d" $ii) $ssh_key" >> /etc/ssh/ssh_known_hosts
+        [ -n "$MPI_NETWORK" ] && echo "${new_group}-$(printf "%04d" $ii)-ib0 $ssh_key" >> /etc/ssh/ssh_known_hosts
     done
 }
 
