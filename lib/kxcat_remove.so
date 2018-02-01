@@ -22,7 +22,7 @@ remove() {
            rmdef -t group ${group}
            rmdef -t osimage ${group}
            [ -d /install/groups/${group} ] && rm -fr /install/groups/${group}
-           [ -d /global/kxcat_boot.d/${group} ] && rm -fr /global/kxcat_boot.d/${group}
+           [ -d /global/xcat_boot.d/${group} ] && rm -fr /global/xcat_boot.d/${group}
            grep -v "^${group}-" /etc/ssh_known_hosts > /etc/ssh_known_hosts_
            cp -a /etc/ssh_known_hosts_ /etc/ssh_known_hosts
            echo "Deleted $group"

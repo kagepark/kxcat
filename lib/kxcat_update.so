@@ -74,7 +74,7 @@ update() {
         fi
       fi
       xdcp  $dest /install/postscripts/xcatpostinit1.install /opt/xcat/xcatpostinit1 >& /dev/null
-      xdcp  $dest /install/postscripts/kxcat_boot.d/*  /xcatpost/kxcat_boot.d/ >& /dev/null
+      xdcp  $dest /install/postscripts/xcat_boot.d/*  /xcatpost/xcat_boot.d/ >& /dev/null
       xdcp  $dest /install/postscripts/kxcatboot /xcatpost/kxcatboot >& /dev/null
       if [ "$boot_script_update" != "1" ]; then
          nodeset $dest osimage=$osimage

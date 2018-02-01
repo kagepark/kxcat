@@ -119,7 +119,7 @@ gen_create() {
     fi
     #chdef -t group ${new_group} ip="|${GROUP_NETWORK_IP}.(((\$1/256)%256)+$GROUP_START_1).((\$1%256)+$GROUP_START_2)|"
     chdef -t group ${new_group} ip="|${GROUP_NETWORK_IP}.(((\$1/256)%256)+$GROUP_START_1).((\$1%256)+$GROUP_START_2)|" $MPI_NETWORK_IP_STR
-    [ -d /global/kxcat_boot.d/${new_group} ] || mkdir -p /global/kxcat_boot.d/${new_group}
+    [ -d /global/xcat_boot.d/${new_group} ] || mkdir -p /global/xcat_boot.d/${new_group}
     ssh_key=$(cat /etc/ssh/ssh_host_rsa_key.pub)
     for ((ii=1; ii<${MAX_NODES}; ii++)); do
         echo "${new_group}-$(printf "%04d" $ii) $ssh_key" >> /etc/ssh/ssh_known_hosts
@@ -207,11 +207,11 @@ clone() {
     fi
     [ "$new_group" == "n" ] && error_exit "not support group 'n'"
     if [ "$clone_boot_script" == "1" ]; then
-       [ -d /global/kxcat_boot.d/${old_group} ] || error_exit "/global/kxcat_boot.d/${old_group} directory not found"
-       [ -d /global/kxcat_boot.d/${new_group} ] && rm -fr /global/kxcat_boot.d/${new_group}
-       cp -a /global/kxcat_boot.d/${old_group}  /global/kxcat_boot.d/${new_group}
+       [ -d /global/xcat_boot.d/${old_group} ] || error_exit "/global/xcat_boot.d/${old_group} directory not found"
+       [ -d /global/xcat_boot.d/${new_group} ] && rm -fr /global/xcat_boot.d/${new_group}
+       cp -a /global/xcat_boot.d/${old_group}  /global/xcat_boot.d/${new_group}
     else
-       [ -d /global/kxcat_boot.d/${new_group} ] || mkdir -p /global/kxcat_boot.d/${new_group}
+       [ -d /global/xcat_boot.d/${new_group} ] || mkdir -p /global/xcat_boot.d/${new_group}
     fi
     type=$(lsdef -t osimage ${old_group} -i provmethod | sed "s/ //g" | awk -F= '{if($1 == "provmethod") print $2}')
     if [ "$type" == "netboot" -o "$type" == "statelite" ]; then
