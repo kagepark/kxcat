@@ -43,6 +43,7 @@ power() {
     fi
 
     if [ "$pwcmd" == "shutdown" -o "$pwcmd" == "reboot" ]; then
+       trap 2
        for ii in $(echo $(lsdef $(echo $hosts|sed "s/ /,/g") -i status |sed "s/status=/:/g")| sed "s/ //g" | sed "s/Objectname:/\n/g" | grep ":booted$" | sed "s/:booted//g"); do
            ssh -f $ii $pwcmd -h
        done
