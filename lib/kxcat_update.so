@@ -66,9 +66,9 @@ update() {
       fi
       nodeset $dest osimage=$osimage
    elif [ "$type" == "install" ]; then
+      change_boot_mode=$(echo $(echo $(lsdef $dest -i currstate) | sed "s/Object name: /\n/g" | grep "currstate=boot" | awk '{print $1}') | sed "s/ /,/g")
       if [ "$boot_script_update" != "1" ]; then
         if [ "$reinstall" != "1" ]; then
-          change_boot_mode=$(echo $(echo $(lsdef $dest -i currstate) | sed "s/Object name: /\n/g" | grep "currstate=boot" | awk '{print $1}') | sed "s/ /,/g")
           #/opt/xcat/bin/updatenode $* 2>/dev/null
           /opt/xcat/bin/updatenode $dest ${opts[*]} 2>/dev/null
         fi
@@ -76,12 +76,12 @@ update() {
       xdcp  $dest /install/postscripts/xcatpostinit1.install /opt/xcat/xcatpostinit1 >& /dev/null
       xdcp  $dest /install/postscripts/xcat_boot.d/*  /xcatpost/xcat_boot.d/ >& /dev/null
       xdcp  $dest /install/postscripts/kxcatboot /xcatpost/kxcatboot >& /dev/null
-      #if [ "$boot_script_update" != "1" ]; then
+      if [ "$boot_script_update" != "1" ]; then
          nodeset $dest osimage=$osimage
          if [ "$reinstall" != "1" ]; then
            [ -n "$change_boot_mode" ] && nodeset $change_boot_mode boot
          fi
-      #fi
+      fi
    else
       echo "Unknown image type"
    fi

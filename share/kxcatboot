@@ -30,7 +30,7 @@ else
 fi
 
 if [ -f /xcatpost/mypostscript ]; then
-   group=$(awk -F= '{if($1=="GROUP") print $2}' /xcatpost/mypostscript | sed "s/'//g" | sed "s/all,n//g" | sed "s/,//g")
+   group=$(awk -F= '{if($1=="GROUP") print $2}' /xcatpost/mypostscript | sed "s/'//g" | sed "s/^all,//g")
 fi
 if [ -d /global/xcat_boot.d ]; then
    if [ -n "$group" -a -d "/global/xcat_boot.d/$group" ]; then
