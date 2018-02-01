@@ -61,7 +61,9 @@ else
       if [ "$cmd" == "$cmdname" ]; then
           _k_load xcat_$cmd
           shift 1
+          trap '' 2
           $cmd "${@}"
+          trap 2
           exit
       fi
    done
