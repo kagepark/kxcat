@@ -3,6 +3,7 @@
 /etc/passwd -> /etc/passwd
 /etc/group -> /etc/group
 /etc/shadow -> /etc/shadow
+/etc/localtime -> /etc/localtime
 /etc/security/limits.conf -> /etc/security/limits.conf
 /root/.ssh/* -> /root/.ssh/
 /etc/ssh/* -> /etc/ssh/
