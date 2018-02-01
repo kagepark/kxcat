@@ -11,6 +11,7 @@ top() {
   echo "Run Util unit : number"
   echo
   printf "%17s %5s %5s %5s %5s %5s %7s %7s %7s %7s %7s %7s\n" hostname user sys nice idle Run used free shared buffers cached total
+  DSH_TIMEOUT=2
   xdsh $(echo $(nodels $(echo $* | sed "s/ /,/g") | grep -v "^n0") | sed "s/ /,/g") '(
        fcpul=( $(cat /proc/stat) )
        sleep 0.2
