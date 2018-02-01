@@ -10,6 +10,7 @@ check() {
   printf "%3s " "NIC"
   printf "%3s " "HDD"
   printf "%4s " "IPMI"
+  printf "%6s " "BMCFV"
   printf "%9s " "BIOSv"
   printf "%9s " "M/B"
   printf "%2s " "IB"
@@ -38,6 +39,7 @@ check() {
        printf \"%3s \" \$(ls /sys/class/net/ | grep -v -e "^ib" -e "lo" | wc -l)
        printf \"%3s \" \$(ls /sys/block/ | grep -v \"dm-\" | wc -l)
        printf \"%4s \" \$([ -c /dev/ipmi0 ] && echo On || echo \"-\")
+       printf \"%6s \" \$([ -f /usr/bin/ipmitool ] && ipmitool mc info | grep \"^Firmware Revision\" | awk '{print \$4}' || echo \"x\")
        #printf \"%5s \" \$(dmidecode -s bios-version)
        printf \"%9s \" \$([ -f /sys/devices/virtual/dmi/id/bios_version ] && cat /sys/devices/virtual/dmi/id/bios_version || echo \"-\")
        printf \"%9s \" \$([ -f /sys/devices/virtual/dmi/id/product_name ] && cat /sys/devices/virtual/dmi/id/product_name || echo \"-\")
