@@ -6,7 +6,11 @@
 ####################################
 
 top() {
-  printf "%17s %5s %5s %5s %5s %5s %10s %10s %10s %10s %10s %10s\n" hostname user sys nice idle Run used\(M\) free\(M\) shared\(M\) buffers\(M\) cached\(M\) total\(M\)
+  printf "Memory unit   : GB\n"
+  echo "CPU Util unit : %"
+  echo "Run Util unit : number"
+  echo
+  printf "%17s %5s %5s %5s %5s %5s %7s %7s %7s %7s %7s %7s\n" hostname user sys nice idle Run used free shared buffers cached total
   xdsh $(echo $(nodels $(echo $* | sed "s/ /,/g") | grep -v "^n0") | sed "s/ /,/g") '(
        fcpul=( $(cat /proc/stat) )
        sleep 0.2
@@ -30,8 +34,10 @@ top() {
        mem=( $(free|grep Mem) )
        run=( $(cat /proc/stat |grep procs_running) )
 
-       (printf "%5s %5s %5s %5s %5s %10s %10s %10s %10s %10s %10s\n" $r_user $r_sys $r_nice $r_idle ${run[1]} `expr ${mem[2]} / 1024 `  `expr ${mem[3]} / 1024` `expr ${mem[4]} / 1024` `expr ${mem[5]} / 1024` `expr ${mem[6]} / 1024` `expr ${mem[1]} / 1024` )
+       #(printf "%5s %5s %5s %5s %5s %10s %10s %10s %10s %10s %10s\n" $r_user $r_sys $r_nice $r_idle ${run[1]} `expr ${mem[2]} / 1024 `  `expr ${mem[3]} / 1024` `expr ${mem[4]} / 1024` `expr ${mem[5]} / 1024` `expr ${mem[6]} / 1024` `expr ${mem[1]} / 1024` )
+       #printf "%5s %5s %5s %5s %5s %6.1f %6.1f %6.1f %6.1f %6.1f %6.1f" $r_user $r_sys $r_nice $r_idle ${run[1]} $(bc -l <<< "${mem[2]} / (1024 * 1024)") $(bc -l <<< "${mem[2]} / (1024*1024)")  $(bc -l <<< "${mem[3]} / (1024*1024)") $(bc -l <<< "${mem[4]} / (1024*1024)") $(bc -l <<< "${mem[5]} / (1024*1024)") $(bc -l <<< "${mem[6]} / (1024*1024)") $(bc -l <<< "${mem[1]} / (1024*1024)") 
+       printf "%5s %5s %5s %5s %5s %6.1f %6.1f %6.1f %6.1f %6.1f %6.1f" $r_user $r_sys $r_nice $r_idle ${run[1]} $(bc -l <<< "${mem[2]} /(1024 * 1024)")  $(bc -l <<< "${mem[3]} / (1024*1024)") $(bc -l <<< "${mem[4]} / (1024*1024)")  $(bc -l <<< "${mem[5]} / (1024*1024)") $(bc -l <<< "${mem[6]} / (1024*1024)") $(bc -l <<< "${mem[1]} / (1024*1024)")
 )' | sort | while read line; do
-     printf "%17s %5s %5s %5s %5s %5s %10s %10s %10s %10s %10s %10s\n" $line
+     printf "%17s %5s %5s %5s %5s %5s %7s %7s %7s %7s %7s %7s\n" $line
   done
 }
