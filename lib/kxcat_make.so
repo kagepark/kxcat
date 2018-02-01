@@ -78,12 +78,14 @@ gen_create() {
                          cp -a $(_k_misc_get_realpath $jj) /install/groups/$new_group/env/$(basename $jj) && env_files="${env_files}/install/groups/$new_group/env/$(basename $jj)"
                          multi_file=1
                          if [ "$src_type" == "pkglist" ]; then
-                             grep "^#INCLUDE:$_KXC_HOME/share/hpc_pkglist#$" /install/groups/$new_group/env/$(basename $jj) >& /dev/null || echo "#INCLUDE:$_KXC_HOME/share/hpc_pkglist#" >> /install/groups/$new_group/env/$(basename $jj)
-                             if [ -n "$pkglist_str" ]; then
+                             if [ "$base_pkg" != "1" ]; then
+                               grep "^#INCLUDE:$_KXC_HOME/share/hpc_pkglist#$" /install/groups/$new_group/env/$(basename $jj) >& /dev/null || echo "#INCLUDE:$_KXC_HOME/share/hpc_pkglist#" >> /install/groups/$new_group/env/$(basename $jj)
+                               if [ -n "$pkglist_str" ]; then
                                   for ii in $(echo $pkglist_str | sed "s/,/ /g"); do
                                        grep "^#INCLUDE:${ii}#$" /install/groups/$new_group/env/$(basename $jj) >& /dev/null || \
                                           echo "#INCLUDE:${ii}#" >> /install/groups/$new_group/env/$(basename $jj)
                                   done
+                               fi
                              fi
                          fi
                      fi
@@ -128,7 +130,7 @@ make() {
     local hostname opt
     opt=($*)
     if (( ${#opt[*]} < 2 || ${#opt[*]} > 3 )); then
-         echo "${FUNCNAME} <group> <Image> [pkglist=<pkglist file1>,<pkglist file2>,....]"
+         echo "${FUNCNAME} <group> <Image> [pkglist=<pkglist file1>,<pkglist file2>,....] [-b]"
 #         echo "${FUNCNAME} <group> <Image>"
          echo
          echo "   get image names : scix images"
@@ -143,6 +145,7 @@ make() {
     for ii in $*; do
         pkglist_str=$(echo $ii | awk -F= '{if($1=="pkglist") print $2}')
         postinstall_str=$(echo $ii | awk -F= '{if($1=="postinstall") print $2}')
+        [ "$ii" == "-b" ] && base_pkg=1
     done
 
     [ -n "$(echo "$group" | sed "s/[^0-9]*//g")" ] && error_exit "Group name not support digital number. Please remove any number in group name string"

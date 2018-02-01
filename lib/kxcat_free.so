@@ -11,7 +11,7 @@ free() {
          echo "${FUNCNAME} <group name> [<host count#> [<hostname1> <hostname2>...]]"
          exit
    fi
-   group=$1
+   for group in $*; do
    if ! lsdef -t group $group >& /dev/null; then
         echo "group $group  not found"
         exit
@@ -60,4 +60,5 @@ free() {
        [ -n "$delhosts" ] && delhosts="$delhosts,n$(printf "%05d" $hostid)" || delhosts=n$(printf "%05d" $hostid)
    done 
    chdef -t node $delhosts groups=all,n status=
+   done
 }
