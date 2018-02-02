@@ -1,3 +1,8 @@
+error_exit() {
+   echo $*
+   exit 1
+}
+
 get_val() {
    [ -f /xcatpost/mypostscript ] || return 1
    if [ "$1" == "NETWORKS" ]; then
@@ -23,12 +28,18 @@ convert_ip() {
    echo $mpi_ip
 }
 
-mpi_net=$(get_val NETWORKS net) || error_exit "/xcatpost/mypostscript file not found"
-mpi_netmask=$(get_val NETWORKS mask) || error_exit "/xcatpost/mypostscript file not found"
 mpi_dev=$(get_val NETWORKS mgtifname) || error_exit "/xcatpost/mypostscript file not found"
-host_ip=$(get_val IPADDR)
 
-if [ -n "$mpi_dev" -a -d /sys/class/net/$mpi_dev ]; then
+for ((ii=0; ii<5; ii++)); do
+  if [ -n "$mpi_dev" -a -d /sys/class/net/$mpi_dev ]; then
+    mpi_net=$(get_val NETWORKS net) || error_exit "/xcatpost/mypostscript file not found"
+    mpi_netmask=$(get_val NETWORKS mask) || error_exit "/xcatpost/mypostscript file not found"
+    host_ip=$(get_val IPADDR)
     mpi_ip=$(convert_ip)
     [ -n "$mpi_ip" ] && ifconfig $mpi_dev $mpi_ip netmask $mpi_netmask up
-fi
+    break
+  else
+    echo "Check IB($ii)"
+    sleep 5
+  fi
+done
