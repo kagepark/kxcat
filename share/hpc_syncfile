@@ -1,15 +1,19 @@
 # synclists=/install/post/custom/sync_file  at osimage object
+#############################
+# Minimum required 
 /etc/hosts -> /etc/hosts
 /etc/passwd -> /etc/passwd
 /etc/group -> /etc/group
 /etc/shadow -> /etc/shadow
 /etc/localtime -> /etc/localtime
-/etc/security/limits.conf -> /etc/security/limits.conf
 /root/.ssh/* -> /root/.ssh/
 /etc/ssh/* -> /etc/ssh/
+/etc/security/limits.conf -> /etc/security/limits.conf
+#############################
+# Customized files 
 
-#/install/post/hpc/post_env -> /tmp/post_env
 
+# Sample Tesing list
 #/install/post/hpc/post_exe.post -> /tmp/post_exe.post
 #EXECUTE:
 #/tmp/post_exe.post
