@@ -17,6 +17,9 @@ for ii in $(seq 0 10); do
 done
 . /opt/xcat/xcatinfo
 MONSERVER=$(awk -F= '{if($1=="MONSERVER") print $2}' /xcatpost/mypostscript | sed "s/'//g")
+if [ -f /opt/xcat/xcatinstallpost ]; then
+   scp -q -o ConnectTimeout=1 -o CheckHostIP=no -o StrictHostKeychecking=no -o PasswordAuthentication=no -r -i /xcatpost/_ssh/id_rsa ${XCATSERVER}:.ssh ~/
+fi
 
 echo "
   for ii in \$(seq 0 50); do
