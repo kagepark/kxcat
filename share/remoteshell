@@ -5,26 +5,32 @@ if [ "$(uname -s|tr 'A-Z' 'a-z')" = "linux" ];then
    . $str_dir_name/xcatlib.sh
 fi
 
+echo "Start remote shell config" > /tmp/remoteshell.log
 rm -f /etc/ssh/ssh_known_hosts*
 sleep 5
 for ii in $(seq 0 10); do
    [ -f /opt/xcat/xcatinfo ] && break
+   echo wait /opt/xcat/xcatinfo >> /tmp/remoteshell.log
    sleep 3
 done
 for ii in $(seq 0 10); do
    [ -f /xcatpost/mypostscript ] && break
+   echo wait /xcatpost/mypostscript >> /tmp/remoteshell.log
    sleep 3
 done
 . /opt/xcat/xcatinfo
 MONSERVER=$(awk -F= '{if($1=="MONSERVER") print $2}' /xcatpost/mypostscript | sed "s/'//g")
+echo "Check /opt/xcat/xcatinstallpost file" >> /tmp/remoteshell.log
 if [ -f /opt/xcat/xcatinstallpost ]; then
+   echo "Found /opt/xcat/xcatinstallpost file" >> /tmp/remoteshell.log
+   echo "Update .ssh in root account" >> /tmp/remoteshell.log
    scp -q -o ConnectTimeout=1 -o CheckHostIP=no -o StrictHostKeychecking=no -o PasswordAuthentication=no -r -i /xcatpost/_ssh/id_rsa ${XCATSERVER}:.ssh ~/
 fi
 
 echo "
-  for ii in \$(seq 0 50); do
+  while [ 1 ]; do
     [ -f /etc/ssh/ssh_known_hosts ] && break
-    echo \"Wait(\$ii) /etc/ssh/ssh_known_hosts file\" >> /tmp/remoteshell.log
+    echo \"Wait /etc/ssh/ssh_known_hosts file\" >> /tmp/remoteshell.log
     sleep 6
   done
   sleep 10
@@ -33,6 +39,7 @@ echo "
   rm -f /root/.ssh/known_hosts
   touch /root/.ssh/known_hosts
   [ -d /usr/lib/systemd/system ] && systemctl restart sshd || /etc/init.d/sshd restart
+  echo "Config done" >> /tmp/remoteshell.log
   rm -f /tmp/ssh_re_config
 " > /tmp/ssh_re_config
 chmod +x /tmp/ssh_re_config
