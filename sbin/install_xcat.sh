@@ -117,9 +117,8 @@ $([ -n "$DNS_OUTSIDE" ] && echo nameserver $DNS_OUTSIDE)" > /etc/resolv.conf
     sed -i '/CheckHostIP /'d /etc/ssh/ssh_config
     echo "CheckHostIP no" >> /etc/ssh/ssh_config
   fi
-  [ -d /install/postscripts/_ssh ] || mkdir /install/postscripts/_ssh
-  chmod 700 /install/postscripts/_ssh
-  cp -a ~/.ssh/id_rsa /install/postscripts/_ssh
+  [ -d /install/postscripts/hostkeys ] || mkdir -p /install/postscripts/hostkeys
+  cp -a ~/.ssh/authorized_keys /install/postscripts/hostkeys/
 
   #ARP & NFS FIX
   echo 512 > /proc/sys/net/ipv4/neigh/default/gc_thresh1
