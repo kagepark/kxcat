@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/bash
 # KG Feature for booting procedure
 
 if [ -d /xcatpost/xcat_boot.d ]; then
@@ -6,8 +6,8 @@ if [ -d /xcatpost/xcat_boot.d ]; then
    for ii in $(ls | sort -n); do
       echo
       echo " ** Run /xcatpost/xcat_boot.d/$ii at $(date)"
-      [ "$ii" == "0000_update_state" ] && sh  /xcatpost/xcat_boot.d/$ii || \
-      sh -x /xcatpost/xcat_boot.d/$ii 
+      [ "$ii" == "0000_update_state" ] && /usr/bin/bash /xcatpost/xcat_boot.d/$ii || \
+      /usr/bin/bash -x /xcatpost/xcat_boot.d/$ii 
    done >> /tmp/xcat_boot.log
 fi
 
@@ -39,7 +39,7 @@ if [ -d /global/xcat_boot.d ]; then
          if [ -f /global/xcat_boot.d/${group}/${group_shell[$ii]} ]; then
             echo 
             echo " ** Run $group/${group_shell[$ii]} at $(date)"
-            sh -x /global/xcat_boot.d/${group}/${group_shell[$ii]}
+            /usr/bin/bash -x /global/xcat_boot.d/${group}/${group_shell[$ii]}
          fi
       done >> /tmp/xcat_boot.log
    fi
@@ -54,7 +54,7 @@ if [ -d /global/xcat_boot.d ]; then
          if [ -f /global/xcat_boot.d/global/${global_shell[$ii]} ]; then
            echo 
            echo " ** Run global/${global_shell[$ii]} at $(date)"
-           sh -x /global/xcat_boot.d/global/${global_shell[$ii]}
+           /usr/bin/bash -x /global/xcat_boot.d/global/${global_shell[$ii]}
          fi
       done >> /tmp/xcat_boot.log
    fi
