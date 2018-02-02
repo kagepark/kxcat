@@ -12,12 +12,8 @@ update() {
        echo "update Software(OS/Other): ${FUNCNAME} <host|group> -S"
        echo "update boot script       : ${FUNCNAME} <host|group> -b"
        echo "update Postscript        : ${FUNCNAME} <host|group> -P [<script1 [<arg1> <arg2>...]>,<script2 [<arg1> <arg2>...]>....]"
-       echo "Reinstall OS             : ${FUNCNAME} -I <host|group>"
+       echo "Reinstall OS             : ${FUNCNAME} <host|group> -I"
        exit
-   fi
-   if [ "$1" == "-I" ]; then
-       reinstall=1
-       shift 1
    fi
    dest=$1
    shift 1
@@ -25,6 +21,9 @@ update() {
    for ((ii=0; ii<${#opts[*]}; ii++)); do #ii in $*; do
       if [ "${opts[$ii]}" == "-S" ]; then
           netboot_ignore_image=1
+          unset opts[$ii]
+      elif [ "${opts[$ii]}" == "-I" ]; then
+          reinstall=1
           unset opts[$ii]
       fi
       if [ "${opts[$ii]}" == "-b" ]; then

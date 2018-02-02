@@ -1,4 +1,5 @@
 #!/bin/bash 
+PATH=/bin:/sbin:/usr/bin:/usr/sbin
 
 if [ "$(uname -s|tr 'A-Z' 'a-z')" = "linux" ];then
    str_dir_name=`dirname $0`
@@ -45,13 +46,19 @@ if [ -f /opt/xcat/xcatinstallpost ]; then
      export USEOPENSSLFORXCAT
    fi
    export XCATSERVER=${XCATSERVER}:3001
-   for ii in $(seq 0 20); do
-      echo "*** Try($ii) sync files" >> /tmp/remoteshell.log
-      /xcatpost/startsyncfiles.awk
-      [ -f /etc/ssh/ssh_known_hosts ] && break
+   ii = 0
+   while [ 1 ]; do
+      ping -c 2 ${XCATSERVER} >& /dev/null && break
       sleep 5
    done
-   sleep 5
+   while [ 1 ]; do
+      echo "*** Try($ii) sync files" >> /tmp/remoteshell.log
+      /xcatpost/remoteshell >> /tmp/remoteshell.log
+      [ -f /etc/ssh/ssh_known_hosts ] && break
+      sleep 7
+      ii=$(($ii+1))
+   done
+   sleep 3
 fi
 
 echo "
