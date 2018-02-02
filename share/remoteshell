@@ -24,7 +24,34 @@ echo "Check /opt/xcat/xcatinstallpost file" >> /tmp/remoteshell.log
 if [ -f /opt/xcat/xcatinstallpost ]; then
    echo "Found /opt/xcat/xcatinstallpost file" >> /tmp/remoteshell.log
    echo "Update .ssh in root account" >> /tmp/remoteshell.log
-   scp -q -o ConnectTimeout=1 -o CheckHostIP=no -o StrictHostKeychecking=no -o PasswordAuthentication=no -r -i /xcatpost/_ssh/id_rsa ${XCATSERVER}:.ssh ~/
+   [ -d /root/.ssh ] || mkdir -p /root/.ssh
+   chmod 700 /root/.ssh
+   if [ -f /xcatpost/hostkeys/authorized_keys ]; then
+      cp -a /xcatpost/hostkeys/authorized_keys /root/.ssh
+   else
+      for ii in $(seq 0 20); do
+         echo "*** Try($ii) download postscripts" >> /tmp/remoteshell.log
+         wget -l inf -nH -N -r --waitretry=10 --random-wait -e robots=off -T 60 -nH  --reject "index.html*" --no-parent http://${XCATSERVER}/install/postscripts/ -P /xcatpost >> /tmp/remoteshell.log
+         if [ -f /xcatpost/install/postscripts/hostkeys/authorized_keys ]; then
+            cp -a /xcatpost/install/postscripts/hostkeys/authorized_keys /root/.ssh
+            rm -fr /xcatpost/install
+            break
+         fi
+         sleep 5
+      done
+   fi
+   if [ -x /usr/bin/openssl ]; then
+     USEOPENSSLFORXCAT=1 #Though this is the only method going forward, flag to allow backward compatibility with 2.2 generated netboot images
+     export USEOPENSSLFORXCAT
+   fi
+   export XCATSERVER=${XCATSERVER}:3001
+   for ii in $(seq 0 20); do
+      echo "*** Try($ii) sync files" >> /tmp/remoteshell.log
+      /xcatpost/startsyncfiles.awk
+      [ -f /etc/ssh/ssh_known_hosts ] && break
+      sleep 5
+   done
+   sleep 5
 fi
 
 echo "
