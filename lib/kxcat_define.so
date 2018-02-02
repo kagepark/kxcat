@@ -13,6 +13,7 @@ define() {
    opt=($*)
    if (( ${#opt[*]} < 1 )); then
          echo "${FUNCNAME} <group name> [-b] [<host count#> [<node name1> <node name2>...]]"
+         echo "  -b : define group to node with boot mode for diskful compute node option"
          exit
    fi
    group=$1

@@ -181,6 +181,7 @@ clone() {
     opt=($*)
     if (( ${#opt[*]} < 2 || ${#opt[*]} > 3 )); then
          echo "${FUNCNAME} <new group> <old group> [-b]"
+         echo "  -b : clone with xcat_boot.d scripts"
          exit
     fi
 
