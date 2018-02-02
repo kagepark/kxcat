@@ -12,7 +12,7 @@ define() {
    local hostname opt
    opt=($*)
    if (( ${#opt[*]} < 1 )); then
-         echo "${FUNCNAME} <group name> [<host count#> [<node name1> <node name2>...]]"
+         echo "${FUNCNAME} <group name> [-b] [<host count#> [<node name1> <node name2>...]]"
          exit
    fi
    group=$1
@@ -25,6 +25,10 @@ define() {
    fi
 
    shift 1
+   if [ "$1" == "-b" ]; then
+       without_install_mode=1
+       shift 1
+   fi
    host_num=$1
    if [ ! -n "$host_num" ]; then
        nodes=($(lsdef -t group n | grep "members=" | sed "s/members=//g" | sed "s/,/ /g"))
@@ -69,8 +73,10 @@ define() {
    if [ -n "$addhosts" ]; then
       chdef -t node $addhosts groups=all,${group} || exit 1
       nodeset ${addhosts} osimage=${group}
+      if [ "$without_install_mode" == "1" ]; then
+          nodeset ${addhosts} boot
+      fi
       makehosts ${addhosts} 2>/dev/null
-      #makedns -n
       makedns ${addhosts}
       makedhcp ${addhosts}
       makeconservercf ${addhosts}

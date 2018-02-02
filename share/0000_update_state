@@ -1,4 +1,5 @@
 #!/bin/sh
+set +x
 get_master_ip() {
    for ii in $(cat /proc/cmdline); do
       xcat_server_ip=$(echo $ii | awk -F= '{if($1=="XCAT") print $2}' | awk -F: '{print $1}')
