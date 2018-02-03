@@ -192,14 +192,14 @@ xcat_env() {
   [ -d /usr/lib/systemd/system ] && systemctl stop ntpd || service ntpd stop
   [ -d /usr/lib/systemd/system ] && systemctl start ntpdate || service ntpdate start
   [ -d /usr/lib/systemd/system ] && systemctl start ntpd || service ntpd start
-  [ -d /usr/lib/systemd/system ] && systemctl enable ntpd || ( chkconfig --add ntpd ; chkconfig --level 35 on ntpd )
+  [ -d /usr/lib/systemd/system ] && systemctl enable ntpd || ( chkconfig --add ntpd ; chkconfig --level 35 ntpd on)
 
   # NFS patch
   if ! grep "^RPCNFSDCOUNT=" /etc/sysconfig/nfs >&/dev/null; then
       echo "RPCNFSDCOUNT=128" >> /etc/sysconfig/nfs
   fi
   [ -d /usr/lib/systemd/system ] && systemctl restart nfs || service nfs restart
-  [ -d /usr/lib/systemd/system ] && systemctl enable nfs || ( chkconfig --add nfs ; chkconfig --level 35 on nfs )
+  [ -d /usr/lib/systemd/system ] && systemctl enable nfs || ( chkconfig --add nfs ; chkconfig --level 35 nfs on)
   # APACHE
   if ! grep "^<IfModule mpm_worker_module>" /etc/httpd/conf/httpd.conf >& /dev/null; then
       echo "<IfModule mpm_worker_module>
@@ -214,7 +214,7 @@ xcat_env() {
 </IfModule>" >> /etc/httpd/conf/httpd.conf
   fi
   [ -d /usr/lib/systemd/system ] && systemctl restart httpd || service httpd restart
-  [ -d /usr/lib/systemd/system ] && systemctl enable httpd || (chkconfig --add httpd ; chkconfig --level 35 on httpd )
+  [ -d /usr/lib/systemd/system ] && systemctl enable httpd || (chkconfig --add httpd ; chkconfig --level 35 httpd on)
 
   # Patch post.xcat file
   if [ -f /opt/xcat/share/xcat/install/scripts/post.xcat ]; then
@@ -317,7 +317,7 @@ node_short=" /install/postscripts/xcatdsklspost
 
   makedhcp -n
   [ -d /usr/lib/systemd/system ] && systemctl start dhcpd || service dhcpd start
-  [ -d /usr/lib/systemd/system ] && systemctl enable dhcpd || (chkconfig --add dhcpd; chkconfig --level 35 on dhcpd )
+  [ -d /usr/lib/systemd/system ] && systemctl enable dhcpd || (chkconfig --add dhcpd; chkconfig --level 35 dhcpd on)
 }
 
 xcat_image() {
