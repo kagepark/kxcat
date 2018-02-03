@@ -6,6 +6,12 @@ error_exit() {
 echo -n "Are you sure remove xCAT and KxCAT (y/[n])?"
 read dx
 [ "$dx" == "y" ] || error_exit "stopped uninstall"
+xcat_profile=$(dirname $(dirname $0))/etc/xcat.sh
+kxcat_profile=/etc/profile.d/kxcat.sh
+[ -f $xcat_profile ] || error_exit "xcat profile not found"
+[ -f $kxcat_profile ] || error_exit "kxcat profile not found"
+. $xcat_profile
+. $kxcat_profile
 
 #echo "Backup DB"
 #dumpxCATdb -p xcat.db
@@ -15,7 +21,6 @@ read dx
 echo "Power off whole nodes"
 nodeset all offline 
 echo "Remove nodes"
-. /etc/profile.d/kxcat.sh
 for ii in $(kxcat groups | awk '{print $1}'); do
    makedhcp -d $ii
    makehosts -d $ii
