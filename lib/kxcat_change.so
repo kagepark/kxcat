@@ -7,8 +7,6 @@
 
 node() {
     #Get a group name
-    netboot_str="netboot=xnba"
-    powerm_str="mgt=ipmi"
     arch_str="arch=x86_64"
     args=("$@")
     for ((ii=0; ii<${#args[@]}; ii++)); do
@@ -28,8 +26,10 @@ node() {
            arch_str="arch=${tmp[1]}"
        elif [ "${tmp[0]}" == "netboot" ]; then
            netboot_str="netboot=${tmp[1]}"
+           [ -n "$netboot_str" ] || netboot_str="netboot=xnba"
        elif [ "${tmp[0]}" == "powermethod" ]; then
            powerm_str="mgt=${tmp[1]}"
+           [ -n "$powerm_str" ] || powerm_str="mgt=ipmi"
        elif [ "${tmp[0]}" == "postboot" ]; then
            postboot_str="postbootscripts=${tmp[1]}"
        elif [ "${tmp[0]}" == "postscript" ]; then
