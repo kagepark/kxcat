@@ -21,7 +21,7 @@ command : kxcat
 - I changed command from kxcat to sce
 - I have a new job in Supermicro Computer and I changed it
 
-DB File:
+Config File:
 <KxCAT HOME>/etc/kxcat.cfg
 
 Install:
