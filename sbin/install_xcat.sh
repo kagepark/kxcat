@@ -274,6 +274,12 @@ node_short=" /install/postscripts/xcatdsklspost
       cp -a ${_KXCAT_HOME}/share/remoteshell /install/postscripts/remoteshell
       chmod +x /install/postscripts/remoteshell
   fi
+  if [ ! -f /install/postscripts/syslog.orig ]; then
+      cp -a /install/postscripts/syslog /install/postscripts/syslog.orig
+      cp -a ${_KXCAT_HOME}/share/syslog /install/postscripts/syslog
+      chmod +x /install/postscripts/syslog
+  fi
+  
 
   source $_KXCAT_HOME/etc/xcat.sh
   cp -a $_KXCAT_HOME/share/kxcatboot /install/postscripts

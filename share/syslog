@@ -282,7 +282,6 @@ config_rsyslog_V8()
     # add xCAT entries
     echo "# $xCATSettingsSTART" >> $remoteconf
     echo "# $xCATSettingsInfo" >> $remoteconf
-    echo "*.*   /var/log/messages  rotate 1024K files 5" >> $conf_file
     echo "*.emerg @$master" >> $conf_file
     echo "*.crit @$master" >> $conf_file
     echo "*.err @$master" >> $conf_file
@@ -444,7 +443,6 @@ else
 
       if [ $isLinux -eq 0 ]; then # aix
           echo "# xCAT settings" >> $conf_file
-          echo "*.*   /var/log/messages  rotate 1024K files 5" >> $conf_file
           echo "*.emerg @$master" >> $conf_file
           echo "*.crit @$master" >> $conf_file
           echo "*.err @$master" >> $conf_file
@@ -497,12 +495,10 @@ else
       else
         if ( pmatch $OSVER "ubuntu*" ) || ( is_lsb_ubuntu ) || ( pmatch $OSVER "debian*" ); then
           echo "\$ModLoad imuxsock" >> $conf_file
-          echo "*.*   /var/log/messages  rotate 1024K files 5" >> $conf_file
           echo "*.emerg @$master" >> $conf_file
           echo "*.crit @$master" >> $conf_file
           echo "*.err @$master" >> $conf_file
         else
-          echo "*.*   /var/log/messages  rotate 1024K files 5" >> $conf_file
           echo "*.emerg @$master" >> $conf_file
           echo "*.crit @$master" >> $conf_file
           echo "*.err @$master" >> $conf_file
