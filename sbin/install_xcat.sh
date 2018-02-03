@@ -12,6 +12,38 @@ error_exit() {
    echo $*
    exit 1
 }
+
+servicectl() {
+  name=$1
+  mode=$2
+  level=$3
+  if [ -d /usr/lib/systemd/system ]; then
+      if [ "$mode" == "off" ]; then
+         mode=disable
+      elif [ "$mode" == "on" ]; then
+         mode=enable
+      fi
+      [ -f /usr/lib/systemd/system/${name}.service ] && systemctl ${mode} ${name} || echo "${name} service not found"
+  else
+      if [ "$mode" == "disable" ]; then
+          mode=off
+      elif [ "$mode" == "enable" ]; then
+          mode=on
+      fi
+      if [ -n "$level" ]; then
+         [ -f /etc/init.d/${name} ] && chkconfig --level ${level} ${name} ${mode} || echo "${name} service not found"
+      else
+         if [ "$mode" == "on" ]; then
+             [ -f /etc/init.d/${name} ] && chkconfig --add ${name} || echo "${name} service not found"
+         elif [ "$mode" == "off" ]; then
+             [ -f /etc/init.d/${name} ] && chkconfig --del ${name}
+         else
+             [ -f /etc/init.d/${name} ] && service ${name} ${mode} || echo "${name} service not found"
+         fi
+      fi
+  fi
+}
+
 _KXCAT_HOME=$(dirname $(dirname $(readlink -f $0)))
 
 [ -f $_KXCAT_HOME/lib/klib.so ] || error_exit "klib.so file not found"
@@ -74,9 +106,9 @@ nameserver $MGT_IP
 $([ -n "$DNS_OUTSIDE" ] && echo nameserver $DNS_OUTSIDE)" > /etc/resolv.conf
   echo "export PATH=\${PATH}:$_KXCAT_HOME/bin" > /etc/profile.d/kxcat.sh
   . /etc/profile.d/kxcat.sh
-  [ -d /usr/lib/systemd/system ] && systemctl disable firewalld || chkconfig --del firewalld
-  [ -d /usr/lib/systemd/system ] && systemctl disable libvirtd || chkconfig --del libvirtd
-  [ -d /usr/lib/systemd/system ] && systemctl disable NetworkManager || chkconfig --del NetworkManager 
+  servicectl firewalld off
+  servicectl libvirtd off
+  servicectl NetworkManager off
   if [ -f /etc/sysconfig/selinux ]; then
     grep -v "^#" /etc/sysconfig/selinux  | grep enforcing >& /dev/null && sed -i "s/SELINUX=enforcing/SELINUX=disabled/g" /etc/sysconfig/selinux
   fi
@@ -163,8 +195,8 @@ net.core.rmem_default = 262144
 xcat_install() {
   ping -c 2 www.google.com  >& /dev/null || error_exit "Please setup outside network for auto installation for xCAT"
   yum -y install dhcp dhcp-common dhcp-libs ntp nfs httpd tftp bind
-  [ -d /usr/lib/systemd/system ] && systemctl stop dhcpd || service dhcpd stop
-  yum erase libvirt-client
+  servicectl dhcpd stop
+  rpm -qa |grep libvirt-client >& /dev/null && yum erase libvirt-client
   [ -f ./go-xcat ] && rm -f go-xcat
   wget https://raw.githubusercontent.com/xcat2/xcat-core/master/xCAT-server/share/xcat/tools/go-xcat -O - > /tmp/go-xcat
   chmod +x /tmp/go-xcat
@@ -189,17 +221,17 @@ xcat_env() {
         echo "server $MGT_IP" >> /etc/ntp.conf
      fi
   fi
-  [ -d /usr/lib/systemd/system ] && systemctl stop ntpd || service ntpd stop
-  [ -d /usr/lib/systemd/system ] && systemctl start ntpdate || service ntpdate start
-  [ -d /usr/lib/systemd/system ] && systemctl start ntpd || service ntpd start
-  [ -d /usr/lib/systemd/system ] && systemctl enable ntpd || ( chkconfig --add ntpd ; chkconfig --level 35 ntpd on)
+  servicectl ntpd stop
+  servicectl ntpdate start
+  servicectl ntpd start
+  servicectl ntpd on 35
 
   # NFS patch
   if ! grep "^RPCNFSDCOUNT=" /etc/sysconfig/nfs >&/dev/null; then
       echo "RPCNFSDCOUNT=128" >> /etc/sysconfig/nfs
   fi
-  [ -d /usr/lib/systemd/system ] && systemctl restart nfs || service nfs restart
-  [ -d /usr/lib/systemd/system ] && systemctl enable nfs || ( chkconfig --add nfs ; chkconfig --level 35 nfs on)
+  servicectl nfs restart
+  servicectl nfs on 35
   # APACHE
   if ! grep "^<IfModule mpm_worker_module>" /etc/httpd/conf/httpd.conf >& /dev/null; then
       echo "<IfModule mpm_worker_module>
@@ -213,8 +245,8 @@ xcat_env() {
     MaxConnectionsPerChild 10000
 </IfModule>" >> /etc/httpd/conf/httpd.conf
   fi
-  [ -d /usr/lib/systemd/system ] && systemctl restart httpd || service httpd restart
-  [ -d /usr/lib/systemd/system ] && systemctl enable httpd || (chkconfig --add httpd ; chkconfig --level 35 httpd on)
+  servicectl httpd restart
+  servicectl httpd on 35
 
   # Patch post.xcat file
   if [ -f /opt/xcat/share/xcat/install/scripts/post.xcat ]; then
@@ -316,8 +348,8 @@ node_short=" /install/postscripts/xcatdsklspost
   grep "^DHCPDARGS=" /etc/sysconfig/dhcpd >& /dev/null || echo "DHCPDARGS=\"$GROUP_NET_DEV\"" >> /etc/sysconfig/dhcpd
 
   makedhcp -n
-  [ -d /usr/lib/systemd/system ] && systemctl start dhcpd || service dhcpd start
-  [ -d /usr/lib/systemd/system ] && systemctl enable dhcpd || (chkconfig --add dhcpd; chkconfig --level 35 dhcpd on)
+  servicectl dhcpd start
+  servicectl dhcpd on 35
 }
 
 xcat_image() {
