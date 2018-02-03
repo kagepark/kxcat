@@ -115,7 +115,7 @@ $([ -n "$DNS_OUTSIDE" ] && echo nameserver $DNS_OUTSIDE)" > /etc/resolv.conf
   [ "$(getenforce)" == "Disabled" ] || setenforce 0
 
   #SSH password-less
-  if ! ssh -q -o ConnectTimeout=1 -o CheckHostIP=no -o StrictHostKeychecking=no -o PasswordAuthentication=no localhost hostname >& /dev/null; then
+  if ! ssh -q -o ConnectTimeout=5 -o CheckHostIP=no -o StrictHostKeychecking=no -o PasswordAuthentication=no localhost hostname >& /dev/null; then
       ssh-keygen -t rsa 
       cp -a ~/.ssh/id_rsa.pub ~/.ssh/authorized_keys
       chmod 644 ~/.ssh/authorized_keys
