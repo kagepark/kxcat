@@ -61,7 +61,7 @@ power() {
        [ "$force_power" == "1" ] && \
            destnodes=$(echo $hosts|sed "s/ /,/g") || \
            destnodes=$(echo $(echo $(lsdef $(echo $hosts|sed "s/ /,/g") -i status |sed "s/status=/:/g")| sed "s/ //g" | sed "s/Objectname:/\n/g" | grep -v ":installing$" | awk -F: '{print $1}') | sed "s/ /,/g")
-       rpower $destnodes $pwcmd
+       [ -n "$destnodes" ] && rpower $destnodes $pwcmd
     else
        for ii in $(echo $(lsdef $(echo $hosts|sed "s/ /,/g") -i bmc |sed "s/bmc=/:/g")| sed "s/ //g" | sed "s/Objectname:/ /g"); do
           $_KXC_HOME/sbin/${type}_power $(echo $ii| awk -F: '{print $2}') ${pwcmd} &
