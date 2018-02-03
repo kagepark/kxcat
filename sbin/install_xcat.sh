@@ -47,8 +47,8 @@ init() {
   if [ -f /etc/hostname ]; then
       grep "^$MGMT_HOSTNAME$" /etc/hostname >& /dev/null || echo "$MGMT_HOSTNAME" > /etc/hostname
   fi
-  if ! grep "^$MGT_IP  $MGMT_HOSTNAME" /etc/hosts >& /dev/null; then
-     echo "$MGT_IP  $MGMT_HOSTNAME  ${MGMT_HOSTNAME}.${DOMAIN_NAME}" >> /etc/hosts
+  if ! grep "^$MGT_IP  $MGT_HOSTNAME" /etc/hosts >& /dev/null; then
+     echo "$MGT_IP  $MGT_HOSTNAME  ${MGT_HOSTNAME}.${DOMAIN_NAME}" >> /etc/hosts
   fi
 
   if [ -n "$MPI_NETWORK" -a -n "$MPI_DEV" ]; then
