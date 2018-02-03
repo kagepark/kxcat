@@ -42,10 +42,10 @@ MGT_IP_INFO=($(ifconfig $GROUP_NET_DEV | grep "inet " | awk '{printf "%s %s",$2,
 
 # temporary disable
 init() {
-  hostname $MGMT_HOSTNAME
+  hostname $MGT_HOSTNAME
   domainname $DOMAIN_NAME
   if [ -f /etc/hostname ]; then
-      grep "^$MGMT_HOSTNAME$" /etc/hostname >& /dev/null || echo "$MGMT_HOSTNAME" > /etc/hostname
+      grep "^$MGT_HOSTNAME$" /etc/hostname >& /dev/null || echo "$MGT_HOSTNAME" > /etc/hostname
   fi
   if ! grep "^$MGT_IP  $MGT_HOSTNAME" /etc/hosts >& /dev/null; then
      echo "$MGT_IP  $MGT_HOSTNAME  ${MGT_HOSTNAME}.${DOMAIN_NAME}" >> /etc/hosts
