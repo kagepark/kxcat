@@ -42,11 +42,15 @@ if [ -f /opt/xcat/xcatinstallpost ]; then
       done
    fi
 
-   for ii in 1 2 3 4 5 6 7 8 9 10; do
+   for ii in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20; do
       [ -f /etc/ssh/ssh_host_rsa_key.pub -a -f /etc/ssh/ssh_host_rsa_key ] && break
+      echo "Check /etc/ssh/ssh_host_rsa_key file" >> /tmp/remoteshell.log
       sleep 6
    done
-   [ ! -f /etc/ssh/ssh_host_rsa_key.pub -a ! -f /etc/ssh/ssh_host_rsa_key ] && exit 0
+   if [ ! -f /etc/ssh/ssh_host_rsa_key.pub -a ! -f /etc/ssh/ssh_host_rsa_key ]; then
+      /xcatpost/remoteshell.orig >> /tmp/remoteshell.log
+      exit 0
+   fi
 
    if [ -x /usr/bin/openssl ]; then
      USEOPENSSLFORXCAT=1 #Though this is the only method going forward, flag to allow backward compatibility with 2.2 generated netboot images
@@ -54,6 +58,7 @@ if [ -f /opt/xcat/xcatinstallpost ]; then
    fi
    while [ 1 ]; do
       ping -c 2 ${XCATSERVER} >& /dev/null && break
+      echo "Wait ${XCATSERVER} server" >> /tmp/remoteshell.log
       sleep 5
    done
    export XCATSERVER=${XCATSERVER}:3001
