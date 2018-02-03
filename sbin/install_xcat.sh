@@ -23,7 +23,7 @@ servicectl() {
       elif [ "$mode" == "on" ]; then
          mode=enable
       fi
-      [ -f /usr/lib/systemd/system/${name}.service ] && systemctl ${mode} ${name} || echo "${name} service not found"
+      [ -f /usr/lib/systemd/system/${name}.service ] && systemctl ${mode} ${name} || echo "${name} service not found" 
   else
       if [ "$mode" == "disable" ]; then
           mode=off
@@ -347,9 +347,9 @@ node_short=" /install/postscripts/xcatdsklspost
 #  tabdump networks
   grep "^DHCPDARGS=" /etc/sysconfig/dhcpd >& /dev/null || echo "DHCPDARGS=\"$GROUP_NET_DEV\"" >> /etc/sysconfig/dhcpd
 
-  makedhcp -n
   servicectl dhcpd start
   servicectl dhcpd on 35
+  makedhcp -n
 }
 
 xcat_image() {
