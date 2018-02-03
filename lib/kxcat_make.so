@@ -132,6 +132,7 @@ make() {
     opt=($*)
     if (( ${#opt[*]} < 2 || ${#opt[*]} > 3 )); then
          echo "${FUNCNAME} <group> <Image> [pkglist=<pkglist file1>,<pkglist file2>,....] [-b]"
+         echo "  -b : xCAT base package list only"
 #         echo "${FUNCNAME} <group> <Image>"
          echo
          echo "   get image names : scix images"
