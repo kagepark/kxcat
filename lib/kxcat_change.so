@@ -9,49 +9,68 @@ node() {
     #Get a group name
     arch_str="arch=x86_64"
     args=("$@")
+    chk_input=0
     for ((ii=0; ii<${#args[@]}; ii++)); do
        tmp[0]=$(echo ${args[$ii]} | awk -F= '{print $1}')
        tmp[1]=$(echo ${args[$ii]} | awk -F= '{print $2}')
        if [ "${tmp[0]}" == "emac" ]; then
            mac_str="mac=${tmp[1]}"
+           chk_input=1
        elif [ "${tmp[0]}" == "bip" ]; then
            bmcip_str="bmc=${tmp[1]}"
+           chk_input=1
        elif [ "${tmp[0]}" == "buser" ]; then
            bmcuser_str="bmcusername=${tmp[1]}"
+           chk_input=1
        elif [ "${tmp[0]}" == "bpass" ]; then
            bmcpass_str="bmcpassword=${tmp[1]}"
+           chk_input=1
        elif [ "${tmp[0]}" == "image" ]; then
            image_str="provmethod=${tmp[1]}"
+           chk_input=1
        elif [ "${tmp[0]}" == "arch" ]; then
            arch_str="arch=${tmp[1]}"
+           chk_input=1
        elif [ "${tmp[0]}" == "netboot" ]; then
            netboot_str="netboot=${tmp[1]}"
            [ -n "$netboot_str" ] || netboot_str="netboot=xnba"
+           chk_input=1
        elif [ "${tmp[0]}" == "powermethod" ]; then
            powerm_str="mgt=${tmp[1]}"
            [ -n "$powerm_str" ] || powerm_str="mgt=ipmi"
+           chk_input=1
        elif [ "${tmp[0]}" == "postboot" ]; then
            postboot_str="postbootscripts=${tmp[1]}"
+           chk_input=1
        elif [ "${tmp[0]}" == "postscript" ]; then
            postscript_str="postscripts=${tmp[1]}"
+           chk_input=1
        elif [ "${tmp[0]}" == "bootmode" ]; then
            bootmode="${tmp[1]}"
+           chk_input=1
        elif [ "${tmp[0]}" == "alias" ]; then
            alias_str="hostnames=${tmp[1]}"
+           chk_input=1
        elif [ "${tmp[0]}" == "kernel_arg" ]; then
            #kernel_arg_str="addkcmdline=\"${tmp[1]}\""
            kernel_arg_str="${tmp[1]}"
+           chk_input=1
        elif [ "${tmp[0]}" == "sol_port" ]; then
            sol_str="$sol_str serialport=${tmp[1]}"
+           chk_input=1
        elif [ "${tmp[0]}" == "sol_speed" ]; then
            sol_str="$sol_str serialspeed=${tmp[1]}"
+           chk_input=1
        elif [ "${tmp[0]}" == "sol_flow" ]; then
            sol_str="$sol_str serialflow=${tmp[1]}"
+           chk_input=1
        elif [ "${tmp[0]}" == "clean" ]; then
            clean_str="status="
+           chk_input=1
        fi
     done
 
+    [ "$chk_input" == "0" ] && error_exit "input parameter not found. please look \"$(basename $0) change\" for help"
     desthost=$(echo $destname|sed "s/ /,/g")
 
 #    echo chdef -t node -o $desthost $arch_str $bmcip_str $bmcuser_str $bmcpass_str $mac_str $powerm_str $netboot_str $image_str $postboot_str $postscript_str $clean_str $alias_str $kernel_arg_str $sol_str 
