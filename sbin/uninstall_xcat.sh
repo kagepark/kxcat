@@ -6,7 +6,7 @@ error_exit() {
 echo -n "Are you sure remove xCAT and KxCAT (y/[n])?"
 read dx
 [ "$dx" == "y" ] || error_exit "stopped uninstall"
-xcat_profile=$(dirname $(dirname $0))/etc/xcat.sh
+xcat_profile=$(dirname $(dirname $(readlink -f $0)))/etc/xcat.sh
 kxcat_profile=/etc/profile.d/kxcat.sh
 [ -f $xcat_profile ] || error_exit "xcat profile not found"
 [ -f $kxcat_profile ] || error_exit "kxcat profile not found"
