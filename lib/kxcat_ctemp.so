@@ -9,7 +9,7 @@ ctemp() {
   echo "Physical CPU Temperature unit : *C"
   echo
   printf "%17s %-5s\n" hostname CPU#
-  DSH_TIMEOUT=2
+  DSH_TIMEOUT=5
   xdsh $(echo $(nodels $(echo $* | sed "s/ /,/g") | grep -v "^n0") | sed "s/ /,/g") '(
        if [ -f /sys/bus/platform/devices/coretemp.0/hwmon/hwmon*/temp1_input ]; then
           for ii in $(ls -d /sys/bus/platform/devices/coretemp.*); do

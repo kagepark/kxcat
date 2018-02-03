@@ -28,7 +28,7 @@ check() {
   for ii in $(nodels $(echo $* |sed "s/ /,/g") | grep -v "^n0"); do
      printf "%17s " "$ii"
      trap 2
-     ssh -o ConnectTimeout=2 $ii "
+     ssh -o ConnectTimeout=5 $ii "
        #printf \"%4s \" \$(grep \"^processor\" /proc/cpuinfo | wc -l)
        lscpuinfo=\$(lscpu)
        cpunum=\$(echo \"\$lscpuinfo\" | grep \"^CPU(s)\" | awk '{print \$2}')

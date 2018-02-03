@@ -7,6 +7,6 @@
 
 sh() {
     (( $# < 2 )) && error_exit "${FUNCNAME} <group name|hostname> \"command arg....\""
-    DSH_TIMEOUT=2
+    DSH_TIMEOUT=5
     xdsh $@
 }
