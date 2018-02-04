@@ -171,6 +171,11 @@ make() {
     gen_create "$image" "$group"  $@
     if [ "$type" == "netboot" ]; then
         genimage ${new_group}
+        for jj in firewalld iptable NetworkManager libvirtd; do
+           for ii in $(find /install/groups/${new_group}/rootimg/etc/systemd/system -name "${jj}*"); do
+              rm -f $ii
+           done
+        done
         packimage ${new_group}
     elif [ "$type" == "statelite" ]; then
         echo
