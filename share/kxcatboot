@@ -1,4 +1,5 @@
 #!/usr/bin/bash
+export PATH=/bin:/sbin:/usr/bin:/usr/sbin
 # KG Feature for booting procedure
 
 if [ -d /xcatpost/xcat_boot.d ]; then
@@ -32,6 +33,15 @@ fi
 if [ -f /xcatpost/mypostscript ]; then
    group=$(awk -F= '{if($1=="GROUP") print $2}' /xcatpost/mypostscript | sed "s/'//g" | sed "s/^all,//g")
 fi
+
+rm -f /root/.ssh/known_hosts
+touch /root/.ssh/known_hosts
+if [ -f /etc/ssh/ssh_known_hosts -a -f /xcatpost/mypostscript ]; then
+   MONSERVER=$(awk -F= '{if($1=="MONSERVER") print $2}' /xcatpost/mypostscript  | sed "s/'//g")
+   grep -e "^${group}-[0-9]" -e "^${MONSERVER} " /etc/ssh/ssh_known_hosts > /etc/ssh/ssh_known_hosts_
+   mv /etc/ssh/ssh_known_hosts_ /etc/ssh/ssh_known_hosts
+fi
+
 if [ -d /global/xcat_boot.d ]; then
    if [ -n "$group" -a -d "/global/xcat_boot.d/$group" ]; then
       group_shell=($(ls /global/xcat_boot.d/$group | sort -n))
