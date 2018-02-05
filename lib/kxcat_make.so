@@ -128,7 +128,7 @@ gen_create() {
 }
 
 make() {
-    local hostname opt
+    local hostname opt new_group old_group pkglist_str postinstall_str base_pkg clone_boot_script
     opt=($*)
     if (( ${#opt[*]} < 2 || ${#opt[*]} > 3 )); then
          echo "${FUNCNAME} <group> <Image> [pkglist=<pkglist file1>,<pkglist file2>,....] [-b]"
@@ -154,6 +154,11 @@ make() {
     for ii in netboot; do
         [ "$group" == "$ii" ] && error_exit "xCAT not support $group name"
     done
+    if [ -n "$pkglist_str" ]; then
+       for ii in $(echo $pkglist_str | sed "s/,/ /g"); do
+          [ -f $ii ] || error_exit "$ii not found for pkglist"
+       done
+    fi
     if ! lsdef -t osimage $image >& /dev/null; then
          echo "$image not found"
          exit
@@ -183,19 +188,31 @@ make() {
 }
 
 clone() {
-    local hostname opt
+    local hostname opt new_group old_group pkglist_str postinstall_str base_pkg clone_boot_script
     opt=($*)
-    if (( ${#opt[*]} < 2 || ${#opt[*]} > 3 )); then
-         echo "${FUNCNAME} <new group> <old group> [-b]"
-         echo "  -b : clone with xcat_boot.d scripts"
+    if (( ${#opt[*]} < 2 || ${#opt[*]} > 4 )); then
+         echo "${FUNCNAME} <new group> <old group> [pkglist=<pkglist file1>,<pkglist file2>,....] [-b] [-a]"
+         echo "  -b : xCAT base package list only"
+         echo "  -a : clone with xcat_boot.d scripts"
          exit
     fi
 
     new_group=$1
     old_group=$2
     shift 2
-    [ "$1" == "-b" ] && clone_boot_script=1
+    for ii in $*; do
+        pkglist_str=$(echo $ii | awk -F= '{if($1=="pkglist") print $2}')
+        postinstall_str=$(echo $ii | awk -F= '{if($1=="postinstall") print $2}')
+        [ "$ii" == "-b" ] && base_pkg=1
+        [ "$ii" == "-a" ] && clone_boot_script=1
+    done
+#    [ "$1" == "-b" ] && clone_boot_script=1
 
+    if [ -n "$pkglist_str" ]; then
+       for ii in $(echo $pkglist_str | sed "s/,/ /g"); do
+          [ -f $ii ] || error_exit "$ii not found for pkglist"
+       done
+    fi
     if ! lsdef -t group $old_group >& /dev/null; then
          echo "Not found $old_group"
          exit
