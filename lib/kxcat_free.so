@@ -38,6 +38,8 @@ free() {
        hostid=$(echo ${node_list[$ii]} | awk -F: '{print $2}')
        [ -n "$delnodes" ] && delnodes="$delnodes,${hostname}" || delnodes="${hostname}"
    done
+   _k_load xcat_power
+   power off ${delnodes} 2>/dev/null
    makehosts -d ${delnodes} 2>/dev/null
    makedns -d ${delnodes} 2>/dev/null
    makedhcp -d ${delnodes} 2>/dev/null
