@@ -10,7 +10,7 @@ check() {
   printf "%17s " "Hostname"
   printf "%9s " "CPUs"
   printf "%3s " "HT"
-  printf "%4s " "MHz"
+  printf "%24s " "[driver(cur/max)]GHz"
   printf "%6s " "Mem(G)"
   printf "%3s " "NTP"
   printf "%7s " "/global"
@@ -31,15 +31,26 @@ check() {
      ssh -o ConnectTimeout=5 $ii "
        #printf \"%4s \" \$(grep \"^processor\" /proc/cpuinfo | wc -l)
        lscpuinfo=\$(lscpu)
+       cpupower=\$(cpupower frequency-info)
        cpunum=\$(echo \"\$lscpuinfo\" | grep \"^CPU(s)\" | awk '{print \$2}')
        socketnum=\$(echo \"\$lscpuinfo\" | grep \"^Socket\" | awk '{print \$2}')
        corenum=\$(echo \"\$lscpuinfo\" | grep \"^Core(s)\" | awk '{print \$4}')
-       hz=\$(echo \"\$lscpuinfo\" | grep \"^CPU MHz\" | awk '{print \$3}' | awk -F\. '{print \$1}')
+#       hz=\$(echo \"\$lscpuinfo\" | grep \"^CPU MHz\" | awk '{print \$3}' | awk -F\. '{print \$1}')
+       hzdrv=\$(echo \"\$cpupower\" | grep \"driver:\" | awk '{print \$2}')
+       hzcur_unit=\$(echo \"\$cpupower\" | grep \"current CPU frequency:\" | awk '{print \$5}')
+       if [ \"\$hzcur_unit\" == \"MHz\" ]; then
+         hzcur=\$(printf \"%4.2f\" \$((\$(echo \"\$cpupower\" | grep \"current CPU frequency:\" | awk '{print \$4}')/1000)))
+       else
+         hzcur=\$(echo \"\$cpupower\" | grep \"current CPU frequency:\" | awk '{print \$4}')
+       fi
+       hzmax=\$(echo \"\$cpupower\" | grep \"hardware limits:\" | awk '{print \$6}')
+       hz=\"\${hzdrv}(\${hzcur}/\${hzmax})\"
+       
        hyper=\$(echo \"\$lscpuinfo\" | grep \"^Thread(s) per core\" | awk '{print \$4}')
        
        printf \"%9s \" \"\${cpunum}(\${corenum}*\${socketnum})\"
        printf \"%3s \" \"\$( (( \$hyper > 1 )) && echo on || echo off)\"
-       printf \"%4s \" \"\$hz\"
+       printf \"%24s \" \"\$hz\"
 #       printf \"%6.1f \" \$((\$(grep \"^MemTotal\" /proc/meminfo  | awk '{print \$2}')/\$((1024*1024))))
        printf \"%6.1f \" \$(bc -l <<< \$(grep \"^MemTotal\" /proc/meminfo  | awk '{print \$2}')/\$((1024*1024)))
        printf \"%3s \" \$(ps -ef |grep ntpd | grep -v grep >& /dev/null && echo Run || echo \"-\")
@@ -53,7 +64,7 @@ check() {
        printf \"%9s \" \$([ -f /sys/devices/virtual/dmi/id/bios_version ] && cat /sys/devices/virtual/dmi/id/bios_version || echo \"-\")
        printf \"%9s \" \$([ -f /sys/devices/virtual/dmi/id/product_name ] && cat /sys/devices/virtual/dmi/id/product_name || echo \"-\")
        printf \"%2s \" \$(ls /sys/class/net/ | grep \"ib[0-9]\" | wc -l)
-       printf \"%-4s \" \"\$(chk=0; for ii in \$(ls -d /sys/class/infiniband/mlx*); do [ \"\$chk\" == \"1\" ] && echo \",\"; if [ -f \$ii/fw_ver ]; then cat \$ii/fw_ver; chk=1; fi; done)\"
+       printf \"%-4s \" \"\$(chk=0; for ii in \$(ls -d /sys/class/infiniband/mlx*); do [ \"\$chk\" == \"1\" ] && echo \",\"; if [ -f \$ii/fw_ver ]; then cat \$ii/fw_ver; chk=1; fi; done; [ \"\$chk\" == \"0\" ] && echo \"-\")\"
      " 2>/dev/null || \
      echo -n "Connection time out"
      echo
