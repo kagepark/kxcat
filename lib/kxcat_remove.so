@@ -16,7 +16,7 @@ remove() {
       if lsdef -t group ${group} >&/dev/null ; then
         nodes=$(lsdef -t group ${group} | grep "members=" |awk -F= '{print $2}')
         if [ -n "$nodes" ]; then
-           error_exit "Please stop $nodes first. and delete group $group"
+           error_exit "Please make a free to $nodes first. and remove group $group"
         else
            makehosts -d ${group}
            rmdef -t group ${group}
@@ -25,7 +25,7 @@ remove() {
            [ -d /global/xcat_boot.d/${group} ] && rm -fr /global/xcat_boot.d/${group}
            grep -v "^${group}-" /etc/ssh/ssh_known_hosts > /etc/ssh/ssh_known_hosts_
            cp -a /etc/ssh/ssh_known_hosts_ /etc/ssh/ssh_known_hosts
-           echo "Deleted $group"
+           echo "Removed $group"
         fi
       else
         error_exit "group \"$group\" not found"
