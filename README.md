@@ -1,5 +1,5 @@
 # KxCAT
-
+requirement : kgt (Opensource) for tool
 
 Based HPC engine is xCAT
 This KxCAT is user friendly interface for xCAT.
