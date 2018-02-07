@@ -45,14 +45,8 @@ fi
 if [ -d /global/xcat_boot.d ]; then
    if [ -n "$group" -a -d "/global/xcat_boot.d/$group" ]; then
       group_shell=($(ls /global/xcat_boot.d/$group | sort -n))
-      for ((ii=0; ii<${#group_shell[*]}; ii++)); do
-         if [ -f /global/xcat_boot.d/${group}/${group_shell[$ii]} ]; then
-            echo 
-            echo " ** Run $group/${group_shell[$ii]} at $(date)"
-            /usr/bin/bash -x /global/xcat_boot.d/${group}/${group_shell[$ii]}
-         fi
-      done >> /tmp/xcat_boot.log
    fi
+   # Global
    if [ -d /global/xcat_boot.d/global ]; then
       global_shell=($(ls /global/xcat_boot.d/global | sort -n))
       for ((ii=0;ii<${#group_shell[*]};ii++));do
@@ -68,4 +62,13 @@ if [ -d /global/xcat_boot.d ]; then
          fi
       done >> /tmp/xcat_boot.log
    fi
+
+   # Group
+   for ((ii=0; ii<${#group_shell[*]}; ii++)); do
+         if [ -f /global/xcat_boot.d/${group}/${group_shell[$ii]} ]; then
+            echo
+            echo " ** Run $group/${group_shell[$ii]} at $(date)"
+            /usr/bin/bash -x /global/xcat_boot.d/${group}/${group_shell[$ii]}
+         fi
+   done >> /tmp/xcat_boot.log
 fi
