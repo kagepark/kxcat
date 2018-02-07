@@ -1,0 +1,3 @@
+ctemp() {
+  kgt temp $*
+}
