@@ -59,7 +59,7 @@ else
    [ -n "$xcat_env" ] && source $xcat_env || error_exit "/etc/profile.d/xcat.sh not found"
    for cmdname in $cmd_str; do
       if [ "$cmd" == "$cmdname" ]; then
-          _k_load xcat_$cmd
+          _k_load xcat_$cmd || break
           shift 1
           trap '' 2
           $cmd "${@}"
@@ -68,5 +68,4 @@ else
       fi
    done
    echo "Unknown command ($cmd)"
-   #_help
 fi
