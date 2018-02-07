@@ -18,6 +18,7 @@
 #    + install is not correctly working for IP
 
 _KXC_VERSION=3.0.3
+export KGT_MODE=xcat
 
 error_exit() {
     echo $*
