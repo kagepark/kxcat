@@ -205,6 +205,9 @@ xcat_install() {
   [ -f /etc/profile.d/xcat.sh ] || error_exit "/etc/profile.d/xcat.sh file not found"
   mv /etc/profile.d/xcat.* $_KXCAT_HOME/etc
   [ ! -f /tftpboot/xcat/xnba.efi -o ! -f /tftpboot/xcat/xnba.kpxe ] && (rpm -e --nodeps $(rpm -qa | grep xnba-undi); yum -y install xnba-undi)
+  cd /opt && git clone git@github.com:kagepark/kgt.git
+  /opt/kgt/bin/kgt setup >/dev/null
+  source /etc/profile.d/kgt.sh
 }
 
 xcat_env() {
