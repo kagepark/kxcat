@@ -33,6 +33,9 @@ tag=k
 [ -f $_KXC_HOME/etc/kxcat.cfg ] || error_exit "kxcat.cfg file not found"
 . $_KXC_HOME/etc/kxcat.cfg
 
+[ -f /etc/profile.d/xcat.sh ] && xcat_env=/etc/profile.d/xcat.sh
+[ ! -n "$xcat_env" -a -f $_KXC_HOME/etc/xcat.sh ] && xcat_env=$_KXC_HOME/etc/xcat.sh
+[ -n "$xcat_env" ] && source $xcat_env || error_exit "/etc/profile.d/xcat.sh not found"
 
 _help() {
     echo "Base xCAT $(lsxcatd -v)"
@@ -55,9 +58,6 @@ if [ "$cmd" == "help" -o "$cmd" == "--help" ]; then
 elif [ "$cmd" == "version" -o "$cmd" == "--version" ]; then
     echo "$_KXC_VERSION"
 else
-   [ -f /etc/profile.d/xcat.sh ] && xcat_env=/etc/profile.d/xcat.sh
-   [ ! -n "$xcat_env" -a -f $_KXC_HOME/etc/xcat.sh ] && xcat_env=$_KXC_HOME/etc/xcat.sh
-   [ -n "$xcat_env" ] && source $xcat_env || error_exit "/etc/profile.d/xcat.sh not found"
    for cmdname in $cmd_str; do
       if [ "$cmd" == "$cmdname" ]; then
           _k_load xcat_$cmd || break
