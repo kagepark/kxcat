@@ -17,7 +17,7 @@
 #    + netboot is not correctly working for IP and root password
 #    + install is not correctly working for IP
 
-_KXC_VERSION=3.0.3
+_KXC_VERSION=1.4.5
 export KGT_MODE=xcat
 
 error_exit() {
