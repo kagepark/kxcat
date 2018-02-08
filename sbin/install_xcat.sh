@@ -206,6 +206,8 @@ xcat_install() {
   mv /etc/profile.d/xcat.* $_KXCAT_HOME/etc
   [ ! -f /tftpboot/xcat/xnba.efi -o ! -f /tftpboot/xcat/xnba.kpxe ] && (rpm -e --nodeps $(rpm -qa | grep xnba-undi); yum -y install xnba-undi)
   cd /opt && git clone git@github.com:kagepark/kgt.git
+  rm -fr /opt/kgt/.git
+  rm -f /opt/kgt/README.md
   /opt/kgt/bin/kgt setup >/dev/null
   source /etc/profile.d/kgt.sh
 }
