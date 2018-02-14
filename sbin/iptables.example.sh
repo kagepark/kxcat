@@ -8,6 +8,7 @@ if [ ! -n "$outside_net_dev" -o ! -d /sys/class/net/$outside_net_dev ]; then
 fi
 
 outside_ip=$(ifconfig $outside_net_dev | grep " inet " | awk '{print $2}')
+echo 1 > /proc/sys/net/ipv4/ip_forward
 
 iptables -t nat -A POSTROUTING -s ${outside_ip}/32 -o ${outside_net_dev}  -j MASQUERADE
 for add_ip in $*; do
