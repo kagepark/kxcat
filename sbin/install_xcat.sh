@@ -105,6 +105,78 @@ NETMASK=${GROUP_NETMASK} " > /etc/sysconfig/network-scripts/ifcfg-${MPI_DEV}
 nameserver $MGT_IP
 $([ -n "$DNS_OUTSIDE" ] && echo nameserver $DNS_OUTSIDE)" > /etc/resolv.conf
   echo "export PATH=\${PATH}:$_KXCAT_HOME/bin" > /etc/profile.d/kxcat.sh
+  cat << EOF > $_KXCAT_HOME/bin/kxcat_service
+#!/bin/sh
+### BEGIN INIT INFO
+# Provides: xcatd
+# Required-Start:
+# Required-Stop: 
+# Should-Start: 
+# Default-Start: 3 5
+# Default-stop: 0 1 2 6
+# Short-Description: xcatd
+# Description: xCAT management service
+### END INIT INFO
+
+
+# This avoids the perl locale warnings
+if [ -z \$LC_ALL ]; then
+  export LC_ALL=C
+fi
+
+case \$1 in
+restart)
+  echo -n "Restarting xcatd "
+  stop
+  start
+  ;;
+status)
+  echo "dhcpd: \$(systemctl status dhcpd | grep Active)"
+  echo "httpd: \$(systemctl status httpd | grep Active)"
+  echo "nfs: \$(systemctl status nfs | grep Active)"
+  echo "rpcbind: \$(systemctl status rpcbind | grep Active)"
+  echo "ntpd: \$(systemctl status ntpd | grep Active)"
+  /etc/init.d/xcatd status
+  ;;
+stop)
+  echo -n "Stopping xcatd "
+  /etc/init.d/xcatd stop
+  systemctl stop dhcpd
+  systemctl stop httpd
+  systemctl stop nfs
+  systemctl stop rpcbind
+  systemctl stop ntpd
+  ;;
+start)
+  echo -n "Starting xcatd "
+  systemctl start ntpdate
+  systemctl start ntpd
+  systemctl start dhcpd
+  systemctl start httpd
+  systemctl start nfs
+  systemctl start rpcbind
+  /etc/init.d/xcatd start
+  ;;
+esac
+EOF
+  chmod +x $_KXCAT_HOME/bin/kxcat_service
+
+  cat << EOF > /lib/systemd/system/kxcat.service
+[Unit]
+Description=xCAT service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=$_KXCAT_HOME/bin/kxcat_service start
+ExecStop=$_KXCAT_HOME/bin/kxcat_service stop
+ExecReload=-$_KXCAT_HOME/bin/kxcat_service restart
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+  servicectl kxcat on
   . /etc/profile.d/kxcat.sh
   servicectl firewalld off
   servicectl libvirtd off
@@ -194,7 +266,7 @@ net.core.rmem_default = 262144
 
 xcat_install() {
   ping -c 2 www.google.com  >& /dev/null || error_exit "Please setup outside network for auto installation for xCAT"
-  yum -y install dhcp dhcp-common dhcp-libs ntp nfs httpd tftp bind
+  yum -y install dhcp dhcp-common dhcp-libs ntp nfs httpd tftp bind screen rpcbind bind-utils wget git openssl openssl-libs sqlite
   servicectl dhcpd stop
   rpm -qa |grep libvirt-client >& /dev/null && yum erase libvirt-client
   [ -f ./go-xcat ] && rm -f go-xcat
@@ -203,7 +275,7 @@ xcat_install() {
   /tmp/go-xcat install
   rm -f /tmp/go-xcat
   [ -f /etc/profile.d/xcat.sh ] || error_exit "/etc/profile.d/xcat.sh file not found"
-  mv /etc/profile.d/xcat.* $_KXCAT_HOME/etc
+  #mv /etc/profile.d/xcat.* $_KXCAT_HOME/etc
   [ ! -f /tftpboot/xcat/xnba.efi -o ! -f /tftpboot/xcat/xnba.kpxe ] && (rpm -e --nodeps $(rpm -qa | grep xnba-undi); yum -y install xnba-undi)
   cd /opt && git clone https://github.com/kagepark/kgt.git
   rm -fr /opt/kgt/.git
@@ -229,14 +301,14 @@ xcat_env() {
   servicectl ntpd stop
   servicectl ntpdate start
   servicectl ntpd start
-  servicectl ntpd on 35
+#  servicectl ntpd on 35
 
   # NFS patch
   if ! grep "^RPCNFSDCOUNT=" /etc/sysconfig/nfs >&/dev/null; then
       echo "RPCNFSDCOUNT=128" >> /etc/sysconfig/nfs
   fi
   servicectl nfs restart
-  servicectl nfs on 35
+#  servicectl nfs on 35
   # APACHE
   if ! grep "^<IfModule mpm_worker_module>" /etc/httpd/conf/httpd.conf >& /dev/null; then
       echo "<IfModule mpm_worker_module>
@@ -251,7 +323,7 @@ xcat_env() {
 </IfModule>" >> /etc/httpd/conf/httpd.conf
   fi
   servicectl httpd restart
-  servicectl httpd on 35
+#  servicectl httpd on 35
 
   # Patch post.xcat file
   if [ -f /opt/xcat/share/xcat/install/scripts/post.xcat ]; then
@@ -318,7 +390,8 @@ node_short=" /install/postscripts/xcatdsklspost
   fi
   
 
-  source $_KXCAT_HOME/etc/xcat.sh
+#  source $_KXCAT_HOME/etc/xcat.sh
+  source /etc/profile.d/xcat.sh
   cp -a $_KXCAT_HOME/share/kxcatboot /install/postscripts
   [ -d /install/postscripts/xcat_boot.d ] || mkdir -p /install/postscripts/xcat_boot.d
   cp -a $_KXCAT_HOME/share/0000_update_state /install/postscripts/xcat_boot.d
@@ -353,13 +426,14 @@ node_short=" /install/postscripts/xcatdsklspost
   grep "^DHCPDARGS=" /etc/sysconfig/dhcpd >& /dev/null || echo "DHCPDARGS=\"$GROUP_NET_DEV\"" >> /etc/sysconfig/dhcpd
 
   servicectl dhcpd start
-  servicectl dhcpd on 35
+#  servicectl dhcpd on 35
   makedhcp -n
 }
 
 xcat_image() {
 # OS Image
-  source $_KXCAT_HOME/etc/xcat.sh
+  #source $_KXCAT_HOME/etc/xcat.sh
+  source /etc/profile.d/xcat.sh
   source /etc/profile.d/kxcat.sh
   echo $OS_ISO | sed "s/,/\n/g" | while read line; do
      if [ ! -f "$line" ]; then
@@ -396,3 +470,11 @@ for ((node_snum=1; node_snum<=$MAX_NODES; node_snum++)); do
 done
 
 #makehosts all 2>/dev/null
+echo
+echo "Restart service"
+$_KXCAT_HOME/bin/kxcat_service stop
+servicectl kxcat start
+(cd $_KXCAT_HOME/bin && $_KXCAT_HOME/bin)
+
+echo
+echo "KxCAT Install done"
