@@ -13,6 +13,7 @@ error_exit() {
    exit 1
 }
 
+link_name=$1
 _KXCAT_HOME=$(dirname $(dirname $(readlink -f $0)))
 
 [ -f $_KXCAT_HOME/lib/klib.so ] || error_exit "klib.so file not found"
@@ -55,6 +56,10 @@ MGT_IP_INFO=($(ifconfig $GROUP_NET_DEV | grep "inet " | awk '{printf "%s %s",$2,
 init() {
   hostname $MGT_HOSTNAME
   domainname $DOMAIN_NAME
+  sed -i "/^_KXC_VERSION=/c \
+_KXC_VERSION=$(git describe --tags) " $_KXCAT_HOME/bin/kxcat
+#  rm -fr $_KXCAT_HOME/.git
+
   if [ -f /etc/hostname ]; then
       grep "^$MGT_HOSTNAME$" /etc/hostname >& /dev/null || echo "$MGT_HOSTNAME" > /etc/hostname
   fi
@@ -83,7 +88,10 @@ NETMASK=${GROUP_NETMASK} " > /etc/sysconfig/network-scripts/ifcfg-${MPI_DEV}
   echo "search $DOMAIN_NAME
 nameserver $MGT_IP
 $([ -n "$DNS_OUTSIDE" ] && echo nameserver $DNS_OUTSIDE)" > /etc/resolv.conf
-  echo "export PATH=\${PATH}:$_KXCAT_HOME/bin" > /etc/profile.d/kxcat.sh
+  echo "_KXCAT_HOME=$_KXCAT_HOME
+PATH=\${PATH}:$_KXCAT_HOME/bin
+export _KXCAT_HOME PATH" > /etc/profile.d/kxcat.sh
+
   cat << EOF > $_KXCAT_HOME/bin/kxcat_service
 #!/bin/sh
 ### BEGIN INIT INFO
@@ -456,7 +464,9 @@ echo
 echo "Restart service"
 $_KXCAT_HOME/bin/kxcat_service stop
 _k_servicectl kxcat start
-(cd $_KXCAT_HOME/bin && $_KXCAT_HOME/bin)
+if [ -n "$link_name" ]; then
+    (cd $_KXCAT_HOME/bin && ln -s kxcat $linke_name)
+fi
 
 echo
 echo "KxCAT Install done"
