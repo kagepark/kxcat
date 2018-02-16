@@ -38,7 +38,7 @@ fi
 echo "==all=="
 lsdef -z all > $backup_dir/xcat.info.log
 
-cho "Power off whole nodes"
+echo "Power off whole nodes"
 nodeset all offline 
 if [ -f $kxcat_profile ]; then
   . $kxcat_profile
