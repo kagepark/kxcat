@@ -26,11 +26,13 @@ $(_k_net_str2ip $ii)"
         group_num=${#group_ips[*]}
         (($group_num > 0)) && GROUP_START=$((${group_ips[$((${#group_ips[*]}-1))]} + $MAX_NODES + 50)) || GROUP_START=100
     fi
-    GROUP_START_1=$(($(($GROUP_START/256))%256))
-    GROUP_START_2=$(($GROUP_START%256))
+    #GROUP_START_1=$(($(($GROUP_START/256))%256))
+    #GROUP_START_2=$(($GROUP_START%256))
     if [ -n "$BMC_NETWORK" ]; then
        BMC_NET_1=$(echo $BMC_NETWORK | awk -F. '{print $3}')
        (( $(( $(_k_net_str2ip $BMC_NETWORK) - $MAX_NODES + 200)) < $(( $(( $group_num * $MAX_NODES )) + $(($group_num * 50)) + 100 )) )) && exit 1 || echo "$GROUP_START $group_num"
+    else
+        echo "$GROUP_START $group_num"
     fi
 }
 
