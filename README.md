@@ -13,7 +13,14 @@ requirement :
     + Memory: minimum 2GB (Recommend: over 8GB)
     + HDD: minimum over 50GB 1ea SATA
   - Packages
-    + kgt (Opensource) for tool
+    + kgt (Opensource) for tool (Auto install)
+      + /opt/kgt
+    + OS iso file
+  - Main directories
+    + /opt/xcat
+    + /install
+    + /tftpboot
+    + /global
 
 Based HPC engine is xCAT
 This KxCAT is user friendly interface for xCAT.
