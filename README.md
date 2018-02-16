@@ -8,6 +8,10 @@ requirement :
   - compute node (Disk-less)
     + NIC : Minimum 1G x 1ea
     + Memory: minimum 5GB (Recommend: over 8GB)
+  - compute node (Diskful)
+    + NIC : Minimum 1G x 1ea
+    + Memory: minimum 2GB (Recommend: over 8GB)
+    + HDD: minimum over 50GB 1ea SATA
   - Packages
     + kgt (Opensource) for tool
 
