@@ -7,6 +7,7 @@ _KXCAT_HOME=$(dirname $(dirname $(readlink -f $0)))
 echo -n "Are you sure remove xCAT and KxCAT (y/[n])?"
 read dx
 [ "$dx" == "y" ] || error_exit "stopped uninstall"
+. $_KXCAT_HOME/lib/klib.so
 xcat_profile=$_KXCAT_HOME/etc/xcat.sh
 [ -f $xcat_profile ] || xcat_profile=/etc/profile.d/xcat.sh
 [ -f $xcat_profile ] || error_exit "xcat profile not found"
@@ -50,10 +51,7 @@ if [ -f $kxcat_profile ]; then
 fi
 makedns -n
 echo "Stop daemons"
-systemctl stop xcatd 
-systemctl stop dhcpd
-systemctl stop nfs
-systemctl stop httpd
+servicectl stop kxcat
 echo "Uninstall xCAT"
 rpm -e $(echo $(rpm -qa |grep -e xCAT -e "-xcat-" -e "-xCAT-" )) xnba-undi
 echo "clean up"
