@@ -5,9 +5,9 @@ requirement :
     + NIC : Minimum Two 1G (Recommend: 1G x 1ea, 10G x 1ea)
     + HDD : Minimum 1TB HDD(SATA) (Recommend: over 4ea HDDs, Raid controller(Raid 5), over 1TB space, XFS)
     + Memory: minimum 2GB (Recommend: over 16GB)
-  - compute node 
+  - compute node (Disk-less)
     + NIC : Minimum 1G x 1ea
-    + Memory: minimum 4GB for boot (Recommend: over 8GB)
+    + Memory: minimum 5GB (Recommend: over 8GB)
   - Packages
     + kgt (Opensource) for tool
 
