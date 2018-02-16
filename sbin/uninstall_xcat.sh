@@ -55,7 +55,7 @@ systemctl stop dhcpd
 systemctl stop nfs
 systemctl stop httpd
 echo "Uninstall xCAT"
-rpm -e $(echo $(rpm -qa |grep -i xcat)) xnba-undi
+rpm -e $(echo $(rpm -qa |grep -e xCAT -e "-xcat-" -e "-xCAT-" )) xnba-undi
 echo "clean up"
 rm -fr ~/.xcat
 if [ -d /install ]; then
