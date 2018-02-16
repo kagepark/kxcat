@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 ###########################################################
 # Kage Park
 # xCAT Installer
@@ -6,42 +6,11 @@
 # Base design Using old libraries(2006/07) of Kage
 # License : GPL
 ###########################################################
-set +x
+#set +x
 
 error_exit() {
    echo $*
    exit 1
-}
-
-servicectl() {
-  name=$1
-  mode=$2
-  level=$3
-  if [ -d /usr/lib/systemd/system ]; then
-      if [ "$mode" == "off" ]; then
-         mode=disable
-      elif [ "$mode" == "on" ]; then
-         mode=enable
-      fi
-      [ -f /usr/lib/systemd/system/${name}.service ] && systemctl ${mode} ${name} || echo "${name} service not found" 
-  else
-      if [ "$mode" == "disable" ]; then
-          mode=off
-      elif [ "$mode" == "enable" ]; then
-          mode=on
-      fi
-      if [ -n "$level" ]; then
-         [ -f /etc/init.d/${name} ] && chkconfig --level ${level} ${name} ${mode} || echo "${name} service not found"
-      else
-         if [ "$mode" == "on" ]; then
-             [ -f /etc/init.d/${name} ] && chkconfig --add ${name} || echo "${name} service not found"
-         elif [ "$mode" == "off" ]; then
-             [ -f /etc/init.d/${name} ] && chkconfig --del ${name}
-         else
-             [ -f /etc/init.d/${name} ] && service ${name} ${mode} || echo "${name} service not found"
-         fi
-      fi
-  fi
 }
 
 _KXCAT_HOME=$(dirname $(dirname $(readlink -f $0)))
@@ -51,21 +20,31 @@ _KXCAT_HOME=$(dirname $(dirname $(readlink -f $0)))
 [ -f $_KXCAT_HOME/etc/kxcat.cfg ] || error_exit "kxcat.cfg file not found"
 . $_KXCAT_HOME/etc/kxcat.cfg
 
-#[ ! -n "$OS_ISO" -o ! -f "$OS_ISO" ] && error_exit "$OS_ISO file not found"
 [ ! -n "$OS_ISO" ] && error_exit "OS_ISO not found"
+chk_iso=0
+while read line; do
+     if [ ! -f "$line" ]; then
+         echo "$line not found"
+         continue
+     fi
+     chk_iso=1
+done < <(echo $OS_ISO | sed "s/,/\n/g")
+[ "$chk_iso" == "0" ] && error_exit "OS_ISO file not found"
 
 [ ! -n "$GROUP_NETWORK" ] && error_exit "GROUP_NETWORK not found"
 [ ! -n "$GROUP_NETMASK" ] && error_exit "GROUP_NETMASK not found"
 [ ! -n "$GROUP_NET_DEV" ] && error_exit "GROUP_NET_DEV not found"
-[ ! -n "$BMC_NETWORK" ] && error_exit "BMC_NETWORK not found"
 [ ! -n "$DOMAIN_NAME" ] && error_exit "DOMAIN_NAME not found"
 [ ! -n "$MGT_HOSTNAME" ] && error_exit "MGT_HOSTNAME not found"
 [ ! -n "$MGT_IP" ] && error_exit "MGT_IP not found"
 [ ! -n "$MAX_NODES" ] && error_exit "MAX_NODES not found"
 [ ! -n "$POWER_MODE" ] && error_exit "POWER_MODE not found"
-[ ! -n "$CONSOLE_MODE" ] && error_exit "CONSOLE_MODE not found"
-[ ! -n "$SOL_DEV" ] && error_exit "SOL_DEV not found"
-[ ! -n "$SOL_SPEED" ] && error_exit "SOL_SPEED not found"
+if [ "$POWER_MODE" == "ipmi" -o "$POWER_MODE" == "xcat" ]; then
+   [ ! -n "$BMC_NETWORK" ] && error_exit "BMC_NETWORK not found"
+   [ ! -n "$CONSOLE_MODE" ] && error_exit "CONSOLE_MODE not found"
+   [ ! -n "$SOL_DEV" ] && error_exit "SOL_DEV not found"
+   [ ! -n "$SOL_SPEED" ] && error_exit "SOL_SPEED not found"
+fi
 [ -d /sys/class/net/$GROUP_NET_DEV ] || error_exit "GROUP_NET_DEV($GROUP_NET_DEV) not found"
 MGT_IP_INFO=($(ifconfig $GROUP_NET_DEV | grep "inet " | awk '{printf "%s %s",$2,$4}'))
 [ "$MGT_IP" == "${MGT_IP_INFO[0]}" ] || error_exit "MGT_IP and ${GROUP_NET_DEV} IPs are different"
@@ -176,11 +155,11 @@ ExecReload=-$_KXCAT_HOME/bin/kxcat_service restart
 WantedBy=multi-user.target
 EOF
 
-  servicectl kxcat on
+  _k_servicectl kxcat on
   . /etc/profile.d/kxcat.sh
-  servicectl firewalld off
-  servicectl libvirtd off
-  servicectl NetworkManager off
+  _k_servicectl firewalld off
+  _k_servicectl libvirtd off
+  _k_servicectl NetworkManager off
   if [ -f /etc/sysconfig/selinux ]; then
     grep -v "^#" /etc/sysconfig/selinux  | grep enforcing >& /dev/null && sed -i "s/SELINUX=enforcing/SELINUX=disabled/g" /etc/sysconfig/selinux
   fi
@@ -267,7 +246,7 @@ net.core.rmem_default = 262144
 xcat_install() {
   ping -c 2 www.google.com  >& /dev/null || error_exit "Please setup outside network for auto installation for xCAT"
   yum -y install dhcp dhcp-common dhcp-libs ntp nfs httpd tftp bind screen rpcbind bind-utils wget git openssl openssl-libs sqlite
-  servicectl dhcpd stop
+  _k_servicectl dhcpd stop
   rpm -qa |grep libvirt-client >& /dev/null && yum erase libvirt-client
   [ -f ./go-xcat ] && rm -f go-xcat
   wget https://raw.githubusercontent.com/xcat2/xcat-core/master/xCAT-server/share/xcat/tools/go-xcat -O - > /tmp/go-xcat
@@ -298,17 +277,17 @@ xcat_env() {
         echo "server $MGT_IP" >> /etc/ntp.conf
      fi
   fi
-  servicectl ntpd stop
-  servicectl ntpdate start
-  servicectl ntpd start
-#  servicectl ntpd on 35
+  _k_servicectl ntpd stop
+  _k_servicectl ntpdate start
+  _k_servicectl ntpd start
+#  _k_servicectl ntpd on 35
 
   # NFS patch
   if ! grep "^RPCNFSDCOUNT=" /etc/sysconfig/nfs >&/dev/null; then
       echo "RPCNFSDCOUNT=128" >> /etc/sysconfig/nfs
   fi
-  servicectl nfs restart
-#  servicectl nfs on 35
+  _k_servicectl nfs restart
+#  _k_servicectl nfs on 35
   # APACHE
   if ! grep "^<IfModule mpm_worker_module>" /etc/httpd/conf/httpd.conf >& /dev/null; then
       echo "<IfModule mpm_worker_module>
@@ -322,8 +301,8 @@ xcat_env() {
     MaxConnectionsPerChild 10000
 </IfModule>" >> /etc/httpd/conf/httpd.conf
   fi
-  servicectl httpd restart
-#  servicectl httpd on 35
+  _k_servicectl httpd restart
+#  _k_servicectl httpd on 35
 
   # Patch post.xcat file
   if [ -f /opt/xcat/share/xcat/install/scripts/post.xcat ]; then
@@ -425,8 +404,8 @@ node_short=" /install/postscripts/xcatdsklspost
 #  tabdump networks
   grep "^DHCPDARGS=" /etc/sysconfig/dhcpd >& /dev/null || echo "DHCPDARGS=\"$GROUP_NET_DEV\"" >> /etc/sysconfig/dhcpd
 
-  servicectl dhcpd start
-#  servicectl dhcpd on 35
+  _k_servicectl dhcpd start
+#  _k_servicectl dhcpd on 35
   makedhcp -n
 }
 
@@ -463,17 +442,20 @@ for ((node_snum=1; node_snum<=$MAX_NODES; node_snum++)); do
    node_mac=$(echo $node_info | awk -F\| '{print $2}')
    node_bmc_IP=$(echo $node_info | awk -F\| '{print $3}')
    [ -n "$node_mac" ] || node_mac="00:00:00:00:00:00"
-   [ -n "$node_bmc_IP" ] || node_bmc_IP=$(_k_net_add_ip $BMC_NETWORK $node_snum)
-   [ -n "$BMC_MODE" ] || BMC_MODE=ipmi
-   [ "$BMC_MODE" == "ipmi" ] && BMC_STR="bmc=$node_bmc_IP bmcusername=$BMC_USER bmcpassword=$BMC_PASS cons=ipmi"
-   mkdef -t node $node_name groups=all,n id=$node_snum arch=$base_arch mac=$node_mac mgt=$BMC_MODE $BMC_STR netboot=xnba provmethod= serialflow=none serialport=$(echo $SOL_DEV| sed "s/ttyS//g") serialspeed=${SOL_SPEED} xcatmaster=${MGT_IP}
+   [ -n "$POWER_MODE" ] || POWER_MODE=xcat
+   if [ "$POWER_MODE" == "ipmi" -o "$POWER_MODE" == "xcat" ]; then
+       BMC_STR="bmc=$node_bmc_IP bmcusername=$BMC_USER bmcpassword=$BMC_PASS cons=ipmi"
+       [ -n "$node_bmc_IP" ] || node_bmc_IP=$(_k_net_add_ip $BMC_NETWORK $node_snum)
+       CONSOLE_STR="serialflow=none serialport=$(echo $SOL_DEV| sed "s/ttyS//g") serialspeed=${SOL_SPEED}"
+   fi
+   mkdef -t node $node_name groups=all,n id=$node_snum arch=$base_arch mac=$node_mac mgt=$BMC_MODE $BMC_STR netboot=xnba provmethod= $CONSOLE_STR xcatmaster=${MGT_IP}
 done
 
 #makehosts all 2>/dev/null
 echo
 echo "Restart service"
 $_KXCAT_HOME/bin/kxcat_service stop
-servicectl kxcat start
+_k_servicectl kxcat start
 (cd $_KXCAT_HOME/bin && $_KXCAT_HOME/bin)
 
 echo

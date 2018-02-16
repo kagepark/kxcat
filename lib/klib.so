@@ -360,3 +360,35 @@ _k_misc_get_realpath() {
         fi
     done
 }
+
+_k_servicectl() {
+  name=$1
+  mode=$2
+  level=$3
+  if [ -d /usr/lib/systemd/system ]; then
+      if [ "$mode" == "off" ]; then
+         mode=disable
+      elif [ "$mode" == "on" ]; then
+         mode=enable
+      fi
+      [ -f /usr/lib/systemd/system/${name}.service ] && systemctl ${mode} ${name} || echo "${name} service not found"
+  else
+      if [ "$mode" == "disable" ]; then
+          mode=off
+      elif [ "$mode" == "enable" ]; then
+          mode=on
+      fi
+      if [ -n "$level" ]; then
+         [ -f /etc/init.d/${name} ] && chkconfig --level ${level} ${name} ${mode} || echo "${name} service not found"
+      else
+         if [ "$mode" == "on" ]; then
+             [ -f /etc/init.d/${name} ] && chkconfig --add ${name} || echo "${name} service not found"
+         elif [ "$mode" == "off" ]; then
+             [ -f /etc/init.d/${name} ] && chkconfig --del ${name}
+         else
+             [ -f /etc/init.d/${name} ] && service ${name} ${mode} || echo "${name} service not found"
+         fi
+      fi
+  fi
+}
+
