@@ -470,10 +470,16 @@ done
 echo
 echo "Restart service"
 $_KXCAT_HOME/bin/kxcat_service stop
+$_KXCAT_HOME/bin/kxcat_service stop
+sleep 5
+_k_servicectl kxcat stop
+sleep 5
 _k_servicectl kxcat start
 if [ -n "$link_name" ]; then
     (cd $_KXCAT_HOME/bin && ln -s kxcat $linke_name)
 fi
 
 echo
+echo "Please run \"source /etc/profile.d/kxcat.sh\""
+echo "Please run \"source /etc/profile.d/xcat.sh\""
 echo "KxCAT Install done"
