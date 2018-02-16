@@ -14,6 +14,7 @@ error_exit() {
 }
 
 if [ -f /etc/profile.d/kxcat.sh ]; then
+   . /etc/profile.d/kxcat.sh
    cd $_KXCAT_HOME
    git pull
    sed -i "/^_KXC_VERSION=/c \

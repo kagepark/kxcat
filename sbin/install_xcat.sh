@@ -89,7 +89,7 @@ NETMASK=${GROUP_NETMASK} " > /etc/sysconfig/network-scripts/ifcfg-${MPI_DEV}
 nameserver $MGT_IP
 $([ -n "$DNS_OUTSIDE" ] && echo nameserver $DNS_OUTSIDE)" > /etc/resolv.conf
   echo "_KXCAT_HOME=$_KXCAT_HOME
-PATH=\${PATH}:$_KXCAT_HOME/bin
+PATH=\${PATH}:\$_KXCAT_HOME/bin
 export _KXCAT_HOME PATH" > /etc/profile.d/kxcat.sh
 
   cat << EOF > $_KXCAT_HOME/bin/kxcat_service
