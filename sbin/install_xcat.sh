@@ -85,9 +85,16 @@ NETMASK=${GROUP_NETMASK} " > /etc/sysconfig/network-scripts/ifcfg-${MPI_DEV}
 
 
 
+if ! grep "^search $DOMAIN_NAME" /etc/resolv.conf >& /dev/null; then
   echo "search $DOMAIN_NAME
-nameserver $MGT_IP
-$([ -n "$DNS_OUTSIDE" ] && echo nameserver $DNS_OUTSIDE)" >> /etc/resolv.conf
+nameserver $MGT_IP" > /etc/resolv.conf
+  if [ -n "$DNS_OUTSIDE" ]; then
+    for ii in $(echo $DNS_OUTSIDE | sed "s/,/ /g"); do
+       echo "nameserver $ii" >> /etc/resolv.conf
+    done
+  fi
+fi
+
   echo "_KXCAT_HOME=$_KXCAT_HOME
 PATH=\${PATH}:\$_KXCAT_HOME/bin
 export _KXCAT_HOME PATH" > /etc/profile.d/kxcat.sh
