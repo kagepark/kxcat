@@ -118,7 +118,7 @@ while [ 1 ]; do
                nnf=$(echo ${kxcat[$ii]} | awk -F, '{print $1}')
                makedhcp -d $nnf
                makedhcp $nnf
-               echo "$(date +"%Y-%m-%d %H:%M:%S") : $nnf : fixed conflicted mac ($nnm)"
+               echo "$(date +"%Y-%m-%d %H:%M:%S") : $nnf : fixed conflicted mac ($nnm)" >> /tmp/kxcat_sw.log
            fi
        done
     fi
