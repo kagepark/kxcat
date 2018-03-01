@@ -155,7 +155,7 @@ start)
   systemctl start rpcbind
   /etc/init.d/xcatd start
   source /etc/profile.d/kxcat.sh
-  nohup \$_KXCAT_HOME/bin/kxcat_sw &
+  nohup \$_KXCAT_HOME/bin/kxcat_sw >&/dev/null &
   ;;
 esac
 EOF
