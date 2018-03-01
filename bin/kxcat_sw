@@ -64,7 +64,7 @@ kxcat_ini() {
    kxcat=()
    while read x; do
       id=($x)
-      [ "${#id[*]}" != "0" ] && kxcat[${id[1]}]="${id[0]},${id[2]}"
+      [ "${#id[*]}" != "0" ] && kxcat[${id[1]}]="${id[0]},$(echo ${id[2]} | tr '[:upper:]' '[:lower:]')"
    done < <(echo $(lsdef -t node -i id,mac 2>/dev/null | sed -e "s/id=//g" -e "s/mac=//g" )| sed "s/Object name: /\n/g")
 }
 
@@ -104,7 +104,7 @@ while [ 1 ]; do
        id=$(echo $sw|awk -F: '{print $1}')
        ids=$(echo $sw|awk -F: '{print $2}')
        nnm=$(echo ${kxcat[$ids]} | awk -F, '{print $2}')
-       [ "${port[$id]}" == "$nnm')" ] && continue
+       [ "${port[$id]}" == "$nnm" ] && continue
        nn=$(echo ${kxcat[$ids]} | awk -F, '{print $1}')
        [ -n "$nn" ] && chdef -t node -o $nn mac=${port[$id]} >& /dev/null
        #sed -i "/host $nn {/,/^}/d" /var/lib/dhcpd/dhcpd.leases
