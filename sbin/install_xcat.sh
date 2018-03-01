@@ -134,6 +134,7 @@ status)
   ;;
 stop)
   echo -n "Stopping xcatd "
+  [ -f /var/run/kxcat/kxcat_sw.pid ] && kill -9 \$(cat /var/run/kxcat/kxcat_sw.pid)
   /etc/init.d/xcatd stop
   systemctl stop dhcpd
   systemctl stop httpd
@@ -150,6 +151,8 @@ start)
   systemctl start nfs
   systemctl start rpcbind
   /etc/init.d/xcatd start
+  source /etc/profile.d/kxcat.sh
+  nohup \$_KXCAT_HOME/bin/kxcat_sw &
   ;;
 esac
 EOF
@@ -169,6 +172,8 @@ ExecReload=-$_KXCAT_HOME/bin/kxcat_service restart
 [Install]
 WantedBy=multi-user.target
 EOF
+  sleep 3
+  systemctl daemon-reload
 
   _k_servicectl kxcat on
   . /etc/profile.d/kxcat.sh
