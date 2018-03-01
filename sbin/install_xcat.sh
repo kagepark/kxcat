@@ -134,7 +134,10 @@ status)
   ;;
 stop)
   echo -n "Stopping xcatd "
-  [ -f /var/run/kxcat/kxcat_sw.pid ] && kill -9 \$(cat /var/run/kxcat/kxcat_sw.pid)
+  if [ -f /var/run/kxcat/kxcat_sw.pid ]; then
+     pid=\$(cat /var/run/kxcat/kxcat_sw.pid)
+     [ -d /proc/\$pid ] && kill -9 \$pid
+  fi
   /etc/init.d/xcatd stop
   systemctl stop dhcpd
   systemctl stop httpd

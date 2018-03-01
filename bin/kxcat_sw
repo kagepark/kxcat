@@ -51,6 +51,9 @@ kxcat_ini() {
    done < <(echo $(lsdef -t node -i id,mac 2>/dev/null | sed -e "s/id=//g" -e "s/mac=//g" )| sed "s/Object name: /\n/g")
 }
 
+[ -d /var/run/kxcat ] || mkdir -p /var/run/kxcat
+echo $$ > /var/run/kxcat/kxcat_sw.pid
+
 while [ 1 ]; do
   if [ ! -f $_KXCAT_HOME/etc/kxcat_sw.cfg ]; then
       sleep 30
