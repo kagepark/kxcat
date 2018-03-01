@@ -76,6 +76,7 @@ while [ 1 ]; do
   fi
   kxcat_ini
   sw_chk=0
+  udn=""
   for sw in $(cat $_KXCAT_HOME/etc/kxcat_sw.cfg | grep -v "^#"); do
     if echo $sw | grep "^smsw" >& /dev/null; then
        sw_ip=$(echo $sw | awk -F: '{print $2}')
@@ -103,6 +104,9 @@ while [ 1 ]; do
        [ "${port[$id]}" == "$(echo ${kxcat[$ids]} | awk -F, '{print $2}')" ] && continue
        nn=$(echo ${kxcat[$ids]} | awk -F, '{print $1}')
        [ -n "$nn" ] && chdef -t node -o $nn mac=${port[$id]} >& /dev/null
+       #sed -i "/host $nn {/,/^}/d" /var/lib/dhcpd/dhcpd.leases
+       makedhcp -d $nn
+       makedhcp $nn
     fi
   done
   sleep 30
