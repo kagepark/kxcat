@@ -118,6 +118,9 @@ if [ -z \$LC_ALL ]; then
   export LC_ALL=C
 fi
 
+[ -f /etc/profile.d/kxcat.sh ] && source /etc/profile.d/kxcat.sh
+[ -f /etc/profile.d/xcat.sh ] && source /etc/profile.d/xcat.sh
+
 case \$1 in
 restart)
   echo -n "Restarting xcatd "
@@ -134,6 +137,8 @@ status)
   ;;
 stop)
   echo -n "Stopping xcatd "
+  makeconservercf -d 
+  wait
   if [ -f /var/run/kxcat/kxcat_sw.pid ]; then
      pid=\$(cat /var/run/kxcat/kxcat_sw.pid)
      [ -d /proc/\$pid ] && kill -9 \$pid
@@ -154,8 +159,9 @@ start)
   systemctl start nfs
   systemctl start rpcbind
   /etc/init.d/xcatd start
-  source /etc/profile.d/kxcat.sh
+  wait
   nohup \$_KXCAT_HOME/bin/kxcat_sw >&/dev/null &
+  makeconservercf
   ;;
 esac
 EOF
