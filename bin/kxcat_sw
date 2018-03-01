@@ -103,14 +103,23 @@ while [ 1 ]; do
     elif [ "$sw_chk" == "1" ]; then
        id=$(echo $sw|awk -F: '{print $1}')
        ids=$(echo $sw|awk -F: '{print $2}')
-       [ "${port[$id]}" == "$(echo ${kxcat[$ids]} | awk -F, '{print $2}')" ] && continue
+       nnm=$(echo ${kxcat[$ids]} | awk -F, '{print $2}')
+       [ "${port[$id]}" == "$nnm')" ] && continue
        nn=$(echo ${kxcat[$ids]} | awk -F, '{print $1}')
        [ -n "$nn" ] && chdef -t node -o $nn mac=${port[$id]} >& /dev/null
        #sed -i "/host $nn {/,/^}/d" /var/lib/dhcpd/dhcpd.leases
        makedhcp -d $nn
        makedhcp $nn
        (( $(stat -c %s /tmp/kxcat_sw.log) > $((10 * 1024 * 1024)) )) && mv /tmp/kxcat_sw.log.1
-       echo "$(date +"%Y-%m-%d %H:%M:%S") : $nn changed from $(echo ${kxcat[$ids]} | awk -F, '{print $2}') to ${port[$id]}" >> /tmp/kxcat_sw.log
+       echo "$(date +"%Y-%m-%d %H:%M:%S") : $nn : changed from $nnm to ${port[$id]}" >> /tmp/kxcat_sw.log
+       for ((ii=1; ii<${#kxcat[*]}; ii++)); do
+           if [ "$(echo ${kxcat[$ii]}|awk -F, '{print $2}')" == "$nnm" ]; then
+               nnf=$(echo ${kxcat[$ii]} | awk -F, '{print $1}')
+               makedhcp -d nnf
+               makedhcp $nnf
+               echo "$(date +"%Y-%m-%d %H:%M:%S") : $nn : fixed conflicted mac ($nnm)"
+           fi
+       done
     fi
   done
   sleep 40
