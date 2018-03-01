@@ -30,7 +30,7 @@ clean_port() {
    [ -n "$sw_ip" ] || return 1
    while read line; do
       unset port[$(echo $line | awk '{print $1}' | sed "s/.1.3.6.1.2.1.2.2.1.8.//g")]
-   done < <(snmpwalk -O n -v2c -c PUBLIC $sw_ip .1.3.6.1.2.1.2.2.1.8 | grep down)
+   done < <(snmpwalk -O n -v2c -c $CMN $sw_ip .1.3.6.1.2.1.2.2.1.8 2>/dev/null | grep down)
 }
 
 get_mac() {
@@ -40,7 +40,7 @@ get_mac() {
    while read line; do
       ida=($(echo $line | awk '{print $1}' | sed "s/.1.0.8802.1.1.2.1.4.1.1.5.//g" | sed "s/\./ /g"))
       port[${ida[1]}]=$(echo $line | awk -F: '{print $2}' |sed -e "s/^ //g" -e "s/ /:/g" | tr '[:upper:]' '[:lower:]' )
-   done < <(snmpwalk -O n -v2c -c PUBLIC $sw_ip .1.0.8802.1.1.2.1.4.1.1.5)
+   done < <(snmpwalk -O n -v2c -c $CMN $sw_ip .1.0.8802.1.1.2.1.4.1.1.5 2>/dev/null)
 }
 
 kxcat_ini() {
@@ -61,7 +61,11 @@ while [ 1 ]; do
     if echo $sw | grep "^sw" >& /dev/null; then
        sw_ip=$(echo $sw | awk -F: '{print $2}')
        port=()
-       get_mac $sw_ip || continue
+       get_mac $sw_ip
+       if [ ! -n "${port[*]}" ]; then
+           sleep 30
+           continue
+       fi
        clean_port $sw_ip 
     else
        id=$(echo $sw|awk -F: '{print $1}')
