@@ -31,6 +31,8 @@ error_exit() {
 
 [ -f /etc/profile.d/kxcat.sh ] || error_exit "/etc/profile.d/kxcat.sh not found"
 source /etc/profile.d/kxcat.sh
+[ -f /etc/profile.d/xcat.sh ] || error_exit "/etc/profile.d/xcat.sh not found"
+source /etc/profile.d/xcat.sh
 
 sm_clean_port() {
    local sw_ip
