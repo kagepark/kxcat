@@ -64,7 +64,7 @@ kxcat_ini() {
    kxcat=()
    while read x; do
       id=($x)
-      kxcat[${id[1]}]="${id[0]},${id[2]}"
+      [ "${#id[*]}" != "0" ] && kxcat[${id[1]}]="${id[0]},${id[2]}"
    done < <(echo $(lsdef -t node -i id,mac 2>/dev/null | sed -e "s/id=//g" -e "s/mac=//g" )| sed "s/Object name: /\n/g")
 }
 
@@ -109,7 +109,9 @@ while [ 1 ]; do
        #sed -i "/host $nn {/,/^}/d" /var/lib/dhcpd/dhcpd.leases
        makedhcp -d $nn
        makedhcp $nn
+       (( $(stat -c %s /tmp/kxcat_sw.log) > $((10 * 1024 * 1024)) )) && mv /tmp/kxcat_sw.log.1
+       echo "$(date +"%Y-%m-%d %H:%M:%S") : $nn changed from $(echo ${kxcat[$ids]} | awk -F, '{print $2}') to ${port[$id]}" >> /tmp/kxcat_sw.log
     fi
   done
-  sleep 30
+  sleep 40
 done
