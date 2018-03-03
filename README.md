@@ -22,8 +22,8 @@ requirement :
     + /tftpboot
     + /global
 
-Based HPC engine is xCAT
-This KxCAT is user friendly interface for xCAT.
+Base HPC software is xCAT(https://xcat.org/)
+This KxCAT made shell scripts for user friendly interface from xCAT original CLI.
 KxCAT has enhanced HPC structure based on xCAT design.
  - more user friendly CLI interface
  - more easily usable CLI
@@ -31,6 +31,7 @@ KxCAT has enhanced HPC structure based on xCAT design.
    + reduce user's mistake.
    + anybody can handle whole HPC system without many knowledge.
  - making simple HPC structure from original xCAT structure
+ - Support Managed Ethernet switch w/ SNMP
  - Support
    + Multi OS (CentOS, RHEL, ...)
    + Multi type of HPC (Diskless, Diskful)
@@ -42,6 +43,7 @@ command : kxcat
 
 Config File:
 <KxCAT HOME>/etc/kxcat.cfg
+<KxCAT HOME>/etc/kxcat_sw.cfg
 
 Install:
 <KxCAT HOME>/sbin/install_kxcat.sh
