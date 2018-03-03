@@ -37,10 +37,8 @@ KxCAT has enhanced HPC structure based on xCAT design.
 
 
 
-KxCAT environment file : /etc/profile.d/kxcat.sh
+KxCAT profile file : /etc/profile.d/kxcat.sh
 command : kxcat
-- I changed command from kxcat to sce
-- I have a new job in Supermicro Computer and I changed it
 
 Config File:
 <KxCAT HOME>/etc/kxcat.cfg
