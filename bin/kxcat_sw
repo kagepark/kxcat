@@ -44,10 +44,38 @@ get_mac1() {
 }
 
 clean_port2() {
-   echo
+   local sw_ip
+   sw_ip=$1
+   [ -n "$sw_ip" ] || return 1
+
+   while read line; do
+       id=$(echo $line | awk '{print $1}' | awk -F. '{print $12}')
+       unset port[$id]
+   done < <(snmpwalk -O n -v2c -c public $sw_ip .1.3.6.1.2.1.2.2.1.8 2>/dev/null | grep down)
 }
+
+cidv_id() {
+    if [[ -z "$1" ]] ; then
+        return 1
+    fi
+    idv_id=(${1//./ })
+    echo $(( $((255*255*255*255*255*${idv_id[0]})) + $((255*255*255*255*${idv_id[1]})) + $((255*255*255*${idv_id[2]})) + $((255*255*${idv_id[3]})) + $((255*${idv_id[4]})) + ${idv_id[5]} ))
+}
+
 get_mac2() {
-   echo
+  local sw_ip sw_mac_addr mac_state
+  sw_ip=$1
+  [ -n "$sw_ip" ] || return 1
+  idv_mac=()
+  while read line; do
+        idv=($line)
+        idv_mac[$(cidv_id ${idv[0]})]=$(echo ${idv[1]} | tr '[:upper:]' '[:lower:]')
+  done < <(snmpwalk -O n -v2c -c public $sw_ip .1.3.6.1.2.1.17.4.3.1.1 | sed -e 's/.1.3.6.1.2.1.17.4.3.1.1.//g' -e "s/Hex-STRING: //g" -e "s/ = /=/g" -e "s/ $//g" -e "s/ /:/g" | sed "s/=/ /g")
+
+  while read line; do
+        idmac=($line)
+        port[${idmac[0]}]=${idv_mac[${idmac[1]}]}
+  done < <(snmpwalk -O n -v2c -c public $sw_ip .1.3.6.1.2.1.17.4.3.1.2 | sed -e 's/.1.3.6.1.2.1.17.4.3.1.2.//g' -e "s/= INTEGER://g" | awk '{printf "%s %s\n",$2,$1}')
 }
 
 kxcat_ini() {
