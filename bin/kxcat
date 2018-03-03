@@ -1,21 +1,12 @@
 #! /bin/bash
 ##########################################################
-# Kage Park
 # Wrapper script for xCAT
-# Re-designed at 10/06/2017 by Kage Park
-# Base design Using old libraries(07/2006) of Kage
 # License : GPL
-# Upgrade it for Supermicro Computer (Start at 01/07/2018)
 ##########################################################
-# Issues 
-#  - network conflict between many clusters (it has no issue during test with two clusters
 # Support Compute OS:
-#  - CentOS 7.4 :
-#    + install : good
-#    + netboot : post script has some issue when booting
-#  - CentOS 6.9 : Not good??? 
-#    + netboot is not correctly working for IP and root password
-#    + install is not correctly working for IP
+#  - CentOS 7.x
+# Not support Compute OS:
+#  - CentOS 6.x
 
 _KXC_VERSION=1.4.5
 

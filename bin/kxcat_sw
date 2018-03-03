@@ -1,28 +1,18 @@
 #!/bin/bash
 ##########################################################
-# Kage Park
-# Wrapper script for xCAT
-# Re-designed at 10/06/2017 by Kage Park
-# Base design Using old libraries(07/2006) of Kage
+# Monitoring Ethernet switch monitoring
 # License : GPL
 ##########################################################
 #
 # Example CFG
 # kxcat/etc/kxcat_sw.cfg
 # ----------------------------
-# smsw#:<IP1>
-# <port#>:<N id#>
-# ...
-# sw#:<IP2>
+# sw#:<IP>
 # <port#>:<N id#>
 # ...
 # ----------------------------
-# Switch Name Information)
-# sw  : Normal Ethernet Switch
-# smsw: Supermicro Ethernet Switch (Add for Supermicro switch type)
 #
-SMCMN=PUBLIC
-CMN=public
+sw_mode=1
 
 error_exit() {
     echo $*
@@ -34,29 +24,29 @@ source /etc/profile.d/kxcat.sh
 [ -f /etc/profile.d/xcat.sh ] || error_exit "/etc/profile.d/xcat.sh not found"
 source /etc/profile.d/xcat.sh
 
-sm_clean_port() {
+clean_port1() {
    local sw_ip
    sw_ip=$1
    [ -n "$sw_ip" ] || return 1
    while read line; do
       unset port[$(echo $line | awk '{print $1}' | sed "s/.1.3.6.1.2.1.2.2.1.8.//g")]
-   done < <(snmpwalk -O n -v2c -c $SMCMN $sw_ip .1.3.6.1.2.1.2.2.1.8 2>/dev/null | grep down)
+   done < <(snmpwalk -O n -v2c -c PUBLIC $sw_ip .1.3.6.1.2.1.2.2.1.8 2>/dev/null | grep down)
 }
 
-sm_get_mac() {
+get_mac1() {
    local sw_ip
    sw_ip=$1
    [ -n "$sw_ip" ] || return 1
    while read line; do
       ida=($(echo $line | awk '{print $1}' | sed "s/.1.0.8802.1.1.2.1.4.1.1.5.//g" | sed "s/\./ /g"))
       port[${ida[1]}]=$(echo $line | awk -F: '{print $2}' |sed -e "s/^ //g" -e "s/ /:/g" | tr '[:upper:]' '[:lower:]' )
-   done < <(snmpwalk -O n -v2c -c $SMCMN $sw_ip .1.0.8802.1.1.2.1.4.1.1.5 2>/dev/null)
+   done < <(snmpwalk -O n -v2c -c PUBLIC $sw_ip .1.0.8802.1.1.2.1.4.1.1.5 2>/dev/null)
 }
 
-clean_port() {
+clean_port2() {
    echo
 }
-get_mac() {
+get_mac2() {
    echo
 }
 
@@ -80,25 +70,15 @@ while [ 1 ]; do
   sw_chk=0
   udn=""
   for sw in $(cat $_KXCAT_HOME/etc/kxcat_sw.cfg | grep -v "^#"); do
-    if echo $sw | grep "^smsw" >& /dev/null; then
+    if echo $sw | grep "^sw" >& /dev/null; then
        sw_ip=$(echo $sw | awk -F: '{print $2}')
        port=()
-       sm_get_mac $sw_ip
+       get_mac${sw_mode} $sw_ip
        if [ ! -n "${port[*]}" ]; then
            sleep 30
            continue
        fi
-       sm_clean_port $sw_ip 
-       sw_chk=1
-    elif echo $sw | grep "^sw" >& /dev/null; then
-       sw_ip=$(echo $sw | awk -F: '{print $2}')
-       port=()
-       get_mac $sw_ip
-       if [ ! -n "${port[*]}" ]; then
-           sleep 30
-           continue
-       fi
-       clean_port $sw_ip 
+       clean_port${sw_mode} $sw_ip 
        sw_chk=1
     elif [ "$sw_chk" == "1" ]; then
        id=$(echo $sw|awk -F: '{print $1}')

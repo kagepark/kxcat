@@ -1,23 +1,7 @@
 ####################################
-# Base library of Kage Tools
-# Copyright CEP(Kage Park)
+# Base library of K Tools
 # License : GPL
 #   Since : March 1994
-####################################
-####################################
-#Sample base script info
-####################################
-##Kage Library  - <name>
-##\$lib_ver$:0.0.1
-#_k_loaded_${name}(){
-#   local null
-#}
-##_k_${name}(){
-##   start code here
-##}
-##_k_${name}_close(){
-## close code here
-##}
 ####################################
 
 _k_load() {
