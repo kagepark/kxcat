@@ -90,6 +90,8 @@ kxcat_ini() {
 [ -d /var/run/kxcat ] || mkdir -p /var/run/kxcat
 echo $$ > /var/run/kxcat/kxcat_sw.pid
 
+echo "Start Ethernet switch monitoring at $(date)" >> /tmp/kxcat_sw.log
+
 while [ 1 ]; do
   if [ ! -f $_KXCAT_HOME/etc/kxcat_sw.cfg ]; then
       sleep 30
