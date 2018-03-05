@@ -100,11 +100,13 @@ image() {
           synclists_str="synclists=${tmp[1]}"
        elif [ "${tmp[0]}" == "otherpkglist" ] ; then
           otherpkglist_str="otherpkglist=${tmp[1]}"
+       elif [ "${tmp[0]}" == "otherpkgdir" ] ; then
+          otherpkgdir_str="otherpkgdir=${tmp[1]}"
        elif [ "${tmp[0]}" == "template" ] ; then
           template_str="template=${tmp[1]}"
        fi
     done
-    chdef -t osimage $(echo ${destname}|sed 's/ /,/g') $pkglist_str $synclists_str $template_str $otherpkglist_str
+    chdef -t osimage $(echo ${destname}|sed 's/ /,/g') $otherpkgdir_str $pkglist_str $synclists_str $template_str $otherpkglist_str
 }
 
 change() {
@@ -130,6 +132,7 @@ change() {
          echo "    clean : status remove"
          echo "  image options: "
          echo "    pkglist=<Package list file>"
+         echo "    otherpkgdir=<Other Package file directory>"
          echo "    otherpkglist=<Other Package list file>"
          echo "    synclists=<Sync file list file>"
          echo "    template=<Install template file>"
