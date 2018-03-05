@@ -1,6 +1,6 @@
 echo "[OpenHPC]
 name=OpenHPC Pakages
-baseurl=/install/post/otherpkgs/centos7.4/OpenHPC
+baseurl=file:///install/post/otherpkgs/centos7.4/OpenHPC
 enabled=1
 gpgcheck=0" > /tmp/openhpc.repo
 
