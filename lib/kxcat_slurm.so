@@ -42,7 +42,7 @@ slurm_restart() {
   else
      /etc/init.d/slurm restart
   fi
-  pdsh -R ssh -w $(kxcat nodes | grep " booted" | awk '{printf "%s ",$2}') "[ -f /lib/systemd/system/slurmd.service ] && systemctl restart slurmd || /etc/init.d/slurm restart"
+  xdsh $(kxcat nodes | grep " booted" | awk '{printf "%s,",$2}') "[ -f /lib/systemd/system/slurmd.service ] && systemctl restart slurmd || /etc/init.d/slurm restart"
 }
 
 add_nodes() {
