@@ -1,6 +1,11 @@
 ####################################
 # License : GPL
 ####################################
+error_exit() {
+     echo "$*"
+     exit 1
+}
+
 
 if [ -f /etc/profile.d/slurm.sh ]; then
     source /etc/profile.d/slurm.sh
@@ -14,26 +19,29 @@ else
     exit 
 fi
 
+slurm_conf=$sysconfdir/slurm.conf
 qstat() {
-   sjstat 
+   if [ -n "$1" ]; then
+      scontrol show job $1
+   else
+      sjstat 
+   fi
 }
 
 qsub() {
+   batch_file=$(echo $* | sed "s/ /\n/g"| tail -n1)
+   [ -n "$batch_file" ] || error_exit "${FUNCNAME} [<options>...] <batch file>"
+   [ -f "$batch_file" ] || error_exit "$batch_file not found"
    sbatch $*
 }
 
 qdel() {
    local job_id
    job_id=$1
-   [ -n "$job_id" ] && scancel $job_id
+   [ -n "$job_id" ] || error_exit "${FUNCNAME} <job id>"
+   scancel $job_id
 }
 
-slurm_conf=$sysconfdir/slurm.conf
-
-error_exit() {
-     echo "$*"
-     exit 1
-}
 
 slurm_restart() {
   if [ -f /lib/systemd/system/slurmctld.service ]; then
@@ -51,7 +59,7 @@ add_nodes() {
     nodes=$2
     proc_num=$3
     [ -n "$proc_num" ] || proc_num=$proc_num_default
-    [ ! -n "$partition" -o ! -n "$nodes" ] && error_exit  "$(basename $0) <queue name> <group name> [<proc #>]"
+    [ ! -n "$partition" -o ! -n "$nodes" ] && error_exit  "${FUNCNAME} <queue name> <group name> [<proc #>]"
 
     partition_info=$(grep "^PartitionName=$partition" $slurm_conf)
     if [ -n "$partition_info" ]; then
@@ -68,7 +76,7 @@ del_nodes() {
     nodes=$2
     proc_num=$3
     [ -n "$proc_num" ] || proc_num=$proc_num_default
-    [ ! -n "$partition" -o ! -n "$nodes" ] && error_exit  "$(basename $0) <queue name> <group name> [<proc #>]"
+    [ ! -n "$partition" -o ! -n "$nodes" ] && error_exit  "${FUNCNAME} <queue name> <group name> [<proc #>]"
 
     partition_info=$(grep "^PartitionName=$partition" $slurm_conf)
     if [ -n "$partition_info" ]; then
@@ -94,7 +102,7 @@ del_nodes() {
 del_queue() {
     local partition proc_num line
     partition=$1
-    [ ! -n "$partition" ] && error_exit  "$(basename $0) <partition>"
+    [ ! -n "$partition" ] && error_exit  "${FUNCNAME} <partition>"
     if grep "^PartitionName=$partition " $slurm_conf >& /dev/null; then
        sed -i "/^PartitionName=$partition /d" $slurm_conf
     else
@@ -106,7 +114,7 @@ add_queue() {
     local partition proc_num line
     partition=$1
     nodes=$2
-    [ ! -n "$partition" -o ! -n "$nodes" ] && error_exit  "$(basename $0) <partition> <node list>"
+    [ ! -n "$partition" -o ! -n "$nodes" ] && error_exit  "${FUNCNAME} <partition> <node list>"
     if grep "^PartitionName=$partition " $slurm_conf >& /dev/null; then
         echo "Alread added $partition"
     else
