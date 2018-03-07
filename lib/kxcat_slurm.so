@@ -23,7 +23,7 @@ slurm_conf=$sysconfdir/slurm.conf
 qstat() {
    if [ "$1" == "-q" ]; then
       sjstat -c
-   if [ "$1" == "-l" ]; then
+   elif [ "$1" == "-l" ]; then
       sinfo
       sjstat -v
    elif [ -n "$1" ]; then
