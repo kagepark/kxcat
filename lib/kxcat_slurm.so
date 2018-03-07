@@ -21,11 +21,16 @@ fi
 
 slurm_conf=$sysconfdir/slurm.conf
 qstat() {
-   if [ -n "$1" ]; then
+   if [ "$1" == "-q" ]; then
+      sjstat -c
+   if [ "$1" == "-l" ]; then
+      sinfo
+      sjstat -v
+   elif [ -n "$1" ]; then
       scontrol show job $1
    else
       sinfo
-      sjstat 
+      sjstat
    fi
 }
 
