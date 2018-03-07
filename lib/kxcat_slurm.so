@@ -95,7 +95,7 @@ del_queue() {
     local partition proc_num line
     partition=$1
     [ ! -n "$partition" ] && error_exit  "$(basename $0) <partition>"
-    if grep "/^PartitionName=$partition " $slurm_conf >& /dev/null; then
+    if grep "^PartitionName=$partition " $slurm_conf >& /dev/null; then
        sed -i "/^PartitionName=$partition /d" $slurm_conf
     else
        echo "$partition not found"
@@ -107,7 +107,7 @@ add_queue() {
     partition=$1
     nodes=$2
     [ ! -n "$partition" -o ! -n "$nodes" ] && error_exit  "$(basename $0) <partition> <node list>"
-    if grep "/^PartitionName=$partition " $slurm_conf >& /dev/null; then
+    if grep "^PartitionName=$partition " $slurm_conf >& /dev/null; then
         echo "Alread added $partition"
     else
         echo "PartitionName=$partition Nodes=$nodes Default=YES MaxTime=INFINITE State=UP" >> $slurm_conf

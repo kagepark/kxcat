@@ -281,6 +281,13 @@ xcat_install() {
   [ -f /etc/profile.d/xcat.sh ] || error_exit "/etc/profile.d/xcat.sh file not found"
   #mv /etc/profile.d/xcat.* $_KXCAT_HOME/etc
   [ ! -f /tftpboot/xcat/xnba.efi -o ! -f /tftpboot/xcat/xnba.kpxe ] && (rpm -e --nodeps $(rpm -qa | grep xnba-undi); yum -y install xnba-undi)
+  (
+   source /etc/profile.d/kxcat.sh
+   cd $_KXCAT_HOME/lib
+   for ii in $(grep "() {$" kxcat_slurm.so | awk -F\( '{print $1}'); do
+     [ -L kxcat_${ii}.so ] || ln -s kxcat_slurm.so kxcat_${ii}.so
+   done
+  )
   (cd /opt && git clone https://github.com/kagepark/kgt.git)
   rm -fr /opt/kgt/.git
   rm -f /opt/kgt/README.md
