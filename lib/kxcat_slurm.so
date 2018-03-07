@@ -1,0 +1,115 @@
+####################################
+# License : GPL
+####################################
+
+if [ -f /etc/profile.d/slurm.sh ]; then
+    source /etc/profile.d/slurm.sh
+    pid=$(< $localstatedir/run/slurmctld.pid)
+    if [ ! -d /proc/$pid ]; then
+       echo "Not running SLURM"
+       exit
+    fi
+else
+    echo "Not ready SLURM"
+    exit 
+fi
+
+qstat() {
+   sjstat 
+}
+
+qsub() {
+   sbatch $*
+}
+
+qdel() {
+   local job_id
+   job_id=$1
+   [ -n "$job_id" ] && scancel $job_id
+}
+
+slurm_conf=$sysconfdir/slurm.conf
+
+error_exit() {
+     echo "$*"
+     exit 1
+}
+
+slurm_restart() {
+  if [ -f /lib/systemd/system/slurmctld.service ]; then
+     systemctl restart slurmctld 
+     systemctl restart slurmd
+  else
+     /etc/init.d/slurm restart
+  fi
+  pdsh -R ssh -w $(kxcat nodes | grep " booted" | awk '{printf "%s ",$2}') "[ -f /lib/systemd/system/slurmd.service ] && systemctl restart slurmd || /etc/init.d/slurm restart"
+}
+
+add_nodes() {
+    local partition group proc_num
+    partition=$1
+    nodes=$2
+    proc_num=$3
+    [ -n "$proc_num" ] || proc_num=$proc_num_default
+    [ ! -n "$partition" -o ! -n "$nodes" ] && error_exit  "$(basename $0) <queue name> <group name> [<proc #>]"
+
+    partition_info=$(grep "^PartitionName=$partition" $slurm_conf)
+    if [ -n "$partition_info" ]; then
+        node_info="$(for ii in $partition_info; do echo $ii | awk -F= '{if($1 == "Nodes") print $2}'; done),$nodes"
+        sed -i "s/$partition_info/PartitionName=$partition Nodes=$node_info Default=YES MaxTime=INFINITE State=UP/g" $slurm_conf
+    else
+        echo "Not found $partition"
+    fi
+}
+
+del_nodes() {
+    local partition group proc_num
+    partition=$1
+    nodes=$2
+    proc_num=$3
+    [ -n "$proc_num" ] || proc_num=$proc_num_default
+    [ ! -n "$partition" -o ! -n "$nodes" ] && error_exit  "$(basename $0) <queue name> <group name> [<proc #>]"
+
+    partition_info=$(grep "^PartitionName=$partition" $slurm_conf)
+    if [ -n "$partition_info" ]; then
+        node_info=($(for ii in $partition_info; do echo $ii | awk -F= '{if($1 == "Nodes") print $2}' | sed "s/,/ /g"; done))
+        split=0
+        new_node_info=$(for ((ii=0; ii<${#node_info[*]}; ii++)); do
+            [ "${node_info[$ii]}" == "$nodes" ] && continue
+            if [ "$split" == "0" ]; then
+                echo -n ${node_info[$ii]} 
+                split=1
+            else
+                echo -n ",${node_info[$ii]}"
+            fi
+        done)
+        sed -i "s/$partition_info/PartitionName=$partition Nodes=$new_node_info Default=YES MaxTime=INFINITE State=UP/g" $slurm_conf
+        
+    else
+        echo "Not found $partition"
+    fi
+}
+
+
+del_queue() {
+    local partition proc_num line
+    partition=$1
+    [ ! -n "$partition" ] && error_exit  "$(basename $0) <partition>"
+    if grep "/^PartitionName=$partition " $slurm_conf >& /dev/null; then
+       sed -i "/^PartitionName=$partition /d" $slurm_conf
+    else
+       echo "$partition not found"
+    fi
+}
+
+add_queue() {
+    local partition proc_num line
+    partition=$1
+    nodes=$2
+    [ ! -n "$partition" -o ! -n "$nodes" ] && error_exit  "$(basename $0) <partition> <node list>"
+    if grep "/^PartitionName=$partition " $slurm_conf >& /dev/null; then
+        echo "Alread added $partition"
+    else
+        echo "PartitionName=$partition Nodes=$nodes Default=YES MaxTime=INFINITE State=UP" >> $slurm_conf
+    fi
+}
