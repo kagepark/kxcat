@@ -39,5 +39,15 @@ check          # Check basic information
 top            # Check cpu utils
 ctemp          # Check cpu temperature
 
+#SLURM
+qstat          # Queue state, same as sjstat
+qsub           # Submit queue, same as sbatch
+qdel           # Delete queue, same as scancel
+slurm_restart  # restart SLURM daemons
+add_nodes      # Add nodes to Queue name(partition)
+del_nodes      # Del nodes from Queue name(partition)
+del_queue      # remove Queue name(partition)
+add_queue      # Add Queue (partition)
+
 #Logs
 Look /var/log/xcat directory
