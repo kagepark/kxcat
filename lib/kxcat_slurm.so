@@ -24,6 +24,7 @@ qstat() {
    if [ -n "$1" ]; then
       scontrol show job $1
    else
+      sinfo
       sjstat 
    fi
 }
