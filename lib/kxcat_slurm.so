@@ -139,3 +139,63 @@ add_queue() {
         echo "PartitionName=$partition Nodes=$nodes Default=YES MaxTime=INFINITE State=UP" >> $slurm_conf
     fi
 }
+
+slrum_drain() {
+    local nodes reason
+    nodes=$1
+    reason=$2
+    [ -n "$nodes" ] || error_exit "${FUNCNAME} <node list> [<reason>]"
+    scontrol update nodename=prod-[0001-0004] state=drain  Reason="$reason"
+}
+
+slrum_clean() {
+    local nodes reason
+    nodes=$1
+    reason=$2
+    [ -n "$nodes" ] || error_exit "${FUNCNAME} <node list> [<reason>]"
+    scontrol update nodename=$nodes state=drain  Reason="$reason"
+}
+
+queue_sample() {
+    local qfile
+    qfile=$1
+    qname=$2
+    num_nodes=$3
+    time=$4
+    job_name=$5
+    [ -n "$qfile" ] || error_exit "${FUNCNAME} <batch file>"
+    [ -f "$qfile" ] && error_exit "$qfile found"
+    [ -n "$job_name" ] || job_name=$(awk -F: -v id=$(id -u) '{if($3==id) print $1}' /etc/passwd)_job
+    echo "#!/bin/bash 
+$([ -n "$qname" ] && echo "#SBATCH --partition=$qname")
+$([ -n "$num_nodes" ] && echo "#SBATCH -N $num_nodes")
+$([ -n "$time" ] && echo "#SBATCH -t $time")
+#SBATCH --job-name=$job_name                   # Job name
+# #SBATCH --ntasks-per-node=8                  # take per node
+# #SBATCH --mem=20GB                           # Memory define
+# #SBATCH --constraint=IB                      # MPI jobs should request nodes that have InfiniBand
+# #SBATCH -w, --nodelist=cpn-f16-35,cpn-f16-37 # Requesting Specific Nodes
+# #SBATCH --exclude=cpn-f16-35,cpn-f16-37      # Excluding Specific Nodes
+# #SBATCH --output=test-srun.%j.out            # Output file
+# #SBATCH --error=test-srun.%j.err             # Error output file
+#
+## For OpenMP (4 OpenMP Thread)
+# export OMP_NUM_THREADS=4
+# ./mycode.exe
+#
+## Hybrid MPI/OpenMP (3 MPI tasks, 4 OpenMP Thread per task)
+# export OMP_NUM_THREADS=4
+# srun -n 3 -c 4 ./mycode.exe
+#
+## Fure MPI
+## Total 64 process
+# srun -n 64 -c 1 ./mycode.exe 
+## or
+# srun 'hostname -s' | sort -u > /tmp/slurm.node
+# mpirun -np ${SLURM_NODES} -machinefile /tmp/slurm.node ./mycode.exe 
+#
+#
+## Total 64 process (-c: cpus per task)
+# srun -n 64 -c 4 ./mycode.exe
+    " > $qfile
+}
