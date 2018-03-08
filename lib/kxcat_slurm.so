@@ -152,8 +152,12 @@ slurm_clean() {
     local nodes reason
     nodes=$1
     reason=$2
-    [ ! -n "$nodes" -o ! -n "$reason" ] && error_exit "${FUNCNAME} <node list> <reason>"
-    scontrol update nodename=$nodes state=undrain  Reason="$reason"
+    [ ! -n "$nodes" ] && error_exit "${FUNCNAME} <node list> [<reason>]"
+    if [ -n "$reason" ]; then
+       scontrol update nodename=$nodes state=undrain  Reason="$reason"
+    else
+       scontrol update nodename=$nodes state=idle 
+    fi
 }
 
 queue_sample() {
