@@ -144,16 +144,16 @@ slurm_drain() {
     local nodes reason
     nodes=$1
     reason=$2
-    [ -n "$nodes" ] || error_exit "${FUNCNAME} <node list> [<reason>]"
-    scontrol update nodename=prod-[0001-0004] state=drain  Reason="$reason"
+    [ ! -n "$nodes" -o ! -n "$reason" ] && error_exit "${FUNCNAME} <node list> <reason>"
+    scontrol update nodename=$nodes state=drain  Reason="$reason"
 }
 
 slurm_clean() {
     local nodes reason
     nodes=$1
     reason=$2
-    [ -n "$nodes" ] || error_exit "${FUNCNAME} <node list> [<reason>]"
-    scontrol update nodename=$nodes state=drain  Reason="$reason"
+    [ ! -n "$nodes" -o ! -n "$reason" ] && error_exit "${FUNCNAME} <node list> <reason>"
+    scontrol update nodename=$nodes state=undrain  Reason="$reason"
 }
 
 queue_sample() {
