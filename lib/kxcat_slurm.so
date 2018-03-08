@@ -27,6 +27,7 @@ ${FUNCNAME}              : View queue status
 ${FUNCNAME} -f <job id>  : Display Queue's detail information
 ${FUNCNAME} -q           : Show simple queue summary
 ${FUNCNAME} -l           : Show start queue time
+${FUNCNAME} -r           : Show running queue list
       "
       exit
    elif [ "$1" == "-q" ]; then
@@ -34,6 +35,8 @@ ${FUNCNAME} -l           : Show start queue time
    elif [ "$1" == "-l" ]; then
       sinfo
       sjstat -v
+   elif [ "$1" == "-r" ]; then
+      sjstat -r
    elif [ "$1" == "-f" ]; then
       [ -n "$2" ] || error_exit "${FUNCNAME} -f <job id>"
       scontrol show job $2
