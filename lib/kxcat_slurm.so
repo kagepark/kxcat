@@ -160,6 +160,13 @@ slurm_clean() {
     fi
 }
 
+slurm_check() {
+    local node 
+    node=$1
+    [ -n "$node" ] || error_exit "${FUNCNAME} <hostname>"
+    xdsh $node "scontrol show slurmd"
+}
+
 queue_sample() {
     local qfile
     qfile=$1

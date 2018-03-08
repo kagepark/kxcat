@@ -46,6 +46,7 @@ qdel           # Delete queue, same as scancel
 slurm_restart  # restart SLURM daemons
 slurm_clean    # change to normal state
 slurm_drain    # change to maintain state
+slurm_check    # Check slurm daemon environment
 add_nodes      # Add nodes to Queue name(partition)
 del_nodes      # Del nodes from Queue name(partition)
 del_queue      # remove Queue name(partition)
