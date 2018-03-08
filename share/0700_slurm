@@ -30,17 +30,22 @@ if id slurm >& /dev/null; then
   if [ ! -f /etc/slurm/slurm.key ]; then
      mgt_ip=$(get_master_ip)
      if [ -n "$mgt_ip" ]; then
-         ssh ${mgt_ip} "[ -f /etc/slurm/slurm.key ] || exit 1" && _scp "${mgt_ip}" "/etc/slurm" "-r"
+         if ssh ${mgt_ip} "[ -f /etc/slurm/slurm.key ] || exit 1"; then
+            _scp "${mgt_ip}" "/etc/slurm" "-r"
+            _scp "${mgt_ip}" "/lib/systemd/system/slurmd.service"
+            _scp "${mgt_ip}" "/etc/sysconfig/slurm"
+            _scp "${mgt_ip}" "/etc/profile.d/slurm.sh"
+         fi
      fi
   fi
-  _scp "${mgt_ip}" "/lib/systemd/system/slurmd.service"
-  _scp "${mgt_ip}" "/etc/sysconfig/slurm"
-  _scp "${mgt_ip}" "/etc/profile.d/slurm.sh"
-  [ ! -f /etc/slurm/slurm.key -o ! -f /etc/slurm/slurm.conf -o ! -f /etc/init.d/slurm -o ! -f /lib/systemd/system/slurmd.service ] && exit 
+  [ ! -f /etc/slurm/slurm.key -o ! -f /etc/slurm/slurm.conf ] && exit
+  [ ! -f /lib/systemd/system/slurmd.service -a ! -f /etc/init.d/slurm ] && exit 
   sleep 2
   systemctl daemon-reload
 
   [ -d /var/spool/slurm ] || mkdir -p /var/spool/slurm
   chown slurm:slurm /var/spool/slurm
   systemctl start slurmd
+  sleep 7
+  scontrol update nodename=$(hostname -s) state=idle
 fi
