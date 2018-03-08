@@ -40,6 +40,7 @@ if id slurm >& /dev/null; then
   fi
   [ ! -f /etc/slurm/slurm.key -o ! -f /etc/slurm/slurm.conf ] && exit
   [ ! -f /lib/systemd/system/slurmd.service -a ! -f /etc/init.d/slurm ] && exit 
+  [ -f /etc/profile.d/slurm.sh ] && source /etc/profile.d/slurm.sh
   sleep 2
   systemctl daemon-reload
 
