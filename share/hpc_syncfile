@@ -9,6 +9,7 @@
 /root/.ssh/* -> /root/.ssh/
 /etc/ssh/* -> /etc/ssh/
 /etc/security/limits.conf -> /etc/security/limits.conf
+/etc/profile.d/* -> /etc/profile.d/
 #############################
 # Customized files 
 

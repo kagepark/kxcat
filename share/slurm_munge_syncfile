@@ -1,0 +1,7 @@
+#MUNGE
+/etc/munge/* -> /etc/munge/
+/etc/init.d/munge -> /etc/init.d/munge
+#SLURM
+/etc/slurm/* -> /etc/slurm/
+/lib/systemd/system/slurmd.service -> /lib/systemd/system/slurmd.service
+/etc/sysconfig/slurm -> /etc/sysconfig/slurm

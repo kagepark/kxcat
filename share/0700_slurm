@@ -12,12 +12,35 @@ get_master_ip() {
    [ -n "$xcat_server_ip" ] && echo $xcat_server_ip
 }
 
+_scp() {
+   local ip file
+   ip=$1
+   file=$2
+   opt=$3
+   [ ! -n "$ip" -o ! -n "$file" ] && return 1
+   if [ "$opt" == "-r" ]; then
+      [ -d $file ] || scp -r $ip:$file $file
+   else
+      [ -f $file ] || scp $ip:$file $file
+   fi
+}
 
-mgt_ip=$(get_master_ip)
-scp $mgt_ip:/lib/systemd/system/slurmd.service /lib/systemd/system/slurmd.service
-scp $mgt_ip:/etc/sysconfig/slurm /etc/sysconfig/slurm 
-scp -r $mgt_ip:/etc/slurm /etc
-systemctl daemon-reload
-mkdir -p /var/spool/slurm
-chown slurm:slurm /var/spool/slurm
-systemctl start slurmd
+hostname $(hostname -s)
+if id slurm >& /dev/null; then
+  if [ ! -f /etc/slurm/slurm.key ]; then
+     mgt_ip=$(get_master_ip)
+     if [ -n "$mgt_ip" ]; then
+         ssh ${mgt_ip} "[ -f /etc/slurm/slurm.key ] || exit 1" && _scp "${mgt_ip}" "/etc/slurm" "-r"
+     fi
+  fi
+  _scp "${mgt_ip}" "/lib/systemd/system/slurmd.service"
+  _scp "${mgt_ip}" "/etc/sysconfig/slurm"
+  _scp "${mgt_ip}" "/etc/profile.d/slurm.sh"
+  [ ! -f /etc/slurm/slurm.key -o ! -f /etc/slurm/slurm.conf -o ! -f /etc/init.d/slurm -o ! -f /lib/systemd/system/slurmd.service ] && exit 
+  sleep 2
+  systemctl daemon-reload
+
+  [ -d /var/spool/slurm ] || mkdir -p /var/spool/slurm
+  chown slurm:slurm /var/spool/slurm
+  systemctl start slurmd
+fi

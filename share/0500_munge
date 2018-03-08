@@ -11,15 +11,28 @@ get_master_ip() {
    [ -n "$xcat_server_ip" ] && echo $xcat_server_ip
 }
 
+_scp() {
+   local ip file
+   ip=$1
+   file=$2
+   opt=$3
+   [ ! -n "$ip" -o ! -n "$file" ] && return 1
+   if [ "$opt" == "-r" ]; then
+      [ -d $file ] || scp -r $ip:$file $file
+   else
+      [ -f $file ] || scp $ip:$file $file
+   fi
+}
+
 if id munge >& /dev/null; then
   if [ ! -f /etc/munge/munge.key ]; then
      mgt_ip=$(get_master_ip)
      if [ -n "$mgt_ip" ]; then
-         ssh ${mgt_ip} "[ -f /etc/munge/munge.key ] || exit 1" && ( scp -r ${mgt_ip}:/etc/munge /etc; scp ${mgt_ip}:/etc/init.d/munge /etc/init.d; chmod +x /etc/init.d/munge)
+         ssh ${mgt_ip} "[ -f /etc/munge/munge.key ] || exit 1" && ( _scp "${mgt_ip}" "/etc/munge" "-r"; _scp "${mgt_ip}" "/etc/init.d/munge"; chmod +x /etc/init.d/munge)
          sleep 2
      fi
   fi
-  [ -f /etc/munge/munge.key ] || exit
+  [ ! -f /etc/munge/munge.key -o ! -f /etc/init.d/munge ] && exit
   [ -d /var/lib/munge ] || mkdir -p /var/lib/munge
   chown munge:munge /var/lib/munge
   [ -d /var/log/munge ] || mkdir -p /var/log/munge
