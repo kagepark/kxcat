@@ -174,29 +174,31 @@ queue_sample() {
     [ -f "$qfile" ] && error_exit "$qfile found"
     #[ -n "$job_name" ] || job_name=$(awk -F: -v id=$(id -u) '{if($3==id) print $1}' /etc/passwd)_job
     echo "#!/bin/bash 
-# #SBATCH --partition=<queue name>             # define running queue name
-# #SBATCH --job-name=<job name>                # Job name
-# #SBATCH -t <time>                            # Define running time 
-# #SBATCH -N #                                 # Find available host number per node
-# #SBATCH -n #                                 # Find available host number per core
+# #SBATCH --partition=<queue name>             # define running queue name (-p)
+# #SBATCH --job-name=<job name>                # Job name (-J)
+# #SBATCH --time=<time>                        # Define running time (-t) (days-hours:minutes:seconds)
+# #SBATCH --nodes=<num>                        # Find available host number per node (-N), (same as : sbatch -N# <batch file>)
+# #SBATCH --ntasks=<num>                       # Find available host number per core (-n)
+# #SBATCH --chdir=<work dir>                   # define work dir (-D)
 # #SBATCH --ntasks-per-node=8                  # take per node
 # #SBATCH --mem=20GB                           # Memory define
 # #SBATCH --constraint=IB                      # MPI jobs should request nodes that have InfiniBand
 # #SBATCH -w, --nodelist=cpn-f16-35,cpn-f16-37 # Requesting Specific Nodes
 # #SBATCH --exclude=cpn-f16-35,cpn-f16-37      # Excluding Specific Nodes
-# #SBATCH --output=test-srun.%j.out            # Output file
-# #SBATCH --error=test-srun.%j.err             # Error output file
+# #SBATCH --output=test-srun.%j.out            # Output file (-o)
+# #SBATCH --error=test-srun.%j.err             # Error output file (-e)
 #
 ###############################################################
 ## Module ##
+# . /etc/profile.d/modules.sh
 # module load <name>
 # sleep 5
 #
 ###############################################################
 ## Get hostname ##
-# srun --nodes=\${SLURM_NNODES} bash -c 'hostname -s ' | sort -n> /tmp/slurm.node # get hostnames
+# srun --nodes=\${SLURM_NNODES} bash -c 'hostname -s ' | sort -n > /tmp/slurm.node # get hostnames
 ## or ##
-# srun --nodes=\${SLURM_NNODES} bash -c 'hostname -s ' | sort -u> /tmp/slurm.node # get uniq hostnames
+# srun --nodes=\${SLURM_NNODES} bash -c 'hostname -s ' | sort -u > /tmp/slurm.node # get uniq hostnames
 #
 ###############################################################
 ## For OpenMP (4 OpenMP Thread) ##
