@@ -46,6 +46,6 @@ if id slurm >& /dev/null; then
   [ -d /var/spool/slurm ] || mkdir -p /var/spool/slurm
   chown slurm:slurm /var/spool/slurm
   systemctl start slurmd
-  sleep 7
+  sleep 15
   scontrol update nodename=$(hostname -s) state=idle
 fi

@@ -187,39 +187,53 @@ queue_sample() {
 # #SBATCH --output=test-srun.%j.out            # Output file
 # #SBATCH --error=test-srun.%j.err             # Error output file
 #
-## For OpenMP (4 OpenMP Thread)
+###############################################################
+## Module ##
+# module load <name>
+#
+###############################################################
+## Get hostname ##
+# srun --nodes=\${SLURM_NNODES} bash -c 'hostname -s ' | sort -n> /tmp/slurm.node # get hostnames
+## or ##
+# srun --nodes=\${SLURM_NNODES} bash -c 'hostname -s ' | sort -u> /tmp/slurm.node # get uniq hostnames
+#
+###############################################################
+## For OpenMP (4 OpenMP Thread) ##
 # export OMP_NUM_THREADS=4
 # ./mycode.exe
 #
-## Hybrid MPI/OpenMP (3 MPI tasks, 4 OpenMP Thread per task)
+###############################################################
+## Hybrid MPI/OpenMP (3 MPI tasks, 4 OpenMP Thread per task) ##
 # export OMP_NUM_THREADS=4
 # srun -n 3 -c 4 ./mycode.exe
 #
-## Fure MPI
-## Total 64 process
+###############################################################
+## For MPI ##
+## Total 64 process ##
 # srun -n 64 -c 1 ./mycode.exe 
-## or
-# srun --nodes=${SLURM_NNODES} bash -c 'hostname -s ' | sort -n> /tmp/slurm.node # get hostnames
-## or
-# srun --nodes=${SLURM_NNODES} bash -c 'hostname -s ' | sort -u> /tmp/slurm.node # get uniq hostnames
-# mpirun -np $(cat /tmp/slurm.node | wc -l) -machinefile /tmp/slurm.node ./mycode.exe 
+## or ##
+# mpirun -np \$(cat /tmp/slurm.node | wc -l) -machinefile /tmp/slurm.node ./mycode.exe 
 #
-#
-## Total 64 process (-c: cpus per task)
+###############################################################
+## Total 64 process (-c: cpus per task) ##
 # srun -n 64 -c 4 ./mycode.exe
 #
-## The PMI library is necessary for srun
+###############################################################
+## The PMI library is necessary for srun ##
 # export I_MPI_PMI_LIBRARY=/usr/lib64/libpmi.so
 # srun ./mycode.exe
 #
-## MPICH2
+###############################################################
+## MPICH2 ##
 # mpicc -L<path_to_slurm_lib> -lpmi …
 # srun -n20 ./mycode.exe
 #
-## MVAPICH
+###############################################################
+## MVAPICH ##
 # srun -n16 --mpi=mvapich ./mycode.exe
 #
-## MVAPICH2
+###############################################################
+## MVAPICH2 ##
 # mpicc -L<path_to_slurm_lib> -lpmi ...
 # srun -n16 --mpi=none ./mycode.exe
     " > $qfile
