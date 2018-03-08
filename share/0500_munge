@@ -1,0 +1,31 @@
+#!/bin/bash
+
+get_master_ip() {
+   for ii in $(cat /proc/cmdline); do
+      xcat_server_ip=$(echo $ii | awk -F= '{if($1=="XCAT") print $2}' | awk -F: '{print $1}')
+      [ -n "$xcat_server_ip" ] && break
+   done
+   [ -f /opt/xcat/xcatinfo ] &&  . /opt/xcat/xcatinfo
+   [ ! -n "$xcat_server_ip" -a -n "$XCATSERVER" ] &&  xcat_server_ip=$XCATSERVER
+   [ ! -n "$xcat_server_ip" -a -f /xcatpost/mypostscript ] && xcat_server_ip=$(awk -F= '{if("^MASTER_IP" == $1) print $2}' /xcatpost/mypostscript)
+   [ -n "$xcat_server_ip" ] && echo $xcat_server_ip
+}
+
+if id munge >& /dev/null; then
+  if [ -f /etc/munge/munge.key ]; then
+     mgt_ip=$(get_master_ip)
+     if [ -n "$mgt_ip" ]; then
+         ssh ${mgt_ip} "[ -f /etc/munge/munge.key ] && return 0 || return 1" && scp -r ${mgt_ip}:/etc/munge /etc
+         sleep 2
+     fi
+  fi
+  [ -f /etc/munge/munge.key ] || exit
+  [ -d /var/lib/munge ] || mkdir -p /var/lib/munge
+  chown munge:munge /var/lib/munge
+  [ -d /var/log/munge ] || mkdir -p /var/log/munge
+  chown munge:munge /var/log/munge
+  [ -d /var/run/munge ] || mkdir -p /var/run/munge
+  chown munge:munge /var/run/munge
+  chown munge:munge /etc/munge -R
+  /etc/init.d/munge start
+fi

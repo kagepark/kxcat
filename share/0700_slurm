@@ -1,0 +1,23 @@
+#!/bin/bash
+#
+
+get_master_ip() {
+   for ii in $(cat /proc/cmdline); do
+      xcat_server_ip=$(echo $ii | awk -F= '{if($1=="XCAT") print $2}' | awk -F: '{print $1}')
+      [ -n "$xcat_server_ip" ] && break
+   done
+   [ -f /opt/xcat/xcatinfo ] &&  . /opt/xcat/xcatinfo
+   [ ! -n "$xcat_server_ip" -a -n "$XCATSERVER" ] &&  xcat_server_ip=$XCATSERVER
+   [ ! -n "$xcat_server_ip" -a -f /xcatpost/mypostscript ] && xcat_server_ip=$(awk -F= '{if("^MASTER_IP" == $1) print $2}' /xcatpost/mypostscript)
+   [ -n "$xcat_server_ip" ] && echo $xcat_server_ip
+}
+
+
+mgt_ip=$(get_master_ip)
+scp $mgt_ip:/lib/systemd/system/slurmd.service /lib/systemd/system/slurmd.service
+scp $mgt_ip:/etc/sysconfig/slurm /etc/sysconfig/slurm 
+scp -r $mgt_ip:/etc/slurm /etc
+systemctl daemon-reload
+mkdir -p /var/spool/slurm
+chown slurm:slurm /var/spool/slurm
+systemctl start slurmd
