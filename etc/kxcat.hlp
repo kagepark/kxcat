@@ -44,10 +44,13 @@ qstat          # Queue state, same as sjstat
 qsub           # Submit queue, same as sbatch
 qdel           # Delete queue, same as scancel
 slurm_restart  # restart SLURM daemons
+slrum_clean    # change to normal state
+slrum_drain    # change to maintain state
 add_nodes      # Add nodes to Queue name(partition)
 del_nodes      # Del nodes from Queue name(partition)
 del_queue      # remove Queue name(partition)
 add_queue      # Add Queue (partition)
+queue_sample   # make a sample batch job file
 
 #Logs
 Look /var/log/xcat directory
