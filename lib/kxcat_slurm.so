@@ -159,18 +159,15 @@ slurm_clean() {
 queue_sample() {
     local qfile
     qfile=$1
-    qname=$2
-    num_nodes=$3
-    time=$4
-    job_name=$5
     [ -n "$qfile" ] || error_exit "${FUNCNAME} <batch file>"
     [ -f "$qfile" ] && error_exit "$qfile found"
-    [ -n "$job_name" ] || job_name=$(awk -F: -v id=$(id -u) '{if($3==id) print $1}' /etc/passwd)_job
+    #[ -n "$job_name" ] || job_name=$(awk -F: -v id=$(id -u) '{if($3==id) print $1}' /etc/passwd)_job
     echo "#!/bin/bash 
-$([ -n "$qname" ] && echo "#SBATCH --partition=$qname")
-$([ -n "$num_nodes" ] && echo "#SBATCH -N $num_nodes")
-$([ -n "$time" ] && echo "#SBATCH -t $time")
-#SBATCH --job-name=$job_name                   # Job name
+# #SBATCH --partition=<queue name>             # define running queue name
+# #SBATCH --job-name=<job name>                # Job name
+# #SBATCH -t <time>                            # Define running time 
+# #SBATCH -N #                                 # Find available host number per node
+# #SBATCH -n #                                 # Find available host number per core
 # #SBATCH --ntasks-per-node=8                  # take per node
 # #SBATCH --mem=20GB                           # Memory define
 # #SBATCH --constraint=IB                      # MPI jobs should request nodes that have InfiniBand
@@ -191,11 +188,28 @@ $([ -n "$time" ] && echo "#SBATCH -t $time")
 ## Total 64 process
 # srun -n 64 -c 1 ./mycode.exe 
 ## or
-# srun 'hostname -s' | sort -u > /tmp/slurm.node
-# mpirun -np ${SLURM_NODES} -machinefile /tmp/slurm.node ./mycode.exe 
+# srun --nodes=${SLURM_NNODES} bash -c 'hostname -s ' | sort -n> /tmp/slurm.node # get hostnames
+## or
+# srun --nodes=${SLURM_NNODES} bash -c 'hostname -s ' | sort -u> /tmp/slurm.node # get uniq hostnames
+# mpirun -np $(cat /tmp/slurm.node | wc -l) -machinefile /tmp/slurm.node ./mycode.exe 
 #
 #
 ## Total 64 process (-c: cpus per task)
 # srun -n 64 -c 4 ./mycode.exe
+#
+## The PMI library is necessary for srun
+# export I_MPI_PMI_LIBRARY=/usr/lib64/libpmi.so
+# srun ./mycode.exe
+#
+## MPICH2
+# mpicc -L<path_to_slurm_lib> -lpmi …
+# srun -n20 a.out
+#
+## MVAPICH
+# srun -n16 --mpi=mvapich a.out
+#
+## MVAPICH2
+# mpicc -L<path_to_slurm_lib> -lpmi ...
+# srun -n16 --mpi=none a.out
     " > $qfile
 }
