@@ -21,13 +21,22 @@ fi
 
 slurm_conf=$sysconfdir/slurm.conf
 qstat() {
-   if [ "$1" == "-q" ]; then
+   if [ "$1" == "-h" ]; then
+      echo "
+${FUNCNAME}              : View queue status
+${FUNCNAME} -f <job id>  : Display Queue's detail information
+${FUNCNAME} -q           : Show simple queue summary
+${FUNCNAME} -l           : Show start queue time
+      "
+      exit
+   elif [ "$1" == "-q" ]; then
       sjstat -c
    elif [ "$1" == "-l" ]; then
       sinfo
       sjstat -v
-   elif [ -n "$1" ]; then
-      scontrol show job $1
+   elif [ "$1" == "-f" ]; then
+      [ -n "$2" ] || error_exit "${FUNCNAME} -f <job id>"
+      scontrol show job $2
    else
       sinfo
       sjstat
