@@ -140,7 +140,7 @@ add_queue() {
     fi
 }
 
-slrum_drain() {
+slurm_drain() {
     local nodes reason
     nodes=$1
     reason=$2
@@ -148,7 +148,7 @@ slrum_drain() {
     scontrol update nodename=prod-[0001-0004] state=drain  Reason="$reason"
 }
 
-slrum_clean() {
+slurm_clean() {
     local nodes reason
     nodes=$1
     reason=$2
