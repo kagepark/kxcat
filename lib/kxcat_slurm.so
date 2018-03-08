@@ -203,13 +203,13 @@ queue_sample() {
 #
 ## MPICH2
 # mpicc -L<path_to_slurm_lib> -lpmi …
-# srun -n20 a.out
+# srun -n20 ./mycode.exe
 #
 ## MVAPICH
-# srun -n16 --mpi=mvapich a.out
+# srun -n16 --mpi=mvapich ./mycode.exe
 #
 ## MVAPICH2
 # mpicc -L<path_to_slurm_lib> -lpmi ...
-# srun -n16 --mpi=none a.out
+# srun -n16 --mpi=none ./mycode.exe
     " > $qfile
 }
