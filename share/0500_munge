@@ -15,7 +15,7 @@ if id munge >& /dev/null; then
   if [ -f /etc/munge/munge.key ]; then
      mgt_ip=$(get_master_ip)
      if [ -n "$mgt_ip" ]; then
-         ssh ${mgt_ip} "[ -f /etc/munge/munge.key ] && return 0 || return 1" && scp -r ${mgt_ip}:/etc/munge /etc
+         ssh ${mgt_ip} "[ -f /etc/munge/munge.key ] || exit 1" && ( scp -r ${mgt_ip}:/etc/munge /etc; scp ${mgt_ip}:/etc/init.d/munge /etc/init.d; chmod +x /etc/init.d/munge)
          sleep 2
      fi
   fi
