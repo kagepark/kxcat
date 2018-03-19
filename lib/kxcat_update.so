@@ -48,12 +48,14 @@ update() {
    fi
    type=$(lsdef -t osimage $osimage  -i provmethod | grep "provmethod=" | awk -F= '{print $2}')
    if [ "$type" == "netboot" ]; then
-      #/opt/xcat/bin/updatenode $* 2>/dev/null
-      [ "$boot_script_update" != "1" -a "$reinstall" != "1" ] && /opt/xcat/bin/updatenode $dest ${opts[*]} 2>/dev/null
       if [ "$rootimage" == "1" ]; then
+         echo "Rebuild root image file"
          packimage $osimage
          return 0
-      elif [ "$netboot_ignore_image" != "1" ]; then
+      fi
+      #/opt/xcat/bin/updatenode $* 2>/dev/null
+      [ "$boot_script_update" != "1" -a "$reinstall" != "1" ] && /opt/xcat/bin/updatenode $dest ${opts[*]} 2>/dev/null
+      if [ "$netboot_ignore_image" != "1" ]; then
          [ "$boot_script_update" != "1" ] && genimage $osimage
          [ -d /install/groups/${osimage}/rootimg/xcatpost ] || mkdir -p /install/groups/${osimage}/rootimg/xcatpost
          [ -d /install/groups/${osimage}/rootimg/opt/xcat ] || mkdir -p /install/groups/${osimage}/rootimg/opt/xcat
