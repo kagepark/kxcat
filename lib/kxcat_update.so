@@ -24,7 +24,7 @@ update() {
           reinstall=1
           unset opts[$ii]
       fi
-      elif [ "${opts[$ii]}" == "-RI" ]; then
+      if [ "${opts[$ii]}" == "-RI" ]; then
           rootimage=1
           unset opts[$ii]
       fi
