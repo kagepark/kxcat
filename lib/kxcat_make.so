@@ -74,18 +74,25 @@ gen_create() {
                          fi
                      else
                          synclist_chk=0
-                         cp -a $(_k_misc_get_realpath $jj) /install/groups/$new_group/env/$(basename $jj) && env_files="${env_files}/install/groups/$new_group/env/$(basename $jj)"
+                         #cp -a $(_k_misc_get_realpath $jj) /install/groups/$new_group/env/$(basename $jj) && env_files="${env_files}/install/groups/$new_group/env/$(basename $jj)"
+                         env_file="/install/groups/$new_group/env/$(basename $jj)"
+                         cp -a $(_k_misc_get_realpath $jj) $env_file && env_files="${env_files}$env_file"
                          multi_file=1
                          if [ "$src_type" == "pkglist" ]; then
                              if [ "$base_pkg" != "1" ]; then
-                               grep "^#INCLUDE:$_KXC_HOME/share/hpc_pkglist#$" /install/groups/$new_group/env/$(basename $jj) >& /dev/null || echo "#INCLUDE:$_KXC_HOME/share/hpc_pkglist#" >> /install/groups/$new_group/env/$(basename $jj)
+                               #grep "^#INCLUDE:$_KXC_HOME/share/hpc_pkglist#$" /install/groups/$new_group/env/$(basename $jj) >& /dev/null || echo "#INCLUDE:$_KXC_HOME/share/hpc_pkglist#" >> /install/groups/$new_group/env/$(basename $jj)
+                               grep "^#INCLUDE:$_KXC_HOME/share/hpc_pkglist#$" $env_file >& /dev/null || echo "#INCLUDE:$_KXC_HOME/share/hpc_pkglist#" >> $env_file
                                if [ -n "$pkglist_str" ]; then
                                   for ii in $(echo $pkglist_str | sed "s/,/ /g"); do
-                                       grep "^#INCLUDE:${ii}#$" /install/groups/$new_group/env/$(basename $jj) >& /dev/null || \
-                                          echo "#INCLUDE:${ii}#" >> /install/groups/$new_group/env/$(basename $jj)
+                                       #grep "^#INCLUDE:${ii}#$" /install/groups/$new_group/env/$(basename $jj) >& /dev/null || \
+                                       #   echo "#INCLUDE:${ii}#" >> /install/groups/$new_group/env/$(basename $jj)
+                                       grep "^#INCLUDE:${ii}#$" $env_file >& /dev/null || \
+                                          echo "#INCLUDE:${ii}#" >> $env_file
                                   done
                                fi
                              fi
+                         elif [ "$src_type" == "exlist" ]; then
+                             sed -i -e "/.\/usr\/include/d" -e "/.\/usr\/share\/man/d" -e "/.\/usr\/local/d" -e "/.\/boot/d" $env_file
                          fi
                      fi
                  else
@@ -95,7 +102,9 @@ gen_create() {
                  if [ "$_KXC_HOME/share/hpc_syncfile" != "$jj" ]; then
                     jj_real=$(_k_misc_get_realpath $jj)
                     if [ -n "$jj_real" -a -e "$jj_real" ]; then
-                       cp -a "$jj_real" /install/groups/$new_group/env/$(basename $jj) && env_files="${env_files},/install/groups/$new_group/env/$(basename $jj)"
+                       #cp -a "$jj_real" /install/groups/$new_group/env/$(basename $jj) && env_files="${env_files},/install/groups/$new_group/env/$(basename $jj)"
+                       env_file="/install/groups/$new_group/env/$(basename $jj)"
+                       cp -a "$jj_real" $env_file && env_files="${env_files},$env_file"
                     else
                        echo "$jj not found"
                     fi
