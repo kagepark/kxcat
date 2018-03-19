@@ -4,12 +4,13 @@
 
 update() {
    if [ "$#" == "0" ]; then
-       echo "update                   : ${FUNCNAME} <host|group>"
-       echo "update syncfile          : ${FUNCNAME} <host|group> -F"
-       echo "update Software(OS/Other): ${FUNCNAME} <host|group> -S"
-       echo "update boot script       : ${FUNCNAME} <host|group> -b"
-       echo "update Postscript        : ${FUNCNAME} <host|group> -P [<script1 [<arg1> <arg2>...]>,<script2 [<arg1> <arg2>...]>....]"
-       echo "Reinstall OS             : ${FUNCNAME} <host|group> -I"
+       echo "update                    : ${FUNCNAME} <host|group>"
+       echo "update rootimage file only: ${FUNCNAME} <group> -RI"
+       echo "update syncfile           : ${FUNCNAME} <host|group> -F"
+       echo "update Software(OS/Other) : ${FUNCNAME} <host|group> -S"
+       echo "update boot script        : ${FUNCNAME} <host|group> -b"
+       echo "update Postscript         : ${FUNCNAME} <host|group> -P [<script1 [<arg1> <arg2>...]>,<script2 [<arg1> <arg2>...]>....]"
+       echo "Reinstall OS              : ${FUNCNAME} <host|group> -I"
        exit
    fi
    dest=$1
@@ -21,6 +22,10 @@ update() {
           unset opts[$ii]
       elif [ "${opts[$ii]}" == "-I" ]; then
           reinstall=1
+          unset opts[$ii]
+      fi
+      elif [ "${opts[$ii]}" == "-RI" ]; then
+          rootimage=1
           unset opts[$ii]
       fi
       if [ "${opts[$ii]}" == "-b" ]; then
@@ -45,7 +50,10 @@ update() {
    if [ "$type" == "netboot" ]; then
       #/opt/xcat/bin/updatenode $* 2>/dev/null
       [ "$boot_script_update" != "1" -a "$reinstall" != "1" ] && /opt/xcat/bin/updatenode $dest ${opts[*]} 2>/dev/null
-      if [ "$netboot_ignore_image" != "1" ]; then
+      if [ "$rootimage" == "1" ]; then
+         packimage $osimage
+         return 0
+      elif [ "$netboot_ignore_image" != "1" ]; then
          [ "$boot_script_update" != "1" ] && genimage $osimage
          [ -d /install/groups/${osimage}/rootimg/xcatpost ] || mkdir -p /install/groups/${osimage}/rootimg/xcatpost
          [ -d /install/groups/${osimage}/rootimg/opt/xcat ] || mkdir -p /install/groups/${osimage}/rootimg/opt/xcat
