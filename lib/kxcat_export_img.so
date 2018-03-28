@@ -80,6 +80,7 @@ if lsdef -t osimage $image_name >> $export_dir/init_org_image.info ; then
    echo "req_space=$req_space" >> $export_dir/org_image.info
    #( cd $export_dir && ( tar cf $outfile org_image.info; tar --append --file=$outfile --exclude=org_image.info . ))
    #( cd $export_dir && tar zcf $outfile --label="$req_space" . )
+   echo "tar -I pigz -cf $outfile --label=\"$req_space\" . "
    ( cd $export_dir && ( tar -I pigz -cf $outfile --label="$req_space" . 2>/dev/null || tar zcf $outfile --label="$req_space" . ) )
    rm -fr $export_dir
 else
