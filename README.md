@@ -54,3 +54,9 @@ Help:
 
 Not fully developed yet.
 it still has bugs
+
+version:
+0.1 : Testing functions
+1.4 : Adding handle on CentOS 7.x service
+2.0 : Adding SNMP function
+2.1 : Adding export/import kxcat image function
