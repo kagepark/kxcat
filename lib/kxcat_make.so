@@ -326,10 +326,14 @@ import_img() {
    if [ "$no_boot_script" != "-nbs" ]; then
       [ -d /install/groups/$group_name/xcat_boot.d/image ] && cp -a /install/groups/$group_name/xcat_boot.d/image/* /global/xcat_boot.d/$group_name
       if [ -d /install/groups/$group_name/xcat_boot.d/global ]; then
-         cp -a /install/groups/$group_name/xcat_boot.d/image/* /global/xcat_boot.d/$group_name
+         for ii in $(ls /install/groups/$group_name/xcat_boot.d/global 2>/dev/null); do
+            [ -f /global/xcat_boot.d/global/$ii ] || cp -a /install/groups/$group_name/xcat_boot.d/global/$ii /global/xcat_boot.d/$group_name 
+         done
       fi
       if [ -d /install/groups/$group_name/xcat_boot.d/postscripts ]; then
-         cp -a /install/groups/$group_name/xcat_boot.d/postscripts/* /global/xcat_boot.d/$group_name
+         for ii in $(ls /install/groups/$group_name/xcat_boot.d/postscripts 2>/dev/null); do
+            [ -f /install/postscripts/xcat_boot.d/$ii ] || cp -a /install/groups/$group_name/xcat_boot.d/postscripts/$ii /global/xcat_boot.d/$group_name
+         done
       fi 
    fi
 }
