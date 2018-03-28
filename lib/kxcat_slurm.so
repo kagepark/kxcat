@@ -62,14 +62,19 @@ qdel() {
 
 
 slurm_restart() {
+  local slurm_nodes
+  slurm_nodes=$(echo $* | sed "s/ /,/g")
   if [ -f /lib/systemd/system/slurmctld.service ]; then
      systemctl restart slurmctld 
      systemctl restart slurmd
   else
      /etc/init.d/slurm restart
   fi
-  xdcp $(kxcat nodes | grep " booted" | awk '{printf "%s,",$2}') /etc/slurm/slurm.conf /etc/slurm/slurm.conf
-  xdsh $(kxcat nodes | grep " booted" | awk '{printf "%s,",$2}') "[ -f /lib/systemd/system/slurmd.service ] && systemctl restart slurmd || /etc/init.d/slurm restart"
+  [ -n "$slurm_nodes" ] || slurm_nodes=$(kxcat nodes | grep " booted" | awk '{printf "%s,",$2}' | sed "s/,$//g")
+  if [ -n "$slurm_nodes" ]; then
+     xdcp $slurm_nodes /etc/slurm/slurm.conf /etc/slurm/slurm.conf
+     xdsh $slurm_nodes "[ -f /lib/systemd/system/slurmd.service ] && systemctl restart slurmd || /etc/init.d/slurm restart"
+  fi
 }
 
 add_nodes() {
