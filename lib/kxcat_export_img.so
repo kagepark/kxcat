@@ -27,7 +27,7 @@ else
 fi
 [ -f $outfile ] && error_exit "exist $outfile"
 
-echo "It take about 2~30min, it depend on disk I/O speed"
+echo "It take about 10~40min, it depend on disk I/O speed"
 
 #[ -d $export_dir ] && rm -fr $export_dir
 [ -d $export_dir ] && error_exit "Alread exists working directory($export_dir)"
