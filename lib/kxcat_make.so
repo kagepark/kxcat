@@ -300,7 +300,7 @@ import_img() {
    lsdef -t osimage $group_name >& /dev/null && error_exit "Already $group_name exist"
 #   [ -d /install/groups/$group_name ] && mv /install/groups/$group_name  /install/groups/${group_name}.DEL
    mkdir -p /install/groups/$group_name
-   tar zxf $image_file -C /install/groups/$group_name
+   tar -I pigz -xf $image_file -C /install/groups/$group_name 2>/dev/null || tar zxf $image_file -C /install/groups/$group_name
    if [ ! -f /install/groups/$group_name/image.info ]; then
        rm -fr /install/groups/$group_name
        error_exit "image.info file not found"
