@@ -288,9 +288,9 @@ xcat_install() {
      [ -L kxcat_${ii}.so ] || ln -s kxcat_slurm.so kxcat_${ii}.so
    done
    for ii in kxcat_clone.so kxcat_import_img.so; do
-      ln -s kxcat_make.so $ii
+      [ -L $ii ] || ln -s kxcat_make.so $ii
    done
-   ln -s kxcat_backup.so kxcat_restore.so
+   [ -L kxcat_restore.so ] || ln -s kxcat_backup.so kxcat_restore.so
   )
   (cd /opt && git clone https://github.com/kagepark/kgt.git)
   rm -fr /opt/kgt/.git
