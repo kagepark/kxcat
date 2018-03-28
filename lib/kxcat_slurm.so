@@ -68,6 +68,7 @@ slurm_restart() {
   else
      /etc/init.d/slurm restart
   fi
+  xdcp $(kxcat nodes | grep " booted" | awk '{printf "%s,",$2}') /etc/slurm/slurm.conf /etc/slurm/slurm.conf
   xdsh $(kxcat nodes | grep " booted" | awk '{printf "%s,",$2}') "[ -f /lib/systemd/system/slurmd.service ] && systemctl restart slurmd || /etc/init.d/slurm restart"
 }
 
