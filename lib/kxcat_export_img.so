@@ -69,9 +69,9 @@ if lsdef -t osimage $image_name >> $export_dir/init_org_image.info ; then
    [ -d /global/xcat_boot.d/global ] && rsync -a /global/xcat_boot.d/global $export_dir/xcat_boot.d
    [ -d /global/xcat_boot.d/$image_name ] && rsync -a /global/xcat_boot.d/$image_name $export_dir/xcat_boot.d/image
    [ -d /install/postscripts/xcat_boot.d ] && rsync -a /install/postscripts/xcat_boot.d $export_dir/xcat_boot.d/postscripts
-   echo "req_space=$(du -sm $export_dir | awk '{print $1}')MB" >> $export_dir/org_image.info
+   echo "req_space=$(du -sk $export_dir | awk '{print $1}')KB" >> $export_dir/org_image.info
    #( cd $export_dir && ( tar cf $outfile org_image.info; tar --append --file=$outfile --exclude=org_image.info . ))
-   ( cd $export_dir && tar cf $outfile . )
+   ( cd $export_dir && tar --label="$req_space" zcf $outfile . )
    rm -fr $export_dir
 else
    rm -fr $export_dir
