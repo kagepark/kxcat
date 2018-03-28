@@ -14,7 +14,7 @@ done
 [ "$chk" == "1" ] && ignore_pkg=2
 
 [ ! -n "$image_name" ] && error_exit "$(basename $0) <image name> [<file name>] [<pkg level:0,1,2>]"
-export_dir=/tmp/abc/$image_name
+export_dir=/tmp/kxcat_export_img/$image_name
 if [ -n "$outfile" ]; then
    [ "$(dirname $outfile)" == "." ] && outfile=${opwd}/$(echo ${outfile} | sed "s/\.kgi$//g").kgi
 else
@@ -24,7 +24,8 @@ fi
 
 echo "It take about 2~30min, it depend on disk I/O speed"
 
-[ -d $export_dir ] && rm -fr $export_dir
+#[ -d $export_dir ] && rm -fr $export_dir
+[ -d $export_dir ] && error_exit "Alread exists working directory($export_dir)"
 mkdir -p $export_dir
 lsxcatd -a | grep -v "Management Node" |  awk '{if($1=="Version") printf "xcat_version=%s\n",$2; else print}' > $export_dir/init_org_image.info
 echo kxcat_version=$(kxcat --version) >> $export_dir/init_org_image.info

@@ -291,13 +291,14 @@ import_img() {
    [ ! -n "$group_name" -o ! -n "$image_file" ] && error_exit "$(basename $0) <group name> <image file> [-nbs]"
 
    [ -f "$image_file" ] || error_exit "$image_file not found"
+   [ -d /install/groups/$group_name ] && error_exit "Already $group_name in /install/groups"
    req_free_space=$(tar --test-label -f $image_file | sed "s/KB//g" | awk -F\. '{print $1}')
    if [ -n "$req_free_space" ]; then
       free_space=$(df -hk /install | grep -v Filesystem | awk '{print $4}')
       (( $free_space < $(($req_free_space * 2)) )) && error_exit "No enough free space for /install directory"
    fi
    lsdef -t osimage $group_name >& /dev/null && error_exit "Already $group_name exist"
-   [ -d /install/groups/$group_name ] && mv /install/groups/$group_name  /install/groups/${group_name}.DEL
+#   [ -d /install/groups/$group_name ] && mv /install/groups/$group_name  /install/groups/${group_name}.DEL
    mkdir -p /install/groups/$group_name
    tar zxf $image_file -C /install/groups/$group_name
    if [ ! -f /install/groups/$group_name/image.info ]; then
