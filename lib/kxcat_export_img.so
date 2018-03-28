@@ -1,0 +1,80 @@
+####################################
+# License : GPL
+####################################
+export_img() {
+image_name=$1
+outfile=$2
+ignore_pkg=$3
+opwd=$(pwd)
+
+chk=1
+for ii in 0 1 2; do
+    [ "$ii" == "$ignore_pkg" ] && chk=0
+done 
+[ "$chk" == "1" ] && ignore_pkg=2
+
+[ ! -n "$image_name" ] && error_exit "$(basename $0) <image name> [<file name>] [<pkg level:0,1,2>]"
+export_dir=/tmp/abc/$image_name
+if [ -n "$outfile" ]; then
+   [ "$(dirname $outfile)" == "." ] && outfile=${opwd}/$(echo ${outfile} | sed "s/\.kgi$//g").kgi
+else
+   outfile=${opwd}/${image_name}.kgi
+fi
+[ -f $outfile ] && error_exit "exist $outfile"
+
+echo "It take about 2~30min, it depend on disk I/O speed"
+
+[ -d $export_dir ] && rm -fr $export_dir
+mkdir -p $export_dir
+lsxcatd -a | grep -v "Management Node" |  awk '{if($1=="Version") printf "xcat_version=%s\n",$2; else print}' > $export_dir/init_org_image.info
+echo kxcat_version=$(kxcat --version) >> $export_dir/init_org_image.info
+if lsdef -t osimage $image_name >> $export_dir/init_org_image.info ; then
+   org_image_dir=$(grep "rootimgdir=" $export_dir/init_org_image.info | awk -F= '{print $2}')
+   rsync -a $org_image_dir/ --exclude "rootimg/*" --exclude "*.ORIG" $export_dir
+   [ -f $export_dir/org_image.info ] && rm -f $export_dir/org_image.info
+   mv $export_dir/init_org_image.info $export_dir/org_image.info
+   sed -i "s/^    //g" $export_dir/org_image.info
+   obj_name=$(grep "Object name:" $export_dir/org_image.info)
+   new_name=$(echo $obj_name | awk '{printf "Object_name=%s\n",$3}')
+   sed -i "s/$obj_name/$new_name/g" $export_dir/org_image.info
+   lsdef -t osimage -z $image_name > $export_dir/image.info
+   if (( $ignore_pkg >= 1 )); then
+      rsync -a $org_image_dir/rootimg $export_dir
+      if (( $ignore_pkg >= 2 )); then
+         mkdir -p $export_dir/pkgs
+         for ii in $(grep "pkgdir=" $export_dir/org_image.info); do
+            org_pkg_dir=$(echo $ii | awk -F= '{print $2}')
+            org_pkg_name=$(echo $ii | awk -F= '{print $1}'|sed "s/ //g")
+            for jj in $(echo $org_pkg_dir | sed "s/,/ /g"); do
+               [ -d "$jj" ] && cp -a $jj $export_dir/pkgs/$(basename $jj).$org_pkg_name
+            done
+         done
+      fi
+   fi
+#   [ -d $export_dir/env ] && mv $export_dir/env $export_dir/env.orig
+   [ -d $export_dir/env ] || mkdir -p $export_dir/env
+   for ii in $(grep -e "list=" -e "lists=" $export_dir/org_image.info); do
+      list_file=$(echo $ii | awk -F= '{print $2}')
+      list_name=$(echo $ii | awk -F= '{print $1}' | sed "s/ //g")
+      for jj in $(echo $list_file | sed "s/,/ /g"); do
+#         [ -f $jj ] && cp $jj $export_dir/env/$(basename $jj).$list_name
+         if [ -f "$jj" ]; then
+            if [ ! -f $export_dir/env/$(basename $jj) ]; then
+               cp $jj $export_dir/env/$(basename $jj).env.${list_name}
+            fi
+         fi
+      done
+   done
+   mkdir -p $export_dir/xcat_boot.d
+   [ -d /global/xcat_boot.d/global ] && rsync -a /global/xcat_boot.d/global $export_dir/xcat_boot.d
+   [ -d /global/xcat_boot.d/$image_name ] && rsync -a /global/xcat_boot.d/$image_name $export_dir/xcat_boot.d/image
+   [ -d /install/postscripts/xcat_boot.d ] && rsync -a /install/postscripts/xcat_boot.d $export_dir/xcat_boot.d/postscripts
+   echo "req_space=$(du -sm $export_dir | awk '{print $1}')MB" >> $export_dir/org_image.info
+   #( cd $export_dir && ( tar cf $outfile org_image.info; tar --append --file=$outfile --exclude=org_image.info . ))
+   ( cd $export_dir && tar cf $outfile . )
+   rm -fr $export_dir
+else
+   rm -fr $export_dir
+   echo "group name ($image_name) not found"
+fi
+}

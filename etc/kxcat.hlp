@@ -11,6 +11,8 @@ make_image <iso file>        # build image from ISO file
 remove_image <image name>    # remove image
 change image <image name>    # change base OS image's information
 chroot <image name>          # configure netboot(disk-less) image
+import_img <image name> <img file> # Import <img file> to <image name>
+export_img <image name> <img file> # Export <image name> to <img file>
 
 # groups
 define         # define group to nodes

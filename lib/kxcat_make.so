@@ -38,6 +38,7 @@ gen_create() {
     local hostname opt
     old_group=$1
     new_group=$2
+    file=$3
 
     get_free_ip=$(get_freeip) ||  error_exit "No more free network IP"
     get_free_ips=($get_free_ip)
@@ -49,19 +50,22 @@ gen_create() {
     GROUP_START_2=$(($GROUP_START%256))
 
     [ -d /install/groups ] || mkdir -p /install/groups
-    lsdef -t osimage -z ${old_group} | sed "s/^[^ ]\+:/${new_group}:/" | mkdef -z
+    if [ -n "$file" -a -f "$file" ]; then
+       cat $file | sed "s/^[^ ]\+:/${new_group}:/" | sed "s#/${old_group}/#/$new_group/#g" | mkdef -z
+    else
+       lsdef -t osimage -z ${old_group} | sed "s/^[^ ]\+:/${new_group}:/" | mkdef -z
     
-    mkdir -p /install/groups/${new_group}/env
-    chdef -t osimage ${new_group} rootimgdir=/install/groups/${new_group}
-    env_files=""
-    for ii in $(lsdef -t osimage ${old_group} -i exlist,pkglist,otherpkglist,synclists,postscripts,postinstall,template | grep -v "^Object name:"); do
-        src_file=$(echo $ii | awk -F= '{print $2}')
-        src_type=$(echo $ii | awk -F= '{print $1}')
-        env_files="$env_files ${src_type}="
-        if [ -n "$src_file" ]; then
-           multi_file=0
-           for jj in $(echo $src_file | sed "s/,/ /g"); do
-              if [ "$multi_file" == "0" ]; then
+       mkdir -p /install/groups/${new_group}/env
+       chdef -t osimage ${new_group} rootimgdir=/install/groups/${new_group}
+       env_files=""
+       for ii in $(lsdef -t osimage ${old_group} -i exlist,pkglist,otherpkglist,synclists,postscripts,postinstall,template | grep -v "^Object name:"); do
+          src_file=$(echo $ii | awk -F= '{print $2}')
+          src_type=$(echo $ii | awk -F= '{print $1}')
+          env_files="$env_files ${src_type}="
+          if [ -n "$src_file" ]; then
+             multi_file=0
+             for jj in $(echo $src_file | sed "s/,/ /g"); do
+               if [ "$multi_file" == "0" ]; then
                  jj_real=$(_k_misc_get_realpath $jj)
                  if [ -n "$jj_real" -a -e "$jj_real" ]; then
                      if [ "$src_type" == "synclists" ]; then
@@ -98,7 +102,7 @@ gen_create() {
                  else
                      echo "$jj not found"
                  fi
-              else
+               else
                  if [ "$_KXC_HOME/share/hpc_syncfile" != "$jj" ]; then
                     jj_real=$(_k_misc_get_realpath $jj)
                     if [ -n "$jj_real" -a -e "$jj_real" ]; then
@@ -109,14 +113,15 @@ gen_create() {
                        echo "$jj not found"
                     fi
                  fi
-              fi
-           done
-        else
-           if [ "$src_type" == "synclists" ]; then
+               fi
+             done
+          else
+             if [ "$src_type" == "synclists" ]; then
                env_files="${env_files}$_KXC_HOME/share/hpc_syncfile"
-           fi
-        fi
-    done
+             fi
+          fi
+       done
+    fi
 
     [ -n "$env_files" ] && chdef -t osimage ${new_group} $env_files
 
@@ -261,4 +266,65 @@ clone() {
     elif [ "$type" == "statelite" ]; then
         echo
     fi
+}
+
+pkg_move() {
+   group_name=$1
+   pkg_type=$2
+
+   img_info_file=/install/groups/$group_name/org_image.info
+   [ -f "$img_info_file" ] || return 1
+   for pkg_dir in $(cat $img_info_file  | awk -F= -v ptype=$pkg_type '{if($1==ptype) print $2}' | sed "s/,/ /g"); do
+      image_pkg_dir=/install/groups/$group_name/pkgs/$(basename $pkg_dir).${pkg_type}
+      if [ -n "$pkg_dir" -a -n "$image_pkg_dir" -a ! -d "$pkg_dir" -a -d "$image_pkg_dir" ]; then
+         mkdir -p $(dirname $pkg_dir)
+         mv $image_pkg_dir $pkg_dir
+      fi
+   done
+}
+
+import_img() {
+   group_name=$1
+   image_file=$2
+   no_boot_script=$3
+
+   [ ! -n "$group_name" -o ! -n "$image_file" ] && error_exit "$(basename $0) <group name> <image file> [-nbs]"
+
+   [ -f "$image_file" ] || error_exit "$image_file not found"
+   lsdef -t osimage $group_name >& /dev/null && error_exit "Already $group_name exist"
+   [ -d /install/groups/$group_name ] && mv /install/groups/$group_name  /install/groups/${group_name}.DEL
+   mkdir -p /install/groups/$group_name
+   tar xf $image_file -C /install/groups/$group_name
+   if [ ! -f /install/groups/$group_name/image.info ]; then
+       rm -fr /install/groups/$group_name
+       error_exit "image.info file not found"
+   fi
+   old_group=$(grep ":$" /install/groups/$group_name/image.info |awk -F: '{print $1}')
+   gen_create "$old_group" "$group_name" "/install/groups/$group_name/image.info"
+   if [ -d /install/groups/$group_name/env ]; then
+      unset env_update
+      declare -A env_update
+      for ii in $(ls /install/groups/$group_name/env/*.env.* 2>/dev/null); do
+         env_file_arr=($(echo $ii | sed "s/\.env\./ /g"))
+         [ -n "${env_update[${env_file_arr[1]}]}" ] && env_update[${env_file_arr[1]}]="${env_update[${env_file_arr[1]}]},${env_file_arr[0]}" || env_update[${env_file_arr[1]}]=${env_file_arr[0]}
+         mv $ii ${env_file_arr[0]}
+      done
+      for ii in ${!env_update[@]}; do
+         chdef -t osimage ${group_name} ${ii}=${env_update[$ii]}
+      done
+   fi
+   chdef -t osimage ${group_name} rootimgdir=/install/groups/${group_name}
+   if [ -d /install/groups/$group_name/pkgs ]; then
+      pkg_move "$group_name" "pkgdir" || error_exit "org_image.info file not found"
+      pkg_move "$group_name" "otherpkgdir" || error_exit "org_image.info file not found"
+   fi
+   if [ "$no_boot_script" != "-nbs" ]; then
+      [ -d /install/groups/$group_name/xcat_boot.d/image ] && cp -a /install/groups/$group_name/xcat_boot.d/image/* /global/xcat_boot.d/$group_name
+      if [ -d /install/groups/$group_name/xcat_boot.d/global ]; then
+         cp -a /install/groups/$group_name/xcat_boot.d/image/* /global/xcat_boot.d/$group_name
+      fi
+      if [ -d /install/groups/$group_name/xcat_boot.d/postscripts ]; then
+         cp -a /install/groups/$group_name/xcat_boot.d/postscripts/* /global/xcat_boot.d/$group_name
+      fi 
+   fi
 }
