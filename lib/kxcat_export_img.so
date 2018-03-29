@@ -27,14 +27,13 @@ else
 fi
 [ -f $outfile ] && error_exit "exist $outfile"
 
-echo "It take about 10~40min, it depend on disk I/O speed"
-
 #[ -d $export_dir ] && rm -fr $export_dir
 [ -d $export_dir ] && error_exit "Alread exists working directory($export_dir)"
 mkdir -p $export_dir
 lsxcatd -a | grep -v "Management Node" |  awk '{if($1=="Version") printf "xcat_version=%s\n",$2; else print}' > $export_dir/init_org_image.info
 echo kxcat_version=$(kxcat --version) >> $export_dir/init_org_image.info
 if lsdef -t osimage $image_name >> $export_dir/init_org_image.info ; then
+   echo "It take about 5~30min, it depend on disk I/O speed"
    org_image_dir=$(grep "rootimgdir=" $export_dir/init_org_image.info | awk -F= '{print $2}')
    rsync -a $org_image_dir/ --exclude "rootimg/*" --exclude "pkgs/*" --exclude "xcat_boot.d/*" --exclude "*.ORIG" --exclude "image.info" $export_dir
    [ -d $export_dir/pkgs ] && rm -fr $export_dir/pkgs
