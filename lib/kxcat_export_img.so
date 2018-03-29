@@ -36,7 +36,9 @@ lsxcatd -a | grep -v "Management Node" |  awk '{if($1=="Version") printf "xcat_v
 echo kxcat_version=$(kxcat --version) >> $export_dir/init_org_image.info
 if lsdef -t osimage $image_name >> $export_dir/init_org_image.info ; then
    org_image_dir=$(grep "rootimgdir=" $export_dir/init_org_image.info | awk -F= '{print $2}')
-   rsync -a $org_image_dir/ --exclude "rootimg/*" --exclude "*.ORIG" $export_dir
+   rsync -a $org_image_dir/ --exclude "rootimg/*" --exclude "pkgs/*" --exclude "xcat_boot.d/*" --exclude "*.ORIG" --exclude "image.info" $export_dir
+   [ -d $export_dir/pkgs ] && rm -fr $export_dir/pkgs
+   [ -d $export_dir/xcat_boot.d ] && rm -fr $export_dir/xcat_boot.d
    [ -f $export_dir/org_image.info ] && rm -f $export_dir/org_image.info
    mv $export_dir/init_org_image.info $export_dir/org_image.info
    sed -i "s/^    //g" $export_dir/org_image.info
