@@ -18,7 +18,7 @@ done
 <pkg level>
 0: Image only
 1: Image and rootimg directory
-2: Image, rootimg and otherpkg directories"
+2: Image, rootimg and otherpkg directories (default)"
 export_dir=/tmp/kxcat_export_img/$image_name
 if [ -n "$outfile" ]; then
    [ "$(dirname $outfile)" == "." ] && outfile=${opwd}/$(echo ${outfile} | sed "s/\.kgi$//g").kgi
