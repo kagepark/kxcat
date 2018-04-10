@@ -1,0 +1,26 @@
+####################################
+# License : GPL
+####################################
+
+del_node() {
+    local hostname opt
+    if (( ${#} != 1 )); then
+         echo "${FUNCNAME} <node name>"
+         exit
+    fi
+    node_list=($( echo $(echo $(lsdef $(echo $* | sed "s/ /,/g") -i groups 2>/dev/null | sed -e "s/ //g" -e "s/groups=/:/g") | sed "s/ //g" | sed "s/Objectname:/\n/g")))
+
+    chk=0
+    for ((ii=0; ii<${#node_list[*]}; ii++)); do
+        [ "$(echo ${node_list[$ii]} | awk -F: '{print $2}')" == "all,n" ] || chk=0
+        chk=$(($chk+1))
+    done
+
+    echo "$chk == ${#node_list[*]}"
+    exit
+    if [ "$chk" == "${#node_list[*]}" ]; then
+       rmdef -t node $*
+    else
+       error_exit "$* has wrong node name"
+    fi
+}

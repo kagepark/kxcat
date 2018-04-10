@@ -14,7 +14,7 @@ chroot <image name>          # configure netboot(disk-less) image
 import_img <image name> <img file> # Import <img file> to <image name>
 export_img <image name> <img file> # Export <image name> to <img file>
 
-# groups
+#groups
 define         # define group to nodes
 free           # undefine group to nodes
 clone          # clone group
@@ -22,14 +22,17 @@ make           # make new group
 remove         # remove a group
 
 
+#Node 
+add_node <node name> <hostname> <ip> <mac>   # Add a new node
+del_node <node name>                         # remove the node
+
 #Host
 change node    # change node's information
 updatenode     # Update information to node
 update         # Update information to node or group
-clone_host <base host> <hostname> <ip> <mac> # clone to host from <base host> template
-add_host <base host> <hostname> <ip> <mac>   # Add new host
 console        # ompute node's console
 power          # compute node's power handle
+clone_host <base host> <hostname> <ip> <mac> # clone to host from <base host> template
 
 #tools
 backup         # Backup DB

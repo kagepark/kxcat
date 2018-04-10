@@ -2,7 +2,7 @@
 # License : GPL
 ####################################
 
-add_host() {
+add_node() {
     local hostname opt
     opt=($*)
     if (( ${#opt[*]} < 7 )); then
