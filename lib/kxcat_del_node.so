@@ -8,7 +8,7 @@ del_node() {
          echo "${FUNCNAME} <node name>"
          exit
     fi
-    node_info=$(lsdef $(echo $* | sed "s/ /,/g") -i groups 2>/dev/null) || error_exit "$* has wrong node name"
+    node_info=$(lsdef $(echo $* | sed "s/ /,/g") -i groups 2>/dev/null) || error_exit "$* has wrong node name or hostname, please check with \"$(basename $0) nodes\" command"
 
     node_list=($( echo $(echo $(echo "$node_info" | sed -e "s/ //g" -e "s/groups=/:/g") | sed "s/ //g" | sed "s/Objectname:/\n/g")))
 
