@@ -18,8 +18,6 @@ del_node() {
         chk=$(($chk+1))
     done
 
-    echo "$chk == ${#node_list[*]}"
-    exit
     if [ "$chk" == "${#node_list[*]}" ]; then
        rmdef -t node $*
     else
