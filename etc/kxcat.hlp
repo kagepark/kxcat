@@ -30,8 +30,8 @@ del_node <node name>                         # remove the node
 change node    # change node's information
 updatenode     # Update information to node
 update         # Update information to node or group
-console        # ompute node's console
 power          # compute node's power handle
+console        # compute node's console (Exit: Control + e + c + .)
 clone_host <base host> <hostname> <ip> <mac> # clone to host from <base host> template
 
 #tools
