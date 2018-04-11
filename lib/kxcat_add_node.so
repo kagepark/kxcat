@@ -18,7 +18,7 @@ add_node() {
 
     # Need Check up the node is in the xCAT or not
     node_id=$(lsdef -t node -i id | grep "id=" | sed "s/id=//g" | sort -n | tail -n1)
-    node_snum=$(( $([ -n "$node_id" ] || echo 0) + 1 ))
+    node_snum=$(( $([ -n "$node_id" ] && echo $node_id || echo 0) + 1 ))
     node_name=n$(printf "%05d" $node_snum)
 
     [ -n "$node_mac" ] || node_mac="00:00:00:00:00:00"
