@@ -9,10 +9,16 @@ error_exit() {
 
 if [ -f /etc/profile.d/slurm.sh ]; then
     source /etc/profile.d/slurm.sh
-    [ -f $localstatedir/run/slurmctld.pid ] || error_exit "Not running SLURM"
+    [ -f $localstatedir/run/slurmd.pid ] || error_exit "SLURMD not running"
+    pid=$(< $localstatedir/run/slurmd.pid)
+    if [ ! -d /proc/$pid ]; then
+       echo "SLURMD not running"
+       exit
+    fi
+    [ -f $localstatedir/run/slurmctld.pid ] || error_exit "SLURM ControlD not running"
     pid=$(< $localstatedir/run/slurmctld.pid)
     if [ ! -d /proc/$pid ]; then
-       echo "Not running SLURM"
+       echo "SLURM ControldD not running"
        exit
     fi
 else
