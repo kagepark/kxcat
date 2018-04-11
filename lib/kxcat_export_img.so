@@ -35,8 +35,9 @@ echo kxcat_version=$(kxcat --version) >> $export_dir/init_org_image.info
 if lsdef -t osimage $image_name >> $export_dir/init_org_image.info ; then
    echo "It take about 5~30min, it depend on disk I/O speed"
    org_image_dir=$(grep "rootimgdir=" $export_dir/init_org_image.info | awk -F= '{print $2}')
-   rsync -a $org_image_dir/ --exclude "rootimg/*" --exclude "pkgs/*" --exclude "xcat_boot.d/*" --exclude "*.ORIG" --exclude "image.info" $export_dir
+   rsync -a $org_image_dir/ --exclude "rootimg/*" --exclude "pkgs/*" --exclude "xcat_boot.d/*" --exclude "*.ORIG" --exclude "*image.info" $export_dir
    [ -d $export_dir/pkgs ] && rm -fr $export_dir/pkgs
+   [ -d $export_dir/rootimg ] && rm -fr $export_dir/rootimg
    [ -d $export_dir/xcat_boot.d ] && rm -fr $export_dir/xcat_boot.d
    [ -f $export_dir/org_image.info ] && rm -f $export_dir/org_image.info
    mv $export_dir/init_org_image.info $export_dir/org_image.info
@@ -46,7 +47,12 @@ if lsdef -t osimage $image_name >> $export_dir/init_org_image.info ; then
    sed -i "s/$obj_name/$new_name/g" $export_dir/org_image.info
    lsdef -t osimage -z $image_name > $export_dir/image.info
    if (( $ignore_pkg >= 1 )); then
-      rsync -a $org_image_dir/rootimg $export_dir
+      rsync -a $org_image_dir/rootimg --exclude "sys/*" --exclude "dev/*" --exclude "tmp/*" --exclude "media/*" --exclude "proc/*" --exclude "mnt/*" --exclude "srv/*" $export_dir
+      for ii in sys dev tmp media proc mnt srv; do
+          [ -d $export_dir/rootimg/$ii ] || mkdir -p $export_dir/rootimg/$ii
+      done
+      chmod 1777 $export_dir/rootimg/tmp
+
       if (( $ignore_pkg >= 2 )); then
          mkdir -p $export_dir/pkgs
          for ii in $(grep "pkgdir=" $export_dir/org_image.info); do
