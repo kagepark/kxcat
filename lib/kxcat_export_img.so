@@ -52,6 +52,9 @@ if lsdef -t osimage $image_name >> $export_dir/init_org_image.info ; then
           [ -d $export_dir/rootimg/$ii ] || mkdir -p $export_dir/rootimg/$ii
       done
       chmod 1777 $export_dir/rootimg/tmp
+      # remove garbage in /root
+      root_gb=$(ls $export_dir/rootimg/root/ 2>/dev/null)
+      [ -n "$root_gb" ] && ( cd $export_dir/rootimg/root/ && rm -fr $root_gb)
 
       if (( $ignore_pkg >= 2 )); then
          mkdir -p $export_dir/pkgs
