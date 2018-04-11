@@ -6,14 +6,14 @@ add_node() {
     local hostname opt
     opt=($*)
     if (( ${#opt[*]} < 1 || ${#opt[*]} > 6 )); then
-         echo "${FUNCNAME} <arch> [<eth0 mac>] [<power mode> [<bmc ip> <bmc_user> <bmc pass>]]"
+         echo "${FUNCNAME} <arch> [<eth0 mac>] [<power mode> [<bmc ip> <bmc user> <bmc pass>]]"
          echo
          echo "<arch>"
          echo "  x86_64"
          echo
          echo "<power mode>"
          echo "  ipmi: default"
-         echo "  vbox: without IPMI"
+         echo "  vbox: without IPMI. Do not need <bmc ip> <bmc user> <bmc pass>"
          exit
     fi
     base_arch=$1
