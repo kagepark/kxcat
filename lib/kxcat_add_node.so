@@ -30,5 +30,5 @@ add_node() {
        BMC_STR="bmc=$bmc_ip bmcusername=$bmc_user bmcpassword=$bmc_pass cons=ipmi"
        CONSOLE_STR="serialflow=none serialport=$(echo $SOL_DEV| sed "s/ttyS//g") serialspeed=${SOL_SPEED}"
     fi
-    mkdef -t node $node_name groups=all,n id=$node_snum arch=$base_arch mac=$node_mac mgt=$BMC_MODE $BMC_STR netboot=xnba provmethod= $CONSOLE_STR xcatmaster=${MGT_IP}
+    echo mkdef -t node $node_name groups=all,n id=$node_snum arch=$base_arch mac=$node_mac mgt=$BMC_MODE $BMC_STR netboot=xnba provmethod= $CONSOLE_STR xcatmaster=${MGT_IP}
 }
