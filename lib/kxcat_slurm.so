@@ -9,6 +9,7 @@ error_exit() {
 
 if [ -f /etc/profile.d/slurm.sh ]; then
     source /etc/profile.d/slurm.sh
+    [ -f $localstatedir/run/slurmctld.pid ] || error_exit "Not running SLURM"
     pid=$(< $localstatedir/run/slurmctld.pid)
     if [ ! -d /proc/$pid ]; then
        echo "Not running SLURM"
