@@ -3,12 +3,16 @@ export PATH=/bin:/sbin:/usr/bin:/usr/sbin
 # KG Feature for booting procedure
 
 if [ -d /xcatpost/xcat_boot.d ]; then
-   cd /xcatpost/xcat_boot.d
-   for ii in $(ls | sort -n); do
+   #cd /xcatpost/xcat_boot.d
+   cd /tmp
+   for ii in $(ls /xcatpost/xcat_boot.d | sort -n); do
       echo
       echo " ** Run /xcatpost/xcat_boot.d/$ii at $(date)"
-      [ "$ii" == "0000_update_state" ] && /usr/bin/bash /xcatpost/xcat_boot.d/$ii || \
-      /usr/bin/bash -x /xcatpost/xcat_boot.d/$ii 
+      if [ "$ii" == "0000_update_state" ]; then
+          /usr/bin/nohup /usr/bin/bash /xcatpost/xcat_boot.d/$ii && echo " - OK" || echo " - Fail"
+      else
+          /usr/bin/bash -x /xcatpost/xcat_boot.d/$ii && echo " - OK" || echo " - Fail"
+      fi
    done >> /tmp/xcat_boot.log
 fi
 
@@ -58,7 +62,7 @@ if [ -d /global/xcat_boot.d ]; then
          if [ -f /global/xcat_boot.d/global/${global_shell[$ii]} ]; then
            echo 
            echo " ** Run global/${global_shell[$ii]} at $(date)"
-           /usr/bin/bash -x /global/xcat_boot.d/global/${global_shell[$ii]}
+           /usr/bin/bash -x /global/xcat_boot.d/global/${global_shell[$ii]} && echo " - OK" || echo " - Fail"
          fi
       done >> /tmp/xcat_boot.log
    fi
@@ -68,7 +72,7 @@ if [ -d /global/xcat_boot.d ]; then
          if [ -f /global/xcat_boot.d/${group}/${group_shell[$ii]} ]; then
             echo
             echo " ** Run $group/${group_shell[$ii]} at $(date)"
-            /usr/bin/bash -x /global/xcat_boot.d/${group}/${group_shell[$ii]}
+            /usr/bin/bash -x /global/xcat_boot.d/${group}/${group_shell[$ii]} && echo " - OK" || echo " - Fail"
          fi
    done >> /tmp/xcat_boot.log
 fi
