@@ -6,7 +6,7 @@ add_node() {
     local hostname opt
     opt=($*)
     if (( ${#opt[*]} < 1 || ${#opt[*]} > 6 )); then
-         echo "${FUNCNAME} <arch> [<eth0 mac>] [<power mode>] [<bmc ip> <bmc_user> <bmc pass>]"
+         echo "${FUNCNAME} <arch> [<eth0 mac>] [<power mode> [<bmc ip> <bmc_user> <bmc pass>]]"
          exit
     fi
     base_arch=$1
@@ -22,7 +22,7 @@ add_node() {
     node_name=n$(printf "%05d" $node_snum)
 
     [ -n "$node_mac" ] || node_mac="00:00:00:00:00:00"
-    [ -n "$POWER_MODE" ] || POWER_MODE=xcat
+    [ -n "$POWER_MODE" ] || POWER_MODE=ipmi
     if [ "$POWER_MODE" == "ipmi" -o "$POWER_MODE" == "xcat" ]; then
        [ -n "$bmc_user" ] || bmc_user=$BMC_USER
        [ -n "$bmc_pass" ] || bmc_pass=$BMC_PASS
@@ -30,5 +30,5 @@ add_node() {
        BMC_STR="bmc=$bmc_ip bmcusername=$bmc_user bmcpassword=$bmc_pass cons=ipmi"
        CONSOLE_STR="serialflow=none serialport=$(echo $SOL_DEV| sed "s/ttyS//g") serialspeed=${SOL_SPEED}"
     fi
-    echo mkdef -t node $node_name groups=all,n id=$node_snum arch=$base_arch mac=$node_mac mgt=$BMC_MODE $BMC_STR netboot=xnba provmethod= $CONSOLE_STR xcatmaster=${MGT_IP}
+    echo mkdef -t node $node_name groups=all,n id=$node_snum arch=$base_arch mac=$node_mac mgt=$POWER_MODE $BMC_STR netboot=xnba provmethod= $CONSOLE_STR xcatmaster=${MGT_IP}
 }
