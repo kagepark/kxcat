@@ -480,8 +480,8 @@ for ((node_snum=1; node_snum<=$MAX_NODES; node_snum++)); do
    [ -n "$node_mac" ] || node_mac="00:00:00:00:00:00"
    [ -n "$POWER_MODE" ] || POWER_MODE=xcat
    if [ "$POWER_MODE" == "ipmi" -o "$POWER_MODE" == "xcat" ]; then
-       BMC_STR="bmc=$node_bmc_IP bmcusername=$BMC_USER bmcpassword=$BMC_PASS cons=ipmi"
        [ -n "$node_bmc_IP" ] || node_bmc_IP=$(_k_net_add_ip $BMC_NETWORK $node_snum)
+       BMC_STR="bmc=$node_bmc_IP bmcusername=$BMC_USER bmcpassword=$BMC_PASS cons=ipmi"
        CONSOLE_STR="serialflow=none serialport=$(echo $SOL_DEV| sed "s/ttyS//g") serialspeed=${SOL_SPEED}"
    fi
    mkdef -t node $node_name groups=all,n id=$node_snum arch=$base_arch mac=$node_mac mgt=$BMC_MODE $BMC_STR netboot=xnba provmethod= $CONSOLE_STR xcatmaster=${MGT_IP}

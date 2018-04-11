@@ -5,22 +5,30 @@
 add_node() {
     local hostname opt
     opt=($*)
-    if (( ${#opt[*]} < 7 )); then
-         echo "${FUNCNAME} <node name> <eth0 mac> <bmc ip> <bmc_user> <bmc pass> <base_image> <base_arch>"
+    if (( ${#opt[*]} < 1 || ${#opt[*]} > 6 )); then
+         echo "${FUNCNAME} <arch> [<eth0 mac>] [<power mode>] [<bmc ip> <bmc_user> <bmc pass>]"
          exit
     fi
-
-    node=$1
-    #Get a group name
-    group=??
-    eth0_mac=$2
-    bmc_ip=$3
-    bmc_user=$4
-    bmc_pass=$5
-    base_image=$6
-    base_arch=$7
+    base_arch=$1
+    node_mac=$2
+    POWER_MODE=$3
+    bmc_ip=$4
+    bmc_user=$5
+    bmc_pass=$6
 
     # Need Check up the node is in the xCAT or not
+    node_id=$(lsdef -t node -i id | grep "id=" | sed "s/id=//g" | sort -n | tail -n1)
+    node_snum=$(( $([ -n "$node_id" ] || echo 0) + 1 ))
+    node_name=n$(printf "%05d" $node_snum)
 
-    mkdef -t node $node groups=all,${group} arch=$base_arch bmc=$bmc_ip bmcusername=$bmc_user bmcpassword=$bmc_pass mac=$eth0_mac mgt=ipmi netboot=xnba provmethod=$base_image
+    [ -n "$node_mac" ] || node_mac="00:00:00:00:00:00"
+    [ -n "$POWER_MODE" ] || POWER_MODE=xcat
+    if [ "$POWER_MODE" == "ipmi" -o "$POWER_MODE" == "xcat" ]; then
+       [ -n "$bmc_user" ] || bmc_user=$BMC_USER
+       [ -n "$bmc_pass" ] || bmc_pass=$BMC_PASS
+       [ -n "$bmc_ip" ] || bmc_ip=$(_k_net_add_ip $BMC_NETWORK $node_snum)
+       BMC_STR="bmc=$bmc_ip bmcusername=$bmc_user bmcpassword=$bmc_pass cons=ipmi"
+       CONSOLE_STR="serialflow=none serialport=$(echo $SOL_DEV| sed "s/ttyS//g") serialspeed=${SOL_SPEED}"
+    fi
+    mkdef -t node $node_name groups=all,n id=$node_snum arch=$base_arch mac=$node_mac mgt=$BMC_MODE $BMC_STR netboot=xnba provmethod= $CONSOLE_STR xcatmaster=${MGT_IP}
 }
