@@ -415,6 +415,7 @@ node_short=" /install/postscripts/xcatdsklspost
   cp -a $_KXCAT_HOME/share/0002_mpi_net /install/postscripts/xcat_boot.d
   cp -a $_KXCAT_HOME/share/0003_ntp /install/postscripts/xcat_boot.d
   [ -d /global/xcat_boot.d/global ] || mkdir -p /global/xcat_boot.d/global
+  cp -a $_KXCAT_HOME/share/0000_home_mount /global/xcat_boot.d/global
   if [ -n "$BMC_UPDATE" ]; then
        echo "$BMC_UPDATE" > /global/xcat_boot.d/bmc 
   else

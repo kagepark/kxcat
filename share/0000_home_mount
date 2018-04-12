@@ -1,0 +1,2 @@
+[ -d /home ] || mkdir /home
+[ -d /global/home ] && mount -o bind /global/home /home
