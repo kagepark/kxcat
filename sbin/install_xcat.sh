@@ -410,10 +410,17 @@ node_short=" /install/postscripts/xcatdsklspost
   cp -a $_KXCAT_HOME/share/kxcatboot /install/postscripts
   [ -d /install/postscripts/xcat_boot.d ] || mkdir -p /install/postscripts/xcat_boot.d
   cp -a $_KXCAT_HOME/share/0000_update_state /install/postscripts/xcat_boot.d
+  cp -a $_KXCAT_HOME/share/0001_bmc_set /install/postscripts/xcat_boot.d
   cp -a $_KXCAT_HOME/share/0001_cleanyum /install/postscripts/xcat_boot.d
   cp -a $_KXCAT_HOME/share/0002_mpi_net /install/postscripts/xcat_boot.d
   cp -a $_KXCAT_HOME/share/0003_ntp /install/postscripts/xcat_boot.d
   [ -d /global/xcat_boot.d/global ] || mkdir -p /global/xcat_boot.d/global
+  if [ -n "$BMC_UPDATE" ]; then
+       echo "$BMC_UPDATE" > /global/xcat_boot.d/bmc 
+  else
+       echo "s2c" > /global/xcat_boot.d/bmc 
+       echo "BMC_UPDATE=s2c" >> $_KXCAT_HOME/etc/kxcat.cfg
+  fi
   if ! grep "^/global" /etc/exports >& /dev/null; then
      echo "/global *(rw,no_root_squash,sync,no_subtree_check)" >> /etc/exports
      exportfs -ra

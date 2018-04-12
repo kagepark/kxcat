@@ -2,20 +2,6 @@
 export PATH=/bin:/sbin:/usr/bin:/usr/sbin
 # KG Feature for booting procedure
 
-if [ -d /xcatpost/xcat_boot.d ]; then
-   #cd /xcatpost/xcat_boot.d
-   cd /tmp
-   for ii in $(ls /xcatpost/xcat_boot.d | sort -n); do
-      echo
-      echo " ** Run /xcatpost/xcat_boot.d/$ii at $(date)"
-      if [ "$ii" == "0000_update_state" ]; then
-          /usr/bin/nohup /usr/bin/bash /xcatpost/xcat_boot.d/$ii && echo " - OK" || echo " - Fail"
-      else
-          /usr/bin/bash -x /xcatpost/xcat_boot.d/$ii && echo " - OK" || echo " - Fail"
-      fi
-   done >> /tmp/xcat_boot.log
-fi
-
 [ -d /global ] || mkdir -p /global
 for ii in $(cat /proc/cmdline); do
    xcat_server_ip=$(echo $ii | awk -F= '{if($1=="XCAT") print $2}' | awk -F: '{print $1}')
@@ -32,6 +18,20 @@ if [ -n "$xcat_server_ip" ]; then
   fi
 else
   echo "Can't find Master or XCATSERVER IP"
+fi
+
+if [ -d /xcatpost/xcat_boot.d ]; then
+   #cd /xcatpost/xcat_boot.d
+   cd /tmp
+   for ii in $(ls /xcatpost/xcat_boot.d | sort -n); do
+      echo
+      echo " ** Run /xcatpost/xcat_boot.d/$ii at $(date)"
+      if [ "$ii" == "0000_update_state" ]; then
+          /usr/bin/nohup /usr/bin/bash /xcatpost/xcat_boot.d/$ii && echo " - OK" || echo " - Fail"
+      else
+          /usr/bin/bash -x /xcatpost/xcat_boot.d/$ii && echo " - OK" || echo " - Fail"
+      fi
+   done >> /tmp/xcat_boot.log
 fi
 
 if [ -f /xcatpost/mypostscript ]; then

@@ -1,0 +1,24 @@
+get_master_ip() {
+   for ii in $(cat /proc/cmdline); do
+      xcat_server_ip=$(echo $ii | awk -F= '{if($1=="XCAT") print $2}' | awk -F: '{print $1}')
+      [ -n "$xcat_server_ip" ] && break
+   done
+   [ -f /opt/xcat/xcatinfo ] &&  . /opt/xcat/xcatinfo
+   [ ! -n "$xcat_server_ip" -a -n "$XCATSERVER" ] &&  xcat_server_ip=$XCATSERVER
+   [ ! -n "$xcat_server_ip" -a -f /xcatpost/mypostscript ] && xcat_server_ip=$(awk -F= '{if("^MASTER_IP" == $1) print $2}' /xcatpost/mypostscript)
+   [ -n "$xcat_server_ip" ] && echo $xcat_server_ip
+}
+
+if [ -f /global/xcat_boot.d/bmc ]; then
+    mgt_ip=$(get_master_ip)
+    [ -n "$mgt_ip" ] || exit 1
+
+    if [ "$(cat /global/xcat_boot.d/bmc)" == "c2s" ]; then
+        ipmi_ip=$(ipmitool lan print | sed "s/ //g" | awk -F: '{if($1=="IPAddress") print $2}')
+        ssh $mgt_ip "chdef -t node -o $(hostname) bmc=$ipmi_ip"
+    else
+        ipmi_ip=$(ssh $mgt_ip "lsdef -t node -o $(hostname)" -i bmc | sed "s/ //g"| awk -F= '{if($1=="bmc") print $2}')
+        echo ipmitool lan set 1 ipaddr $ipmi_ip >/tmp/$(basename $0).log
+    fi
+fi
+
