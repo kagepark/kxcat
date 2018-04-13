@@ -97,6 +97,7 @@ while [ 1 ]; do
       sleep 30
       continue
   fi
+  bmc_mode=$([ -f /global/xcat_boot.d/bmc ] && cat /global/xcat_boot.d/bmc)
   kxcat_ini
   sw_chk=0
   udn=""
@@ -124,6 +125,10 @@ while [ 1 ]; do
        #sed -i "/host $nn {/,/^}/d" /var/lib/dhcpd/dhcpd.leases
        makedhcp -d $nn
        makedhcp $nn
+       if [ "$bmc_mode" == "c2s" ]; then
+           makeconservercf -d $nn
+           makeconservercf $nn
+       fi
        (( $(stat -c %s /tmp/kxcat_sw.log) > $((10 * 1024 * 1024)) )) && mv /tmp/kxcat_sw.log.1
        echo "$(date +"%Y-%m-%d %H:%M:%S") : $nn : changed from $nnm to ${port[$id]}" >> /tmp/kxcat_sw.log
        for ((ii=1; ii<${#kxcat[*]}; ii++)); do
@@ -132,6 +137,10 @@ while [ 1 ]; do
                [ "$nn" == "$nnf" ] && continue
                makedhcp -d $nnf
                makedhcp $nnf
+               if [ "$bmc_mode" == "c2s" ]; then
+                   makeconservercf -d $nnf
+                   makeconservercf $nnf
+               fi
                echo "$(date +"%Y-%m-%d %H:%M:%S") : $nnf : fixed conflicted mac ($nnm)" >> /tmp/kxcat_sw.log
            fi
        done

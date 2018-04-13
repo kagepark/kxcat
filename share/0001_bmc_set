@@ -14,8 +14,14 @@ if [ -f /global/xcat_boot.d/bmc ]; then
     [ -n "$mgt_ip" ] || exit 1
 
     if [ "$(cat /global/xcat_boot.d/bmc)" == "c2s" ]; then
+        eth_dev=$(awk -F= '{if($1=="DHCPINTERFACES") print $2}' /xcatpost/mypostscript 2>/dev/null | sed -e "s/\"//g" -e "s/'//g")
+        [ -n "$eth_dev" ] || exit 1
+        eth_mac=$(cat /sys/class/net/$eth_dev/address 2>/dev/null)
+        find_hostname=$(echo $(ssh $mgt_ip "lsdef -t node -i mac" | sed "s/ //g") | sed "s/ mac=/|/g" | sed "s/Objectname:/\n/g" | sed "s/ //g" | awk -F\| -v mm=$eth_mac '{if($2==mm) print $1}')
+        [ -n "$find_hostname" ] || exit 1
         ipmi_ip=$(ipmitool lan print | sed "s/ //g" | awk -F: '{if($1=="IPAddress") print $2}')
-        ssh $mgt_ip "chdef -t node -o $(hostname) bmc=$ipmi_ip"
+        #echo "ssh $mgt_ip \"chdef -t node -o $find_hostname bmc=$ipmi_ip\"" > /tmp/$(basename $0).log
+        [ -n "$find_hostname" ] && ssh $mgt_ip "chdef -t node -o $find_hostname bmc=$ipmi_ip"
     else
         ipmi_ip=$(ssh $mgt_ip "lsdef -t node -o $(hostname)" -i bmc | sed "s/ //g"| awk -F= '{if($1=="bmc") print $2}')
         echo ipmitool lan set 1 ipaddr $ipmi_ip >/tmp/$(basename $0).log
