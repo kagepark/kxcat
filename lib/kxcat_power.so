@@ -60,7 +60,7 @@ power() {
            destnodes=$(echo $(echo $(lsdef $(echo $hosts|sed "s/ /,/g") -i status |sed "s/status=/:/g")| sed "s/ //g" | sed "s/Objectname:/\n/g" | grep -v ":installing$" | awk -F: '{print $1}') | sed "s/ /,/g")
        [ -n "$destnodes" ] && rpower $destnodes $pwcmd
     else
-       [ ! -f $_KXC_HOME/sbin/${POWER_MODE}_power ] || error_exit "sbin/${POWER_MODE}_power file not found"
+       [ -f $_KXC_HOME/sbin/${POWER_MODE}_power ] || error_exit "sbin/${POWER_MODE}_power file not found"
        for ii in $(echo $(lsdef $(echo $hosts|sed "s/ /,/g") -i bmc |sed "s/bmc=/:/g")| sed "s/ //g" | sed "s/Objectname:/ /g"); do
           $_KXC_HOME/sbin/${POWER_MODE}_power $(echo $ii| awk -F: '{print $2}') ${pwcmd} &
        done
