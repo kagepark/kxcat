@@ -62,7 +62,7 @@ power() {
     else
        [ -f $_KXC_HOME/sbin/${POWER_MODE}_power ] || error_exit "sbin/${POWER_MODE}_power file not found"
        for ii in $(echo $(lsdef $(echo $hosts|sed "s/ /,/g") -i bmc |sed "s/bmc=/:/g")| sed "s/ //g" | sed "s/Objectname:/ /g"); do
-          $_KXC_HOME/sbin/${POWER_MODE}_power $(echo $ii| awk -F: '{print $2}') ${pwcmd} &
+          echo "$(echo $ii| awk -F: '{print $1}'): $($_KXC_HOME/sbin/${POWER_MODE}_power $(echo $ii| awk -F: '{print $2}') ${pwcmd} && echo ${pwcmd} || echo fail)"
        done
        wait
        echo
