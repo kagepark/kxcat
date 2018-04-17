@@ -486,13 +486,13 @@ for ((node_snum=1; node_snum<=$MAX_NODES; node_snum++)); do
    node_mac=$(echo $node_info | awk -F\| '{print $2}')
    node_bmc_IP=$(echo $node_info | awk -F\| '{print $3}')
    [ -n "$node_mac" ] || node_mac="00:00:00:00:00:00"
-   [ -n "$POWER_MODE" ] || POWER_MODE=ipmi
+   [ -n "$POWER_MODE" ] || POWER_MODE=xcat
    if [ "$POWER_MODE" == "ipmi" -o "$POWER_MODE" == "xcat" ]; then
        [ -n "$node_bmc_IP" ] || node_bmc_IP=$(_k_net_add_ip $BMC_NETWORK $node_snum)
        BMC_STR="bmc=$node_bmc_IP bmcusername=$BMC_USER bmcpassword=$BMC_PASS cons=ipmi"
        CONSOLE_STR="serialflow=none serialport=$(echo $SOL_DEV| sed "s/ttyS//g") serialspeed=${SOL_SPEED}"
    fi
-   mkdef -t node $node_name groups=all,n id=$node_snum arch=$base_arch mac=$node_mac mgt=$POWER_MODE $BMC_STR netboot=xnba provmethod= $CONSOLE_STR xcatmaster=${MGT_IP}
+   mkdef -t node $node_name groups=all,n id=$node_snum arch=$base_arch mac=$node_mac mgt=$([ "$POWER_MODE" == "xcat" ] && echo ipmi || echo ${POWER_MODE}) $BMC_STR netboot=xnba provmethod= $CONSOLE_STR xcatmaster=${MGT_IP}
 done
 
 #makehosts all 2>/dev/null
