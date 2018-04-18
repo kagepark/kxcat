@@ -158,7 +158,8 @@ while [ 1 ]; do
        fi
        (( $(stat -c %s /tmp/kxcat_sw.log) > $((10 * 1024 * 1024)) )) && mv /tmp/kxcat_sw.log.1
        echo "$(date +"%Y-%m-%d %H:%M:%S") : $nn : changed from $nnm to ${port[$id]}" >> /tmp/kxcat_sw.log
-       for ((ii=1; ii<${#kxcat[*]}; ii++)); do
+       if [ "$nnm" != "00:00:00:00:00:00" ]; then
+         for ((ii=1; ii<${#kxcat[*]}; ii++)); do
            if [ "$(echo ${kxcat[$ii]}|awk -F, '{print $2}')" == "$nnm" ]; then
                nnf=$(echo ${kxcat[$ii]} | awk -F, '{print $1}')
                [ "$nn" == "$nnf" ] && continue
@@ -170,7 +171,8 @@ while [ 1 ]; do
                fi
                echo "$(date +"%Y-%m-%d %H:%M:%S") : $nnf : fixed conflicted mac ($nnm)" >> /tmp/kxcat_sw.log
            fi
-       done
+         done
+       fi
     fi
   done
   sleep 40
