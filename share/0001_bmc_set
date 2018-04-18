@@ -9,14 +9,25 @@ get_master_ip() {
    [ -n "$xcat_server_ip" ] && echo $xcat_server_ip
 }
 
+reset() {
+   local eth_mac
+   eth_mac=$1
+   [ -n "$eth_mac" ] || return 1
+   if [ -f /xcatpost/mypostscript ]; then
+       db_mac_addr=$(awk -F= '{if($1=="MACADDRESS") print $2}' /xcatpost/mypostscript)
+       [ "$db_mac_addr" != "$eth_mac" ] && ipmitool chassis power reset
+   fi
+}
+
 if [ -f /global/xcat_boot.d/bmc ]; then
     mgt_ip=$(get_master_ip)
     [ -n "$mgt_ip" ] || exit 1
+    eth_dev=$(awk -F= '{if($1=="DHCPINTERFACES") print $2}' /xcatpost/mypostscript 2>/dev/null | sed -e "s/\"//g" -e "s/'//g")
+    [ -n "$eth_dev" ] || exit 1
+    eth_mac=$(cat /sys/class/net/$eth_dev/address 2>/dev/null)
+    reset $eth_mac
 
     if [ "$(cat /global/xcat_boot.d/bmc)" == "c2s" ]; then
-        eth_dev=$(awk -F= '{if($1=="DHCPINTERFACES") print $2}' /xcatpost/mypostscript 2>/dev/null | sed -e "s/\"//g" -e "s/'//g")
-        [ -n "$eth_dev" ] || exit 1
-        eth_mac=$(cat /sys/class/net/$eth_dev/address 2>/dev/null)
         find_hostname=$(echo $(ssh $mgt_ip "lsdef -t node -i mac" | sed "s/ //g") | sed "s/ mac=/|/g" | sed "s/Objectname:/\n/g" | sed "s/ //g" | awk -F\| -v mm=$eth_mac '{if($2==mm) print $1}')
         [ -n "$find_hostname" ] || exit 1
         ipmi_ip=$(ipmitool lan print | sed "s/ //g" | awk -F: '{if($1=="IPAddress") print $2}')
