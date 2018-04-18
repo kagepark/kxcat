@@ -270,7 +270,9 @@ net.core.rmem_default = 262144
 
 xcat_install() {
   ping -c 3 raw.githubusercontent.com  >& /dev/null || error_exit "Please setup outside network for auto installation for xCAT"
-  yum -y install dhcp dhcp-common dhcp-libs ntp ntpdate nfs nfs-utils httpd tftp bind screen rpcbind bind-utils wget git openssl openssl-libs sqlite pigz ipmitool net-tools quota-nls quota net-snmp-utils libselinux-utils
+  yum -y install dhcp dhcp-common dhcp-libs ntp ntpdate nfs nfs-utils httpd tftp bind rpcbind bind-utils openssl openssl-libs sqlite pigz ipmitool net-tools quota-nls quota net-snmp-utils libselinux-utils wget git screen minicom iotop 
+  # Build
+  yum -y install gcc gcc-c++ libgcc gcc-gfortran glibc libstdc++-devel glibc-devel tcl-devel zlib-devel kernel-headers kernel-devel 
   _k_servicectl dhcpd stop
   rpm -qa |grep libvirt-client >& /dev/null && yum erase libvirt-client
   [ -f ./go-xcat ] && rm -f go-xcat
