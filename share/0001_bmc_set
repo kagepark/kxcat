@@ -22,7 +22,7 @@ reset() {
 if [ -f /global/xcat_boot.d/bmc ]; then
     mgt_ip=$(get_master_ip)
     [ -n "$mgt_ip" ] || exit 1
-    eth_mac=$(cat /proc/cmdline | sed "s/ /\n/g" | awk -F= '{if($1=="BOOTIF") print $2}' | sed "s/-/:/g")
+    eth_mac=$(cat /proc/cmdline | sed "s/ /\n/g" | awk -F= '{if($1=="BOOTIF") print $2}' | sed "s/01-//g" | sed "s/-/:/g")
     reset $eth_mac
 
     if [ "$(cat /global/xcat_boot.d/bmc)" == "c2s" ]; then
