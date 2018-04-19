@@ -138,6 +138,15 @@ gen_create() {
         echo "${new_group}-$(printf "%04d" $ii) $ssh_key" >> /etc/ssh/ssh_known_hosts
         [ -n "$MPI_NETWORK" ] && echo "${new_group}-$(printf "%04d" $ii)-ib0 $ssh_key" >> /etc/ssh/ssh_known_hosts
     done
+    template_file=$(lsdef -t osimage ${new_group} -i template | sed "s/ //g" | awk -F= '{if($1=="template") print $2}')
+    if [ -n "$template_file" -a -f "$template_file" ]; then
+        sed -i "/^%include \/tmp\/partitionfile/ c\
+#%include \/tmp\/partitionfile \
+\npart biosboot --fstype=biosboot --size 1 \
+\npart \/boot --size 256 --fstype ext4  \
+\npart swap --recommended --ondisk sda \
+\npart \/ --size 1 --grow --fstype ext4 --ondisk sda" "$template_file"
+    fi
 }
 
 make() {
