@@ -54,34 +54,42 @@ update() {
          return 0
       fi
       #/opt/xcat/bin/updatenode $* 2>/dev/null
-      [ "$boot_script_update" != "1" -a "$reinstall" != "1" ] && /opt/xcat/bin/updatenode $dest ${opts[*]} 2>/dev/null
+      if [ "$boot_script_update" != "1" -a "$reinstall" != "1" ]; then
+          #/opt/xcat/bin/updatenode $dest ${opts[*]} 2>/dev/null
+          set_boot_nodes=$(echo $(echo $(lsdef $dest -i status) | sed "s/Object name: /\n/g" | grep "status=installing" | awk '{print $1}') | sed "s/ /,/g")
+          [ -n "$set_boot_nodes" ] && /opt/xcat/bin/updatenode $set_boot_nodes ${opts[*]} 2>/dev/null
+      fi
       if [ "$netboot_ignore_image" != "1" ]; then
          [ "$boot_script_update" != "1" ] && genimage $osimage
          [ -d /install/groups/${osimage}/rootimg/xcatpost ] || mkdir -p /install/groups/${osimage}/rootimg/xcatpost
          [ -d /install/groups/${osimage}/rootimg/opt/xcat ] || mkdir -p /install/groups/${osimage}/rootimg/opt/xcat
          cp -a /install/postscripts/xcatpostinit1.netboot /install/groups/${osimage}/rootimg/opt/xcat/xcatpostinit1 2>/dev/null
          cp -a /install/postscripts/xcatdsklspost /install/groups/${osimage}/rootimg/opt/xcat/ 2>/dev/null
-         rsync -a /install/postscripts/ /install/groups/${osimage}/rootimg/xcatpost/
+         rsync -a /install/postscripts/ /install/groups/${osimage}/rootimg/xcatpost/ 2>/dev/null
          chmod +x /install/groups/${osimage}/rootimg/xcatpost/kxcatboot
          [ -d /install/groups/${osimage}/rootimg/root ] || mkdir -p /install/groups/${osimage}/rootimg/root
          [ -d /install/groups/${osimage}/rootimg/root/.ssh ] && rm -fr /install/groups/${osimage}/rootimg/root/.ssh
-         rsync -a /root/.ssh  /install/groups/${osimage}/rootimg/root
+         rsync -a /root/.ssh  /install/groups/${osimage}/rootimg/root 2>/dev/null
          rm -f /install/groups/${osimage}/rootimg/root/.ssh/known_hosts
          touch /install/groups/${osimage}/rootimg/root/.ssh/known_hosts
          packimage $osimage
       fi
       nodeset $dest osimage=$osimage
    elif [ "$type" == "install" ]; then
+      set_boot_nodes=$(echo $(echo $(lsdef $dest -i status) | sed "s/Object name: /\n/g" | grep "status=installing" | awk '{print $1}') | sed "s/ /,/g")
       change_boot_mode=$(echo $(echo $(lsdef $dest -i currstate) | sed "s/Object name: /\n/g" | grep "currstate=boot" | awk '{print $1}') | sed "s/ /,/g")
       if [ "$boot_script_update" != "1" ]; then
         if [ "$reinstall" != "1" ]; then
           #/opt/xcat/bin/updatenode $* 2>/dev/null
-          /opt/xcat/bin/updatenode $dest ${opts[*]} 2>/dev/null
+          #/opt/xcat/bin/updatenode $dest ${opts[*]} 2>/dev/null
+          [ -n "$set_boot_nodes" ] && /opt/xcat/bin/updatenode $set_boot_nodes ${opts[*]} 2>/dev/null
         fi
       fi
-      xdcp  $dest /install/postscripts/xcatpostinit1.install /opt/xcat/xcatpostinit1 >& /dev/null
-      xdcp  $dest /install/postscripts/xcat_boot.d/*  /xcatpost/xcat_boot.d/ >& /dev/null
-      xdcp  $dest /install/postscripts/kxcatboot /xcatpost/kxcatboot >& /dev/null
+      if [ -n "$set_boot_nodes" ]; then
+         xdcp  $set_boot_nodes /install/postscripts/xcatpostinit1.install /opt/xcat/xcatpostinit1 >& /dev/null
+         xdcp  $set_boot_nodes /install/postscripts/xcat_boot.d/*  /xcatpost/xcat_boot.d/ >& /dev/null
+         xdcp  $set_boot_nodes /install/postscripts/kxcatboot /xcatpost/kxcatboot >& /dev/null
+      fi
       if [ "$boot_script_update" != "1" ]; then
          nodeset $dest osimage=$osimage
          if [ "$reinstall" != "1" ]; then
