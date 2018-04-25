@@ -17,8 +17,8 @@ id() {
          exit
     fi
 
-    pwcmd=${opt[0]}
-    for ii in on off cycle reset shutdown reboot status; do
+    pwcmd=${opt[$((${#opt[*]}-1))]}
+    for ii in on off; do
        if [ "$ii" == "$pwcmd" ]; then 
            pwcmd_ok=1
            break
