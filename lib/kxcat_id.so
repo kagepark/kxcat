@@ -38,7 +38,7 @@ id() {
        [ "$pwcmd" == "on" ] && mode=15
        [ "$pwcmd" == "off" ] && mode=0
        for ii in $(echo $(lsdef $(echo $hosts|sed "s/ /,/g") -i bmc 2>/dev/null |sed "s/bmc=/:/g")| sed "s/ //g" | sed "s/Objectname:/ /g"); do
-          echo "$(echo $ii| awk -F: '{print $1}'): ipmitool -I lanplus -H $(echo $ii| awk -F: '{print $2}') -U ADMIN -P ADMIN chassis identify $mode"
+          echo "$(echo $ii| awk -F: '{print $1}'): $(ipmitool -I lanplus -H $(echo $ii| awk -F: '{print $2}') -U ADMIN -P ADMIN chassis identify $mode)"
        done
        wait
        echo
