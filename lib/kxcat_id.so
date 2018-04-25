@@ -18,7 +18,6 @@ id() {
     fi
 
     pwcmd=${opt[$((${#opt[*]}-1))]}
-echo "pwcmd:$pwcmd"
     for ii in on off; do
        if [ "$ii" == "$pwcmd" ]; then 
            pwcmd_ok=1
@@ -27,22 +26,18 @@ echo "pwcmd:$pwcmd"
     done
     [ "$pwcmd_ok" == "1" ] || error_exit "Unknown command $pwcmd"
     unset opt[$((${#opt[*]}-1))]
-echo "${opt[*]}"
 
     if [ "$1" == "-h" ]; then
        unset opt[0]
        hosts=$(echo $(_k_misc_braket ${opt[*]}))
-echo "-h hosts: $hosts"
     else
        hosts=${opt[*]}
-echo "hosts: $hosts"
     fi
 
     if [ "$pwcmd" == "on" -o "$pwcmd" == "off" ]; then
        [ "$pwcmd" == "on" ] && mode=15
        [ "$pwcmd" == "off" ] && mode=0
-       for ii in $(echo $(lsdef $(echo $hosts|sed "s/ /,/g") -i bmc |sed "s/bmc=/:/g")| sed "s/ //g" | sed "s/Objectname:/ /g"); do
-          #echo "$(echo $ii| awk -F: '{print $1}'): $(ipmitool -I lanplus -H $(echo $ii| awk -F: '{print $2}') -U ADMIN -P ADMIN chassis identify $mode)"
+       for ii in $(echo $(lsdef $(echo $hosts|sed "s/ /,/g") -i bmc 2>/dev/null |sed "s/bmc=/:/g")| sed "s/ //g" | sed "s/Objectname:/ /g"); do
           echo "$(echo $ii| awk -F: '{print $1}'): ipmitool -I lanplus -H $(echo $ii| awk -F: '{print $2}') -U ADMIN -P ADMIN chassis identify $mode"
        done
        wait
