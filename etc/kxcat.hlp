@@ -31,6 +31,7 @@ change node    # change node's information
 updatenode     # Update information to node
 update         # Update information to node or group
 power          # compute node's power handle
+id             # turn on/off ID LED of host
 console        # compute node's console (Exit: Control + e + c + .)
 clone_host <base host> <hostname> <ip> <mac> # clone to host from <base host> template
 

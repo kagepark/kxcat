@@ -1,0 +1,45 @@
+####################################
+# License : GPL
+####################################
+
+id() {
+    local hostname opt
+    opt=($*)
+    if (( ${#opt[*]} < 1 )); then
+         echo "${FUNCNAME}  <-h <hostname>|group name|hostname1> <id cmd>"
+         echo
+         echo "<id cmd>"
+         echo "on      : blink 15sec"
+         echo "off     : turn off ID LED"
+         echo
+         echo "with -h option example"
+         echo " -h prod-0[001-003,008] => prod-0001 prod-0002 prod-0003 prod-0008"
+         exit
+    fi
+
+    pwcmd=${opt[0]}
+    for ii in on off cycle reset shutdown reboot status; do
+       if [ "$ii" == "$pwcmd" ]; then 
+           pwcmd_ok=1
+           break
+       fi
+    done
+    [ "$pwcmd_ok" == "1" ] || error_exit "Unknown command $pwcmd"
+    shift 1
+
+    if [ "$1" == "-h" ]; then
+       shift 1
+       hosts=$(echo $(_k_misc_braket $*))
+    else
+       hosts=$*
+    fi
+
+    if [ "$pwcmd" == "on" -o "$pwcmd" == "off" ]; then
+       for ii in $(echo $(lsdef $(echo $hosts|sed "s/ /,/g") -i bmc |sed "s/bmc=/:/g")| sed "s/ //g" | sed "s/Objectname:/ /g"); do
+          #echo "$(echo $ii| awk -F: '{print $1}'): $(ipmitool -I lanplus -H $(echo $ii| awk -F: '{print $2}') -U ADMIN -P ADMIN chassis identify $mode)"
+          echo "$(echo $ii| awk -F: '{print $1}'): ipmitool -I lanplus -H $(echo $ii| awk -F: '{print $2}') -U ADMIN -P ADMIN chassis identify $mode"
+       done
+       wait
+       echo
+    fi
+}
