@@ -18,6 +18,7 @@ id() {
     fi
 
     pwcmd=${opt[$((${#opt[*]}-1))]}
+echo "pwcmd:$pwcmd"
     for ii in on off; do
        if [ "$ii" == "$pwcmd" ]; then 
            pwcmd_ok=1
@@ -25,14 +26,16 @@ id() {
        fi
     done
     [ "$pwcmd_ok" == "1" ] || error_exit "Unknown command $pwcmd"
-    shift 1
+    unset opt[${#opt[*]}]
+echo "${opt[*]}"
 
     if [ "$1" == "-h" ]; then
        shift 1
-       hosts=$(echo $(_k_misc_braket $*))
+       hosts=$(echo $(_k_misc_braket ${opt[*]}))
     else
-       hosts=$*
+       hosts=${opt[*]}
     fi
+echo "hosts: $hosts"
 
     if [ "$pwcmd" == "on" -o "$pwcmd" == "off" ]; then
        for ii in $(echo $(lsdef $(echo $hosts|sed "s/ /,/g") -i bmc |sed "s/bmc=/:/g")| sed "s/ //g" | sed "s/Objectname:/ /g"); do
