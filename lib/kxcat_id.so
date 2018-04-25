@@ -30,12 +30,13 @@ echo "pwcmd:$pwcmd"
 echo "${opt[*]}"
 
     if [ "$1" == "-h" ]; then
-       shift 1
+       unset opt[0]
        hosts=$(echo $(_k_misc_braket ${opt[*]}))
+echo "-h hosts: $hosts"
     else
        hosts=${opt[*]}
-    fi
 echo "hosts: $hosts"
+    fi
 
     if [ "$pwcmd" == "on" -o "$pwcmd" == "off" ]; then
        [ "$pwcmd" == "on" ] && mode=15
