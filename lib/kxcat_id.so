@@ -26,7 +26,7 @@ echo "pwcmd:$pwcmd"
        fi
     done
     [ "$pwcmd_ok" == "1" ] || error_exit "Unknown command $pwcmd"
-    unset opt[${#opt[*]}]
+    unset opt[$((${#opt[*]}-1))]
 echo "${opt[*]}"
 
     if [ "$1" == "-h" ]; then
