@@ -5,8 +5,7 @@
 mark() {
    dest_list_str=all
    dest_list=$*
-   #[  -n "${dest_list}" ] && dest_list_str=$(echo $* | sed "s/ /,/g")
-   [  -n "${dest_list}" ] || error_exit "${FUNCNAME} <dest>"
+   [  -n "${dest_list}" ] && dest_list_str=$(echo $* | sed "s/ /,/g") || error_exit "${FUNCNAME} <dest>"
    srv_num=1
    xor=0
    mx_item=5 
@@ -26,7 +25,5 @@ mark() {
        boot_mode=$(echo ${node_list[$ii]} | awk -F, '{print $6}')
 
        [ "$boot_mode" == "maint" ] || chdef $host_name status=maint
-            
-       echo
    done
 }

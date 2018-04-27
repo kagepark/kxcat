@@ -26,6 +26,5 @@ unmark() {
 
        [ "$boot_mode" == "maint" ] && chdef $host_name status=
             
-       echo
    done
 }
