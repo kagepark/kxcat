@@ -1,0 +1,31 @@
+####################################
+# License : GPL
+####################################
+
+mark() {
+   dest_list_str=all
+   dest_list=$*
+   [  -n "${dest_list}" ] && dest_list_str=$(echo $* | sed "s/ /,/g")
+   srv_num=1
+   xor=0
+   mx_item=5 
+
+   node_list=()
+   while read x ; do 
+       id=$(echo $x | awk -F, '{print $4}'); 
+       [ -n "$id" ] && node_list[$id]=$x; 
+   done < <(echo $(lsdef -t node -o $dest_list_str -i id,mgt,status,hostnames,status,currstate,statustime) | sed -e "s/currstate=/,/g" -e "s/hostnames=/,/g" -e "s/id=/,/g" -e "s/status=/,/g" -e "s/mgt=/,/g" -e "s/statustime=/,/g" | sed "s/Object name: /\n/g" | sed "s/ ,/,/g")
+
+   for ii in ${!node_list[@]}; do
+       node_name=n$(printf "%05d" $ii)
+       host_name=$(echo ${node_list[$ii]} | awk -F, '{print $1}')
+       [ "$node_name" == "$host_name" ] || host_name=$(echo ${node_list[$ii]} | awk -F, '{print $1}')
+       printf "%15s " "$host_name"
+
+       boot_mode=$(echo ${node_list[$ii]} | awk -F, '{print $6}')
+
+       [ "$boot_mode" == "maint" ] || chdef $host_name status=maint
+            
+       echo
+   done
+}
