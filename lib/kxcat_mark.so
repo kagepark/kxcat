@@ -5,7 +5,8 @@
 mark() {
    dest_list_str=all
    dest_list=$*
-   [  -n "${dest_list}" ] && dest_list_str=$(echo $* | sed "s/ /,/g")
+   #[  -n "${dest_list}" ] && dest_list_str=$(echo $* | sed "s/ /,/g")
+   [  -n "${dest_list}" ] && error_exit "not found destination"
    srv_num=1
    xor=0
    mx_item=5 
