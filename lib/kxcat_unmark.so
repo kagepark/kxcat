@@ -24,7 +24,7 @@ unmark() {
 
        boot_mode=$(echo ${node_list[$ii]} | awk -F, '{print $6}')
 
-       [ "$boot_mode" == "maint" ] && chdef $host_name status=
+       [ "$boot_mode" == "maint" ] && chdef $host_name status= || echo 
             
    done
 }
