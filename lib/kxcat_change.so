@@ -9,7 +9,8 @@ node() {
     chk_input=0
     for ((ii=0; ii<${#args[@]}; ii++)); do
        tmp[0]=$(echo ${args[$ii]} | awk -F= '{print $1}')
-       tmp[1]=$(echo ${args[$ii]} | awk -F= '{print $2}')
+#       tmp[1]=$(echo ${args[$ii]} | awk -F= '{print $2}')
+       tmp[1]=$(echo ${args[$ii]} | sed "s/^${tmp[0]}=//g")
        if [ "${tmp[0]}" == "emac" ]; then
            mac_str="mac=${tmp[1]}"
            chk_input=1
