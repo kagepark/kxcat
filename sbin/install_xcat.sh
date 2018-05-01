@@ -294,11 +294,6 @@ xcat_install() {
    done
    [ -L kxcat_restore.so ] || ln -s kxcat_backup.so kxcat_restore.so
   )
-  (cd /opt && git clone https://github.com/kagepark/kgt.git)
-  rm -fr /opt/kgt/.git
-  rm -f /opt/kgt/README.md
-  /opt/kgt/bin/kgt setup
-  source /etc/profile.d/kgt.sh
 }
 
 xcat_env() {

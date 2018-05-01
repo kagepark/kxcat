@@ -1,7 +1,43 @@
 ####################################
 # License : GPL
+# This function copied from kgt opensource
 ####################################
 
+cpu_temp() {
+       lsmod |grep coretemp >& /dev/null || modprobe coretemp
+       if [ -f /sys/bus/platform/devices/coretemp.0/hwmon/hwmon*/temp1_input ]; then
+          for ii in $(ls -d /sys/bus/platform/devices/coretemp.*); do
+             temp=$([ -f $ii/hwmon/hwmon*/temp1_input ] && cat $ii/hwmon/hwmon*/temp1_input)
+             [ -n "$temp" ] && printf "%5.1f " $(bc -l <<< "$temp / 1000") || echo "CPU Temperature file not found"
+          done
+       elif [ -f /usr/bin/sensors ]; then
+          tmp_temp=$(sensors | grep "^Physical id" | awk '{print $4}')
+          [ -n "$tmp_temp" ] && echo $tmp_temp || sensors | grep "^Core 0:" | awk '{print $3}'
+       else
+          echo "Not support this system, please install lm_sensors or coretemp kernel module"
+       fi
+}
+
 ctemp() {
-  kgt temp $*
+  DSH_TIMEOUT=5
+  RSH_STR="xdsh "
+  RSH_HOST=$(echo $(nodels $(echo $* | sed "s/ /,/g") | grep -v "^n0") | sed "s/ /,/g")
+
+  echo "Physical CPU Temperature unit : *C"
+  echo
+  printf "%17s %-5s\n" hostname CPU#
+  aabb=$(declare -f cpu_temp)
+  if [ "$RSH_CMD" == "ssh" ]; then
+    for ii in $RSH_HOST; do
+       printf "%17s " $ii
+       printf "%-5s\n" "$(echo $($RSH_STR $ii "$aabb; cpu_temp" 2>/dev/null; [ "$?" == "255" ] && echo -n "Connection time out"))"
+    done
+  else
+    $RSH_STR $RSH_HOST "$aabb; cpu_temp" | sort | while read line; do
+      aa=($line)
+      printf "%17s " ${aa[0]}
+      unset aa[0]
+      printf "%-5s\n" "${aa[*]}"
+    done
+  fi
 }
