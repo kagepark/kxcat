@@ -26,7 +26,10 @@ free() {
 
    (( ${#hosts[*]} == 0 )) && hosts=($(lsdef -t group ${group} |grep members | awk -F= '{print $2}' | sed "s/,/ /g"))
    (( ${#hosts[*]} == 0 )) && error_exit "Can't find hosts list"
-   node_list=($( echo $(echo $(lsdef $(echo ${hosts[*]} | sed "s/ /,/g") -i id | sed -e "s/ //g" -e "s/id=/:/g") | sed "s/ //g" | sed "s/Objectname:/\n/g")))
+   #node_list=($( echo $(echo $(lsdef $(echo ${hosts[*]} | sed "s/ /,/g") -i id | sed -e "s/ //g" -e "s/id=/:/g") | sed "s/ //g" | sed "s/Objectname:/\n/g")))
+
+   node_list=$(echo $(echo $(lsdef $(echo $hosts|sed "s/ /,/g") -i id,status |sed -e "s/status=/:/g" -e "s/id=/:/g")| sed "s/ //g" | sed "s/Objectname:/\n/g" | grep -v -e ":installing$" -e ":maint$" | awk -F: '{print $1}') | sed "s/ /,/g")
+
    (( $node_count > ${#node_list[*]} )) && error_exit "Please reduce <host count#> number to lower hosts number"
    delhosts=""
    delnodes=""
