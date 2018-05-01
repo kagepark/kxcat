@@ -130,6 +130,7 @@ status)
   echo "rpcbind: \$(systemctl status rpcbind | grep Active)"
   echo "ntpd: \$(systemctl status ntpd | grep Active)"
   /etc/init.d/xcatd status
+  \$_KXCAT_HOME/bin/xcatsud status
   ;;
 stop)
   echo -n "Stopping xcatd "
@@ -139,6 +140,7 @@ stop)
      pid=\$(cat /var/run/kxcat/kxcat_sw.pid)
      [ -d /proc/\$pid ] && kill -9 \$pid
   fi
+  \$_KXCAT_HOME/bin/xcatsud stop 2>/dev/null
   /etc/init.d/xcatd stop
   systemctl stop dhcpd
   systemctl stop httpd
@@ -156,6 +158,7 @@ start)
   systemctl start rpcbind
   /etc/init.d/xcatd start
   wait
+  nohup \$_KXCAT_HOME/bin/xcatsud &
   nohup \$_KXCAT_HOME/bin/kxcat_sw >&/dev/null &
   makeconservercf
   ;;
@@ -411,6 +414,7 @@ node_short=" /install/postscripts/xcatdsklspost
   cp -a $_KXCAT_HOME/share/0001_cleanyum /install/postscripts/xcat_boot.d
   cp -a $_KXCAT_HOME/share/0002_mpi_net /install/postscripts/xcat_boot.d
   cp -a $_KXCAT_HOME/share/0003_ntp /install/postscripts/xcat_boot.d
+  cp -a $_KXCAT_HOME/share/state_update /install/postscripts
   [ -d /global/xcat_boot.d/global ] || mkdir -p /global/xcat_boot.d/global
   cp -a $_KXCAT_HOME/share/0000_home_mount /global/xcat_boot.d/global
   if [ -n "$BMC_UPDATE" ]; then

@@ -1,6 +1,6 @@
 #!/usr/bin/python
 import sqlite3
-import os
+import os, signal
 import sys
 import socket
 import time
@@ -28,6 +28,38 @@ def node_state(c,host=None,state=None):
    return True
 
 
+cmd=False
+if len(sys.argv) == 2:
+   cmd = sys.argv[1]
+
+pidfile="/var/run/xcatsud.pid"
+pid=False
+if os.path.isfile(pidfile):
+   pid=open(pidfile).readline().rstrip()
+
+if cmd == "stop":
+   if pid:
+      os.kill(int(pid),signal.SIGKILL)
+      os.remove(pidfile)
+      #p.kill()
+   sys.exit()
+else:
+   if pid:
+      if os.path.isdir("/proc/%s" % pid):
+         pname=open("/proc/%s/status" % pid).readline().rstrip()
+         if pname.split("\t")[1] == "xcatsud":
+            print("Alread running")
+            sys.exit(0)
+
+   if cmd == "status":
+      print("xcatsud is not running")
+      sys.exit()
+
+   ppidfile = open(pidfile, "w")
+   pid=os.getpid()
+   ppidfile.write("%s\n" % pid)
+   ppidfile.close()
+
 try:
    serversocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 except socket.error as err:
@@ -44,23 +76,19 @@ else:
    print("%s not found\n" % state_db_file)
    sys.exit
 
-
 while True:
 
     #accept connections from outside
     (clientsocket, address) = serversocket.accept()
     host_info=clientsocket.recv(1024).split("|")
-#    print(host_info)
     if len(host_info) == 2:
        host_state=node_state(c,host_info[0],host_info[1])
     else:
        host_state=node_state(c,host_info[0])
 
     if not host_state is False and not host_state is True:
-#       print("!!!!")
        clientsocket.send(host_state)
     elif host_state is True:
-#       print("+++")
        clientsocket.send("ok")
        conn.commit()
 

@@ -47,11 +47,23 @@ init_now_state=get_val("mode")
 #if init_now_state:
 #   init_now_state="booted"
 
+chk=False
+print("Start state_update daemon at %s" % (time.strftime('%X %x %Z')))
 while True:
 # Get monitoring
    if not init_now_state:
-      s = socket.socket()         
-      s.connect((mgt_ip, port))
+      try:
+         s = socket.socket()         
+         s.connect((mgt_ip, port))
+         if chk:
+            print("connected to server at %s" % (time.strftime('%X %x %Z')))
+            chk=False
+      except socket.error:
+         chk=True
+         print("Lost connection from server at %s" % (time.strftime('%X %x %Z')))
+         time.sleep(15)
+         continue
+
       s.send(hostname)
       rc=s.recv(1024)
       s.close()       
@@ -64,9 +76,18 @@ while True:
       init_now_state=False
     
 # Update state
-   s = socket.socket()         
-   s.connect((mgt_ip, port))
-   print(hostname,now_state)
+   try:
+      s = socket.socket()         
+      s.connect((mgt_ip, port))
+      if chk:
+         print("connected to server at %s" % (time.strftime('%X %x %Z')))
+         chk=False
+   except socket.error:
+      chk=True
+      print("Lost connection from server at %s" % (time.strftime('%X %x %Z')))
+      time.sleep(15)
+      continue
+   #print(hostname,now_state)
    s.send("%s|%s" % (hostname,now_state))
    s.close()       
 
