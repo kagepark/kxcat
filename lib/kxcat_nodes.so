@@ -44,6 +44,11 @@ nodes() {
           boot_status_time=$(date -d "$boot_date" +%s)
           now_time=$(date +%s)
           (( $(( $now_time - $((400 * 2)) )) > $boot_status_time )) && boot_mode="unknown"
+       elif [ "$boot_mode" == "maint" ]; then
+          boot_date=$(echo ${node_list[$ii]} | awk -F, '{print $7}' | sed "s/-/\//g")
+          boot_status_time=$(date -d "$boot_date" +%s)
+          now_time=$(date +%s)
+          (( $(( $now_time - $((400 * 2)) )) < $boot_status_time )) && boot_mode="*maint" || boot_mode="maint"
        fi
        printf "%13s " "$boot_mode"
        echo
