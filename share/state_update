@@ -1,0 +1,73 @@
+#!/usr/bin/python
+import socket               
+import time
+import platform
+import sys
+import re
+def chkIP(ip):
+    ip_arr=ip.split(".")
+    if len(ip_arr) != 4:
+        print("wrong IP format(%s)" %(ip))
+        return False
+    for ii in ip_arr:
+        try:
+            dii=int(ii)
+        except:
+            print("wrong IP format(%s)" %(ip))
+            return False
+        if dii < 0 or dii > 255:
+            print("wrong IP format(%s)" %(ip))
+            return False
+    return True
+
+def get_val(find=None):
+    if find is None:
+        return False
+
+    for line in open("/proc/cmdline","r"):
+       for parameter in line.split(" "):
+          parameter_arr=parameter.split("=")
+          if find == parameter_arr[0]:
+             return parameter_arr[1]
+    return False
+
+
+hostname=platform.node().split('.', 1)[0]
+port = 30010               
+mgt_ip="NO_MGT_IP"
+
+if len(sys.argv) == 2:
+   mgt_ip=sys.argv[1]
+
+if not chkIP(mgt_ip):
+   print("update.py <server ip>")
+   sys.exit(1)
+ 
+init_now_state=get_val("mode")
+#if init_now_state:
+#   init_now_state="booted"
+
+while True:
+# Get monitoring
+   if not init_now_state:
+      s = socket.socket()         
+      s.connect((mgt_ip, port))
+      s.send(hostname)
+      rc=s.recv(1024)
+      s.close()       
+      if rc.split("|")[0] == "maint":
+         now_state="maint"
+      else:
+         now_state="booted"
+   else:
+      now_state=init_now_state
+      init_now_state=False
+    
+# Update state
+   s = socket.socket()         
+   s.connect((mgt_ip, port))
+   print(hostname,now_state)
+   s.send("%s|%s" % (hostname,now_state))
+   s.close()       
+
+   time.sleep(400)

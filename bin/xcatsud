@@ -1,0 +1,69 @@
+#!/usr/bin/python
+import sqlite3
+import os
+import sys
+import socket
+import time
+
+state_db_file="/etc/xcat/nodelist.sqlite"
+port=30010
+
+def node_state(c,host=None,state=None):
+   if host is None:
+      return False
+
+   sqr="select  status,statustime from nodelist where node='%s'" % host
+   get_rc=c.execute(sqr).fetchone()
+   if state is None:
+      #Send back the status
+      return get_rc[0]+"|"+get_rc[1]
+   else:
+      stime=time.strftime("%m-%d-%Y %H:%M:%S")
+      if get_rc[0] == state:
+         sqp="update nodelist set statustime='%s' where node='%s'" % (stime,host)
+         c.execute(sqp)
+      else:
+         sqp="update nodelist set status='%s',statustime='%s' where node='%s'" % (state,stime,host)
+         c.execute(sqp)
+   return True
+
+
+try:
+   serversocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+except socket.error as err:
+   print("socket creation failed with error %s" %(err))
+   sys.exit
+
+serversocket.bind((socket.gethostname(), port))
+serversocket.listen(5)
+
+if os.path.isfile(state_db_file):
+   conn = sqlite3.connect(state_db_file)
+   c = conn.cursor()
+else:
+   print("%s not found\n" % state_db_file)
+   sys.exit
+
+
+while True:
+
+    #accept connections from outside
+    (clientsocket, address) = serversocket.accept()
+    host_info=clientsocket.recv(1024).split("|")
+#    print(host_info)
+    if len(host_info) == 2:
+       host_state=node_state(c,host_info[0],host_info[1])
+    else:
+       host_state=node_state(c,host_info[0])
+
+    if not host_state is False and not host_state is True:
+#       print("!!!!")
+       clientsocket.send(host_state)
+    elif host_state is True:
+#       print("+++")
+       clientsocket.send("ok")
+       conn.commit()
+
+    # Ehance to thread
+    #ct = client_thread(clientsocket)
+    #ct.run()
