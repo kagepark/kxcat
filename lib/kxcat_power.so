@@ -57,7 +57,7 @@ power() {
        [ "$pwcmd" == "status" ] && pwcmd=stat
        [ "$force_power" == "1" ] && \
            destnodes=$(echo $hosts|sed "s/ /,/g") || \
-           destnodes=$(echo $(echo $(lsdef $(echo $hosts|sed "s/ /,/g") -i status |sed "s/status=/:/g")| sed "s/ //g" | sed "s/Objectname:/\n/g" | grep -v ":installing$" | awk -F: '{print $1}') | sed "s/ /,/g")
+           destnodes=$(echo $(echo $(lsdef $(echo $hosts|sed "s/ /,/g") -i status |sed "s/status=/:/g")| sed "s/ //g" | sed "s/Objectname:/\n/g" | grep -v -e ":installing$" -e ":maint$" | awk -F: '{print $1}') | sed "s/ /,/g")
        [ -n "$destnodes" ] && rpower $destnodes $pwcmd
     else
        [ -f $_KXC_HOME/sbin/${POWER_MODE}_power ] || error_exit "sbin/${POWER_MODE}_power file not found"
