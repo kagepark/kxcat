@@ -31,6 +31,7 @@ if [ "$1" == "force" ]; then
    sed -i "/^_KXC_VERSION=/c \
 _KXC_VERSION=$(git describe --tags) " $_KXCAT_HOME/../bin/kxcat
    update_scripts $_KXCAT_HOME
+   echo "Please update boot scripts using \"kxcat update <group name> -b\" or \"kxcat update <group name>\" command"
    exit
 fi
 if [ -f /etc/profile.d/kxcat.sh ]; then
@@ -40,6 +41,7 @@ if [ -f /etc/profile.d/kxcat.sh ]; then
    sed -i "/^_KXC_VERSION=/c \
 _KXC_VERSION=$(git describe --tags) " $_KXCAT_HOME/bin/kxcat
    update_scripts $_KXCAT_HOME
+   echo "Please update boot scripts using \"kxcat update <group name> -b\" or \"kxcat update <group name>\" command"
 else
    echo "/etc/profile.d/kxcat.sh not found"
 fi
