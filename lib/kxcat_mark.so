@@ -2,10 +2,20 @@
 # License : GPL
 ####################################
 
+mark_help() {
+   echo "
+$(echo ${FUNCNAME} | sed "s/_help//g") <dest>
+
+mark <dest> to maint state for maintain the <dest>.
+(if you want remove the maint mark then use \"unmark\" command)
+   "
+   exit
+}
+
 mark() {
    dest_list_str=all
    dest_list=$*
-   [  -n "${dest_list}" ] && dest_list_str=$(echo $* | sed "s/ /,/g") || error_exit "${FUNCNAME} <dest>"
+   [  -n "${dest_list}" ] && dest_list_str=$(echo $* | sed "s/ /,/g") || mark_help
    srv_num=1
    xor=0
    mx_item=5 
@@ -20,7 +30,7 @@ mark() {
        node_name=n$(printf "%05d" $ii)
        host_name=$(echo ${node_list[$ii]} | awk -F, '{print $1}')
        [ "$node_name" == "$host_name" ] || host_name=$(echo ${node_list[$ii]} | awk -F, '{print $1}')
-       printf "%15s " "$host_name"
+       printf "%15s : " "$host_name"
 
        boot_mode=$(echo ${node_list[$ii]} | awk -F, '{print $6}')
 
