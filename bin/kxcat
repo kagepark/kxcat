@@ -47,6 +47,7 @@ if [ "$cmd" == "help" -o "$cmd" == "--help" ]; then
     _help
 elif [ "$cmd" == "version" -o "$cmd" == "--version" ]; then
     echo "$_KXC_VERSION"
+    lsxcatd -a
 else
    for cmdname in $cmd_str; do
       if [ "$cmd" == "$cmdname" ]; then
