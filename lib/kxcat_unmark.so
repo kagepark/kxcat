@@ -24,7 +24,16 @@ unmark() {
 
        boot_mode=$(echo ${node_list[$ii]} | awk -F, '{print $6}')
 
-       [ "$boot_mode" == "maint" ] && chdef $host_name status= || echo 
-            
+       if [ "$boot_mode" == "maint" ]; then
+           chdef $host_name status= 
+           kernel_args=$(lsdef -t node -o $host_name -i addkcmdline | grep addkcmdline | sed "s/    addkcmdline=//g")
+           if [ -n "$kernel_args" ]; then
+               if echo "$kernel_args" | grep "mode=maint" >& /dev/null; then
+                   chdef $host_name addkcmdline="$(echo "$kernel_args" | sed "s/mode=maint//g")"
+               fi
+           fi
+       else
+           echo
+       fi
    done
 }
