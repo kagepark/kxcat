@@ -45,4 +45,4 @@ else
    exit
 fi
 update_scripts $_KXCAT_HOME
-echo "Please update boot scripts using \"kxcat update <group name> -b\" or \"kxcat update <group name>\" command"
+echo "If you need update boot scripts then using \"kxcat update <group name> -b\" or \"kxcat update <group name>\" command"
