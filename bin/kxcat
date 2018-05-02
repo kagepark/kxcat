@@ -46,7 +46,7 @@ cmd_str="$(cat $_KXC_HOME/etc/kxcat.hlp | grep -v "^#" | awk '{print $1}')"
 if [ "$cmd" == "help" -o "$cmd" == "--help" ]; then
     _help
 elif [ "$cmd" == "version" -o "$cmd" == "--version" ]; then
-    echo "$_KXC_VERSION"
+    echo "Version $_KXC_VERSION"
     lsxcatd -a
 else
    for cmdname in $cmd_str; do
