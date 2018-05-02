@@ -5,8 +5,8 @@ unmark_help() {
    echo "
 $(echo ${FUNCNAME} | sed "s/_help//g") <dest>
 
-mark <dest> to maint state for maintain the <dest>.
-(if you want remove the maint mark then use \"unmark\" command)
+unmark <dest> (remove \"maint\" state)
+(if you want mark maint state then use \"mark\" command)
    "
    exit
 }
