@@ -86,9 +86,10 @@ update() {
         fi
       fi
       if [ -n "$set_boot_nodes" ]; then
+         #xdcp  $set_boot_nodes /install/postscripts/xcat_boot.d/*  /xcatpost/xcat_boot.d/ >& /dev/null
+         #xdcp  $set_boot_nodes /install/postscripts/kxcatboot /xcatpost/kxcatboot >& /dev/null
+         xdcp  $set_boot_nodes /install/postscripts/*  /xcatpost/ >& /dev/null
          xdcp  $set_boot_nodes /install/postscripts/xcatpostinit1.install /opt/xcat/xcatpostinit1 >& /dev/null
-         xdcp  $set_boot_nodes /install/postscripts/xcat_boot.d/*  /xcatpost/xcat_boot.d/ >& /dev/null
-         xdcp  $set_boot_nodes /install/postscripts/kxcatboot /xcatpost/kxcatboot >& /dev/null
       fi
       if [ "$boot_script_update" != "1" ]; then
          nodeset $dest osimage=$osimage
