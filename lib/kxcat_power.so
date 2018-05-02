@@ -58,7 +58,7 @@ power() {
        [ "$force_power" == "1" ] && \
            destnodes=$(echo $hosts|sed "s/ /,/g") || \
            destnodes=$(echo $(echo $(lsdef $(echo $hosts|sed "s/ /,/g") -i status |sed "s/status=/:/g")| sed "s/ //g" | sed "s/Objectname:/\n/g" | grep -v -e ":installing$" -e ":maint$" | awk -F: '{print $1}') | sed "s/ /,/g")
-       [ -n "$destnodes" ] && rpower $destnodes $pwcmd
+       [ -n "$destnodes" ] && rpower $destnodes $pwcmd || error_exit "No host list. Please make sure the host(can't power handle to maint nodes)"
     else
        [ -f $_KXC_HOME/sbin/${POWER_MODE}_power ] || error_exit "sbin/${POWER_MODE}_power file not found"
        for ii in $(echo $(lsdef $(echo $hosts|sed "s/ /,/g") -i bmc |sed "s/bmc=/:/g")| sed "s/ //g" | sed "s/Objectname:/ /g"); do
