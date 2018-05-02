@@ -76,7 +76,7 @@ update() {
       fi
       nodeset $dest osimage=$osimage
    elif [ "$type" == "install" ]; then
-      set_boot_nodes=$(echo $(echo $(lsdef $dest -i status) | sed "s/Object name: /\n/g" | grep "status=installing" | awk '{print $1}') | sed "s/ /,/g")
+      set_boot_nodes=$(echo $(echo $(lsdef $dest -i status) | sed "s/Object name: /\n/g" | grep -e "status=installing" -e "status=booted" | awk '{print $1}') | sed "s/ /,/g")
       change_boot_mode=$(echo $(echo $(lsdef $dest -i currstate) | sed "s/Object name: /\n/g" | grep "currstate=boot" | awk '{print $1}') | sed "s/ /,/g")
       if [ "$boot_script_update" != "1" ]; then
         if [ "$reinstall" != "1" ]; then
