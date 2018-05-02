@@ -25,23 +25,24 @@ update_scripts() {
 
 if [ "$1" == "force" ]; then
    _KXCAT_HOME=$(dirname $(readlink -f $0))
-   git reset --hard HEAD
-   git clean -f -d
-   git fetch -all
-   sed -i "/^_KXC_VERSION=/c \
+   if [ -d $_KXCAT_HOME/.git ]; then
+      git reset --hard HEAD
+      git clean -f -d
+      git fetch -all
+      sed -i "/^_KXC_VERSION=/c \
 _KXC_VERSION=$(git describe --tags) " $_KXCAT_HOME/../bin/kxcat
-   update_scripts $_KXCAT_HOME
-   echo "Please update boot scripts using \"kxcat update <group name> -b\" or \"kxcat update <group name>\" command"
-   exit
-fi
-if [ -f /etc/profile.d/kxcat.sh ]; then
+   fi
+elif [ -f /etc/profile.d/kxcat.sh ]; then
    . /etc/profile.d/kxcat.sh
    cd $_KXCAT_HOME
-   git pull
-   sed -i "/^_KXC_VERSION=/c \
+   if [ -d .git ]; then
+      git pull
+      sed -i "/^_KXC_VERSION=/c \
 _KXC_VERSION=$(git describe --tags) " $_KXCAT_HOME/bin/kxcat
-   update_scripts $_KXCAT_HOME
-   echo "Please update boot scripts using \"kxcat update <group name> -b\" or \"kxcat update <group name>\" command"
+   fi
 else
    echo "/etc/profile.d/kxcat.sh not found"
+   exit
 fi
+update_scripts $_KXCAT_HOME
+echo "Please update boot scripts using \"kxcat update <group name> -b\" or \"kxcat update <group name>\" command"
