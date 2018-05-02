@@ -30,6 +30,7 @@ if [ "$1" == "force" ]; then
    git fetch -all
    sed -i "/^_KXC_VERSION=/c \
 _KXC_VERSION=$(git describe --tags) " $_KXCAT_HOME/../bin/kxcat
+   update_scripts $_KXCAT_HOME
    exit
 fi
 if [ -f /etc/profile.d/kxcat.sh ]; then
@@ -38,6 +39,7 @@ if [ -f /etc/profile.d/kxcat.sh ]; then
    git pull
    sed -i "/^_KXC_VERSION=/c \
 _KXC_VERSION=$(git describe --tags) " $_KXCAT_HOME/bin/kxcat
+   update_scripts $_KXCAT_HOME
 else
    echo "/etc/profile.d/kxcat.sh not found"
 fi
