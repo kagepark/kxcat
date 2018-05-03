@@ -32,8 +32,9 @@ opt=($*)
 for ((ii=0;ii<${#opt[*]};ii++)); do
     if [ "${opt[$ii]}" == "--help" -o "${opt[$ii]}" == "help" -o "${opt[$ii]}" == "-help" ]; then
         echo "
-$(basename $0) [-auto] [-iso <OS iso file> -core <xcat core> -dep <xcat dep>] [-link <cmd name>]
+$(basename $0) [-auto] [-core <xcat core> -dep <xcat dep> [-iso <iso file>]] [-link <cmd name>]
 
+<iso file>  : Installed OS iso file on MGT node
 <xcat core> : xcat core file
 <xcat dep>  : xcat dep file
 <cmd name>  : make a soft link from kxcat to <cmd name>
@@ -60,7 +61,6 @@ $(basename $0) -iso ~/CentOS-7-x86_64-DVD-1708.iso -core ../share/xcat-core-2.14
     fi
 done
 if [ "$auto" != "1" ]; then
-    [ ! -n "$iso_file" -o ! -f "$iso_file" ] && error_exit "OS ISO ($iso_file) not found"
     [ ! -n "$core_file" -o ! -f "$core_file" ] && error_exit "xcat core ($core_file) not found"
     [ ! -n "$dep_file" -o ! -f "$dep_file" ] && error_exit "xcat dep ($dep_file) not found"
 fi
