@@ -665,7 +665,7 @@ xcat_done() {
    sleep 5
    _k_servicectl kxcat start
    if [ -n "$link_name" ]; then
-      (cd $_KXCAT_HOME/bin && ln -s kxcat $linke_name)
+      (cd $_KXCAT_HOME/bin && ln -s kxcat $link_name)
    fi
 
    echo
