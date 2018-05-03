@@ -135,6 +135,7 @@ xcat_init() {
       [ -d /global ] || mkdir /global
       if ! mountpoint /global >& /dev/null; then
          [ -b $global_dev ] || error_exit "$global_dev is not block device"
+         df | grep -v "/global" | grep "^$global_dev" >& /dev/null && error_exit "Looks $global_dev OS device"
          mkfs.xfs -f $global_dev
          mount $global_dev /global
       fi
