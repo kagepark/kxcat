@@ -9,7 +9,62 @@ error_exit() {
    exit 1
 }
 
-link_name=$1
+cidr2mask() {
+  local i mask=""
+  local full_octets=$(($1/8))
+  local partial_octet=$(($1%8))
+
+  for ((i=0;i<4;i+=1)); do
+    if [ $i -lt $full_octets ]; then
+      mask+=255
+    elif [ $i -eq $full_octets ]; then
+      mask+=$((256 - 2**(8-$partial_octet)))
+    else
+      mask+=0
+    fi  
+    test $i -lt 3 && mask+=.
+  done
+
+  echo $mask
+}
+
+opt=($*)
+for ((ii=0;ii<${#opt[*]};ii++)); do
+    if [ "${opt[$ii]}" == "--help" -o "${opt[$ii]}" == "help" -o "${opt[$ii]}" == "-help" ]; then
+        echo "
+$(basename $0) [-auto] [-iso <OS iso file> -core <xcat core> -dep <xcat dep>] [-link <cmd name>]
+
+<xcat core> : xcat core file
+<xcat dep>  : xcat dep file
+<cmd name>  : make a soft link from kxcat to <cmd name>
+
+example)
+$(basename $0) -iso ~/CentOS-7-x86_64-DVD-1708.iso -core ../share/xcat-core-2.14.0-linux.tar.bz2 -dep ../share/xcat-dep-201804041617.tar.bz2
+        "
+        exit
+    elif [ "${opt[$ii]}" == "-auto" ]; then
+        auto=1
+        break
+    elif [ "${opt[$ii]}" == "-iso" ]; then
+        ii=$(($ii+1))
+        iso_file=${opt[$ii]}
+    elif [ "${opt[$ii]}" == "-core" ]; then
+        ii=$(($ii+1))
+        core_file=${opt[$ii]}
+    elif [ "${opt[$ii]}" == "-dep" ]; then
+        ii=$(($ii+1))
+        dep_file=${opt[$ii]}
+    elif [ "${opt[$ii]}" == "-link" ]; then
+        ii=$(($ii+1))
+        link_name=${opt[$ii]}
+    fi
+done
+if [ "$auto" != "1" ]; then
+    [ ! -n "$iso_file" -o ! -f "$iso_file" ] && error_exit "OS ISO ($iso_file) not found"
+    [ ! -n "$core_file" -o ! -f "$core_file" ] && error_exit "xcat core ($core_file) not found"
+    [ ! -n "$dep_file" -o ! -f "$dep_file" ] && error_exit "xcat dep ($dep_file) not found"
+fi
+
 _KXCAT_HOME=$(dirname $(dirname $(readlink -f $0)))
 
 [ -f $_KXCAT_HOME/lib/klib.so ] || error_exit "klib.so file not found"
@@ -18,6 +73,15 @@ _KXCAT_HOME=$(dirname $(dirname $(readlink -f $0)))
 . $_KXCAT_HOME/etc/kxcat.cfg
 
 [ ! -n "$OS_ISO" ] && error_exit "OS_ISO not found"
+if [ -n "$iso_file" -a ! -f "$OS_ISO" ]; then
+    [ -d $(dirname $OS_ISO) ] || mkdir -p $(dirname $OS_ISO)
+    mv $iso_file $OS_ISO
+    iso_file=$OS_ISO
+    echo
+    echo "Moved \"$iso_file\" to \"$OS_ISO\""
+    echo
+    sleep 10
+fi
 chk_iso=0
 while read line; do
      if [ ! -f "$line" ]; then
@@ -43,10 +107,15 @@ if [ "$POWER_MODE" == "ipmi" -o "$POWER_MODE" == "xcat" ]; then
    [ ! -n "$SOL_SPEED" ] && error_exit "SOL_SPEED not found"
 fi
 [ -d /sys/class/net/$GROUP_NET_DEV ] || error_exit "GROUP_NET_DEV($GROUP_NET_DEV) not found"
-MGT_IP_INFO=($(ifconfig $GROUP_NET_DEV | grep "inet " | awk '{printf "%s %s",$2,$4}'))
+#MGT_IP_INFO=($(ifconfig $GROUP_NET_DEV | grep "inet " | awk '{printf "%s %s",$2,$4}'))
+MGT_NIC_INFO=$(ip -4 addr show $GROUP_NET_DEV | grep "inet " | awk '{printf "%s",$2}')
+MGT_IP_INFO=($(echo $MGT_NIC_INFO | awk -F\/ '{print $1}') $(cidr2mask $(echo $MGT_NIC_INFO | awk -F\/ '{print $2}')))
 [ "$MGT_IP" == "${MGT_IP_INFO[0]}" ] || error_exit "MGT_IP and ${GROUP_NET_DEV} IPs are different"
 [ "$GROUP_NETMASK" == "${MGT_IP_INFO[1]}" ] || error_exit "GROUP_NETMASK and ${GROUP_NET_DEV} NETMASKs are different"
 #MGT_IP=$(_k_net_add_ip $GROUP_NETWORK 1)
+
+echo ${MGT_IP_INFO[*]}
+exit
 
 # temporary disable
 init() {
@@ -115,7 +184,7 @@ if [ -z \$LC_ALL ]; then
 fi
 
 [ -f /etc/profile.d/kxcat.sh ] && source /etc/profile.d/kxcat.sh
-[ -f /etc/profile.d/xcat.sh ] && source /etc/profile.d/xcat.sh
+#[ -f /etc/profile.d/xcat.sh ] && source /etc/profile.d/xcat.sh
 
 case \$1 in
 restart)
@@ -268,16 +337,28 @@ net.core.rmem_default = 262144
 
   [ -f /usr/sbin/rsct/bin/rmcctrl ] && /usr/sbin/rsct/bin/rmcctrl -k
   [ -f /usr/sbin/rsct/bin/rmcctrl ] && /usr/sbin/rsct/bin/rmcctrl -s
+
+  cd $_KXCAT_HOME/lib
+  for ii in $(grep "() {$" kxcat_slurm.so | awk -F\( '{print $1}'); do
+     [ -L kxcat_${ii}.so ] || ln -s kxcat_slurm.so kxcat_${ii}.so
+  done
+  for ii in kxcat_clone.so kxcat_import_img.so; do
+      [ -L $ii ] || ln -s kxcat_make.so $ii
+  done
+  [ -L kxcat_restore.so ] || ln -s kxcat_backup.so kxcat_restore.so
 }
 
 
-xcat_install() {
+xcat_req() {
   ping -c 3 raw.githubusercontent.com  >& /dev/null || error_exit "Please setup outside network for auto installation for xCAT"
   yum -y install dhcp dhcp-common dhcp-libs ntp ntpdate nfs nfs-utils httpd tftp bind rpcbind bind-utils openssl openssl-libs sqlite pigz ipmitool net-tools quota-nls quota net-snmp-utils libselinux-utils wget git screen minicom iotop 
   # Build
   yum -y install gcc gcc-c++ libgcc gcc-gfortran glibc libstdc++-devel glibc-devel tcl-devel zlib-devel kernel-headers kernel-devel 
   _k_servicectl dhcpd stop
   rpm -qa |grep libvirt-client >& /dev/null && yum erase libvirt-client
+}
+
+xcat_install() {
   [ -f ./go-xcat ] && rm -f go-xcat
   wget https://raw.githubusercontent.com/xcat2/xcat-core/master/xCAT-server/share/xcat/tools/go-xcat -O - > /tmp/go-xcat
   chmod +x /tmp/go-xcat
@@ -286,17 +367,6 @@ xcat_install() {
   [ -f /etc/profile.d/xcat.sh ] || error_exit "/etc/profile.d/xcat.sh file not found"
   #mv /etc/profile.d/xcat.* $_KXCAT_HOME/etc
   [ ! -f /tftpboot/xcat/xnba.efi -o ! -f /tftpboot/xcat/xnba.kpxe ] && (rpm -e --nodeps $(rpm -qa | grep xnba-undi); yum -y install xnba-undi)
-  (
-   source /etc/profile.d/kxcat.sh
-   cd $_KXCAT_HOME/lib
-   for ii in $(grep "() {$" kxcat_slurm.so | awk -F\( '{print $1}'); do
-     [ -L kxcat_${ii}.so ] || ln -s kxcat_slurm.so kxcat_${ii}.so
-   done
-   for ii in kxcat_clone.so kxcat_import_img.so; do
-      [ -L $ii ] || ln -s kxcat_make.so $ii
-   done
-   [ -L kxcat_restore.so ] || ln -s kxcat_backup.so kxcat_restore.so
-  )
 }
 
 xcat_env() {
@@ -473,43 +543,53 @@ xcat_image() {
   base_arch=$(echo $base_image_str | awk -F, '{print $2}')
 } 
 
+xcat_node_set() {
+   source /etc/profile.d/xcat.sh
+   source /etc/profile.d/kxcat.sh
+   # Add Nodes
+   for ((node_snum=1; node_snum<=$MAX_NODES; node_snum++)); do
+      node_name=n$(printf "%05d" $node_snum)
+      echo "Setup $node_name"
+      node_info=$([ -f server_list.cfg ] && awk -F\| -v num=$node_snum '{if($1==num) print}' server_list.cfg)
+      node_mac=$(echo $node_info | awk -F\| '{print $2}')
+      node_bmc_IP=$(echo $node_info | awk -F\| '{print $3}')
+      [ -n "$node_mac" ] || node_mac="00:00:00:00:00:00"
+      [ -n "$POWER_MODE" ] || POWER_MODE=xcat
+      if [ "$POWER_MODE" == "ipmi" -o "$POWER_MODE" == "xcat" ]; then
+         [ -n "$node_bmc_IP" ] || node_bmc_IP=$(_k_net_add_ip $BMC_NETWORK $node_snum)
+         BMC_STR="bmc=$node_bmc_IP bmcusername=$BMC_USER bmcpassword=$BMC_PASS cons=ipmi"
+         CONSOLE_STR="serialflow=none serialport=$(echo $SOL_DEV| sed "s/ttyS//g") serialspeed=${SOL_SPEED}"
+      fi
+      mkdef -t node $node_name groups=all,n id=$node_snum arch=$base_arch mac=$node_mac mgt=$([ "$POWER_MODE" == "xcat" ] && echo ipmi || echo ${POWER_MODE}) $BMC_STR netboot=xnba provmethod= $CONSOLE_STR xcatmaster=${MGT_IP}
+   done
+}
+
+xcat_done() {
+   source /etc/profile.d/kxcat.sh
+   #makehosts all 2>/dev/null
+   echo
+   echo "Restart service"
+   $_KXCAT_HOME/bin/kxcat_service stop
+   $_KXCAT_HOME/bin/kxcat_service stop
+   sleep 5
+   _k_servicectl kxcat stop
+   sleep 5
+   _k_servicectl kxcat start
+   if [ -n "$link_name" ]; then
+      (cd $_KXCAT_HOME/bin && ln -s kxcat $linke_name)
+   fi
+
+   echo
+   echo "Please run \"source /etc/profile.d/kxcat.sh\""
+   echo "Please run \"source /etc/profile.d/xcat.sh\""
+   echo "KxCAT Install done"
+}
+
+exit
 init
+xcat_req
 xcat_install
 xcat_env
 xcat_image
-
-
-# Add Nodes
-for ((node_snum=1; node_snum<=$MAX_NODES; node_snum++)); do
-   node_name=n$(printf "%05d" $node_snum)
-   echo "Setup $node_name"
-   node_info=$([ -f server_list.cfg ] && awk -F\| -v num=$node_snum '{if($1==num) print}' server_list.cfg)
-   node_mac=$(echo $node_info | awk -F\| '{print $2}')
-   node_bmc_IP=$(echo $node_info | awk -F\| '{print $3}')
-   [ -n "$node_mac" ] || node_mac="00:00:00:00:00:00"
-   [ -n "$POWER_MODE" ] || POWER_MODE=xcat
-   if [ "$POWER_MODE" == "ipmi" -o "$POWER_MODE" == "xcat" ]; then
-       [ -n "$node_bmc_IP" ] || node_bmc_IP=$(_k_net_add_ip $BMC_NETWORK $node_snum)
-       BMC_STR="bmc=$node_bmc_IP bmcusername=$BMC_USER bmcpassword=$BMC_PASS cons=ipmi"
-       CONSOLE_STR="serialflow=none serialport=$(echo $SOL_DEV| sed "s/ttyS//g") serialspeed=${SOL_SPEED}"
-   fi
-   mkdef -t node $node_name groups=all,n id=$node_snum arch=$base_arch mac=$node_mac mgt=$([ "$POWER_MODE" == "xcat" ] && echo ipmi || echo ${POWER_MODE}) $BMC_STR netboot=xnba provmethod= $CONSOLE_STR xcatmaster=${MGT_IP}
-done
-
-#makehosts all 2>/dev/null
-echo
-echo "Restart service"
-$_KXCAT_HOME/bin/kxcat_service stop
-$_KXCAT_HOME/bin/kxcat_service stop
-sleep 5
-_k_servicectl kxcat stop
-sleep 5
-_k_servicectl kxcat start
-if [ -n "$link_name" ]; then
-    (cd $_KXCAT_HOME/bin && ln -s kxcat $linke_name)
-fi
-
-echo
-echo "Please run \"source /etc/profile.d/kxcat.sh\""
-echo "Please run \"source /etc/profile.d/xcat.sh\""
-echo "KxCAT Install done"
+xcat_node_set
+xcat_done
