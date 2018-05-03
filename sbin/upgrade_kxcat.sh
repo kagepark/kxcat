@@ -12,6 +12,7 @@ error_exit() {
 update_scripts() {
    local home_path
    home_path=$1
+   [ -d /install/postscripts ] || return 1
    for ii in state_update kxcatboot syslog;do
        [ -f $home_path/share/$ii ] && cp -a $home_path/share/$ii /install/postscripts/$ii
    done
@@ -44,5 +45,5 @@ else
    echo "/etc/profile.d/kxcat.sh not found"
    exit
 fi
-update_scripts $_KXCAT_HOME
-echo "If you need update boot scripts then using \"kxcat update <group name> -b\" or \"kxcat update <group name>\" command"
+update_scripts $_KXCAT_HOME && echo "If you need update boot scripts then using \"kxcat update <group name> -b\" or \"kxcat update <group name>\" command" || echo "Not installed xCAT yet"
+
