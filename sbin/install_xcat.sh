@@ -114,11 +114,8 @@ MGT_IP_INFO=($(echo $MGT_NIC_INFO | awk -F\/ '{print $1}') $(cidr2mask $(echo $M
 [ "$GROUP_NETMASK" == "${MGT_IP_INFO[1]}" ] || error_exit "GROUP_NETMASK and ${GROUP_NET_DEV} NETMASKs are different"
 #MGT_IP=$(_k_net_add_ip $GROUP_NETWORK 1)
 
-echo ${MGT_IP_INFO[*]}
-exit
-
 # temporary disable
-init() {
+xcat_init() {
   hostname $MGT_HOSTNAME
   domainname $DOMAIN_NAME
   sed -i "/^_KXC_VERSION=/c \
@@ -143,22 +140,20 @@ DEFROUTE=yes
 IPV4_FAILURE_FATAL=no
 NAME=${MPI_DEV}
 DEVICE=${MPI_DEV}
-ONBOOT=no
+ONBOOT=yes
 IPADDR=${MPI_MGT_IP}
 NETMASK=${GROUP_NETMASK} " > /etc/sysconfig/network-scripts/ifcfg-${MPI_DEV}
   fi
 
-
-
-if ! grep "^search $DOMAIN_NAME" /etc/resolv.conf >& /dev/null; then
-  echo "search $DOMAIN_NAME
+  if ! grep "^search $DOMAIN_NAME" /etc/resolv.conf >& /dev/null; then
+     echo "search $DOMAIN_NAME
 nameserver $MGT_IP" > /etc/resolv.conf
-  if [ -n "$DNS_OUTSIDE" ]; then
-    for ii in $(echo $DNS_OUTSIDE | sed "s/,/ /g"); do
-       echo "nameserver $ii" >> /etc/resolv.conf
-    done
   fi
-fi
+  if [ -n "$DNS_OUTSIDE" ]; then
+     for ii in $(echo $DNS_OUTSIDE | sed "s/,/ /g"); do
+        grep "^nameserver $ii" /etc/resolv.conf >& /dev/null || echo "nameserver $ii" >> /etc/resolv.conf
+     done
+  fi
 
   echo "_KXCAT_HOME=$_KXCAT_HOME
 PATH=\${PATH}:\$_KXCAT_HOME/bin
@@ -339,7 +334,7 @@ net.core.rmem_default = 262144
   [ -f /usr/sbin/rsct/bin/rmcctrl ] && /usr/sbin/rsct/bin/rmcctrl -s
 
   cd $_KXCAT_HOME/lib
-  for ii in $(grep "() {$" kxcat_slurm.so | awk -F\( '{print $1}'); do
+  for ii in $(grep "() {$" kxcat_slurm.so | awk -F\( '{print $1}' | grep -v error_exit); do
      [ -L kxcat_${ii}.so ] || ln -s kxcat_slurm.so kxcat_${ii}.so
   done
   for ii in kxcat_clone.so kxcat_import_img.so; do
@@ -350,23 +345,83 @@ net.core.rmem_default = 262144
 
 
 xcat_req() {
-  ping -c 3 raw.githubusercontent.com  >& /dev/null || error_exit "Please setup outside network for auto installation for xCAT"
-  yum -y install dhcp dhcp-common dhcp-libs ntp ntpdate nfs nfs-utils httpd tftp bind rpcbind bind-utils openssl openssl-libs sqlite pigz ipmitool net-tools quota-nls quota net-snmp-utils libselinux-utils wget git screen minicom iotop 
-  # Build
-  yum -y install gcc gcc-c++ libgcc gcc-gfortran glibc libstdc++-devel glibc-devel tcl-devel zlib-devel kernel-headers kernel-devel 
+  local auto repo_file os_iso
+  auto=$1
+  os_iso=$2
+
+  if [ "$auto" == "1" ]; then
+     ping -c 3 google.com  >& /dev/null || error_exit "Please setup outside network for auto installation for require packages"
+  else
+     mounted_iso=($(losetup | grep "/dev/loop" | head -n1| awk '{print $1,$6}'))
+     if [ "${#mounted_iso[*]}" == "2" -a "${mounted_iso[1]}" == "$os_iso" ]; then
+        os_iso_dir=$(df -h | grep "${mounted_iso[0]}" | awk '{print $6}')
+        os_work=$(dirname $os_iso_dir)
+     else
+        os_work=$(mktemp -d /tmp/KxCAT-XXXXXXX)
+        os_iso_dir=$os_work/iso
+        mkdir -p $os_iso_dir
+        mount -o loop $os_iso $os_iso_dir
+     fi 
+     RPM_GPG_KEY=$(rpm -ql $(rpm -qa |grep release) | grep RPM-GPG-KEY- | head -n1)
+     if [ -n "$RPM_GPG_KEY" ]; then
+     echo "
+[KxCAT_Req]
+name=KxCAT_Req
+baseurl=file://$os_iso_dir
+enable=1
+gpgcheck=1
+gpgkey=file://$RPM_GPG_KEY
+     " > $os_work/os.repo
+     else
+     echo "
+[KxCAT_Req]
+name=KxCAT_Req
+baseurl=file://$os_iso_dir
+enable=1
+gpgcheck=0
+     " > $os_work/os.repo
+     fi
+     repo_file="-c $os_work/os.repo --disablerepo=* --enablerepo=KxCAT_Req"
+  fi
+  echo $repo_file
+
+  yum $repo_file -y install dhcp dhcp-common dhcp-libs ntp ntpdate nfs nfs-utils httpd tftp bind rpcbind bind-utils openssl openssl-libs sqlite pigz ipmitool net-tools quota-nls quota net-snmp-utils libselinux-utils wget git screen minicom iotop bzip2 gzip install gcc gcc-c++ libgcc gcc-gfortran glibc libstdc++-devel glibc-devel tcl-devel zlib-devel kernel-headers kernel-devel perl-Digest-SHA1 perl-XML-Parser ksh perl-XML-Parser net-snmp-agent-libs perl-DBD-SQLite nmap rpm-build tftp-server psmisc perl-Crypt-CBC perl-Net-HTTPS-NB perl-Crypt-SSLeay syslinux perl-HTTP-Daemon perl-HTTP-Cookies perl-Sys-Syslog perl-IO-Socket-SSL perl-LWP-Protocol-https perl-CGI perl-URI perl-Digest-MD5 perl-Net-SSLeay perl-XML-LibXML perl-DB_File perl-Sys-Virt perl-Net-DNS bind-utils bind bind-libs rpcbind perl-Test-Simple perl-Test-Harness 
+  
   _k_servicectl dhcpd stop
   rpm -qa |grep libvirt-client >& /dev/null && yum erase libvirt-client
+
+  umount $os_iso_dir && rm -fr $os_work
 }
 
 xcat_install() {
-  [ -f ./go-xcat ] && rm -f go-xcat
-  wget https://raw.githubusercontent.com/xcat2/xcat-core/master/xCAT-server/share/xcat/tools/go-xcat -O - > /tmp/go-xcat
-  chmod +x /tmp/go-xcat
-  /tmp/go-xcat install
-  rm -f /tmp/go-xcat
+  local auto repo_file core_file dep_file
+  auto=$1
+  core_file=$2
+  dep_file=$3
+  if [ "$auto" == "1" ]; then
+     ping -c 3 raw.githubusercontent.com  >& /dev/null || error_exit "Please setup outside network for auto installation for xCAT"
+     [ -f ./go-xcat ] && rm -f go-xcat
+     wget https://raw.githubusercontent.com/xcat2/xcat-core/master/xCAT-server/share/xcat/tools/go-xcat -O - > /tmp/go-xcat
+     chmod +x /tmp/go-xcat
+     /tmp/go-xcat install
+     rm -f /tmp/go-xcat
+  else
+     [ ! -n "$core_file" -o ! -n "$dep_file" ] && error_exit "xCAT core or dep file not found"
+     [ ! -f "$core_file" -o ! -f "$dep_file" ] && error_exit "$core_file or $dep_file not found"
+     os_work=$(mktemp -d /tmp/KxCAT-XXXXXXX)
+     tar jxvf $core_file -C $os_work
+     tar jxvf $dep_file -C $os_work
+     $os_work/xcat-core/mklocalrepo.sh
+     xcat_core_repo="/etc/yum.repos.d/xcat-core.repo"
+     $os_work/xcat-dep/rh7/x86_64/mklocalrepo.sh
+     xcat_dep_repo="/etc/yum.repos.d/xcat-dep.repo"
+     repo_file="-c repofile"
+     yum -y install xCAT xCAT-server --disablerepo=* --enablerepo=xcat-dep --enablerepo=xcat-core
+  fi
+  exit
   [ -f /etc/profile.d/xcat.sh ] || error_exit "/etc/profile.d/xcat.sh file not found"
   #mv /etc/profile.d/xcat.* $_KXCAT_HOME/etc
-  [ ! -f /tftpboot/xcat/xnba.efi -o ! -f /tftpboot/xcat/xnba.kpxe ] && (rpm -e --nodeps $(rpm -qa | grep xnba-undi); yum -y install xnba-undi)
+  [ ! -f /tftpboot/xcat/xnba.efi -o ! -f /tftpboot/xcat/xnba.kpxe ] && (rpm -e --nodeps $(rpm -qa | grep xnba-undi); yum $repo_file -y install xnba-undi)
 }
 
 xcat_env() {
@@ -585,10 +640,10 @@ xcat_done() {
    echo "KxCAT Install done"
 }
 
+xcat_req "$auto" "$OS_ISO"
+xcat_init
+xcat_install "$auto" "$core_file" "$dep_file"
 exit
-init
-xcat_req
-xcat_install
 xcat_env
 xcat_image
 xcat_node_set
