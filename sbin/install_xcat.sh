@@ -138,7 +138,7 @@ xcat_init() {
          mkfs.xfs -f $global_dev
          mount $global_dev /global
       fi
-      [ -n "$(awk '{if($2 == "/global") print}' /etc/fstab)" ] || echo "$global_dev \t /global\txfs\tdefaults\t0 0" >> /etc/fstab
+      [ -n "$(awk '{if($2 == "/global") print}' /etc/fstab)" ] || echo "$global_dev                /global                 xfs     defaults        0 0" >> /etc/fstab
   fi
   hostname $MGT_HOSTNAME
   domainname $DOMAIN_NAME
