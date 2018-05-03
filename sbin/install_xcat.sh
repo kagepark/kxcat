@@ -39,8 +39,15 @@ $(basename $0) [-auto] [-core <xcat core> -dep <xcat dep> [-iso <iso file>]] [-l
 <xcat dep>  : xcat dep file
 <cmd name>  : make a soft link from kxcat to <cmd name>
 
-example)
-$(basename $0) -iso ~/CentOS-7-x86_64-DVD-1708.iso -core ../share/xcat-core-2.14.0-linux.tar.bz2 -dep ../share/xcat-dep-201804041617.tar.bz2
+example procedure)
+1. setup xCAT network device
+2. disable selinux configuration
+3. disable firewall
+4. copy share/kxcat.cfg share/kxcat_sw.cfg to etc directory and modify cfg files
+5. copy OS iso file to some location (ex: CentOS-7-x86_64-DVD-1708.iso)
+6. download and copy xCAT core and dep file to share directory (for below example)
+   (download site: https://xcat.org/download.html)
+7. $(basename $0) -iso ~/CentOS-7-x86_64-DVD-1708.iso -core ../share/xcat-core-2.14.0-linux.tar.bz2 -dep ../share/xcat-dep-201804041617.tar.bz2
         "
         exit
     elif [ "${opt[$ii]}" == "-auto" ]; then
@@ -76,10 +83,10 @@ _KXCAT_HOME=$(dirname $(dirname $(readlink -f $0)))
 if [ -n "$iso_file" -a ! -f "$OS_ISO" ]; then
     [ -d $(dirname $OS_ISO) ] || mkdir -p $(dirname $OS_ISO)
     mv $iso_file $OS_ISO
+    echo
+    echo "Moving \"$iso_file\" to \"$OS_ISO\""
+    echo
     iso_file=$OS_ISO
-    echo
-    echo "Moved \"$iso_file\" to \"$OS_ISO\""
-    echo
     sleep 10
 fi
 chk_iso=0
@@ -179,7 +186,7 @@ if [ -z \$LC_ALL ]; then
 fi
 
 [ -f /etc/profile.d/kxcat.sh ] && source /etc/profile.d/kxcat.sh
-#[ -f /etc/profile.d/xcat.sh ] && source /etc/profile.d/xcat.sh
+[ -f /etc/profile.d/xcat.sh ] && source /etc/profile.d/xcat.sh
 
 case \$1 in
 restart)
@@ -244,7 +251,7 @@ ExecReload=-$_KXCAT_HOME/bin/kxcat_service restart
 [Install]
 WantedBy=multi-user.target
 EOF
-  sleep 3
+  sleep 5
   systemctl daemon-reload
 
   _k_servicectl kxcat on
@@ -383,7 +390,6 @@ gpgcheck=0
      fi
      repo_file="-c $os_work/os.repo --disablerepo=* --enablerepo=KxCAT_Req"
   fi
-  echo $repo_file
 
   yum $repo_file -y install dhcp dhcp-common dhcp-libs ntp ntpdate nfs nfs-utils httpd tftp bind rpcbind bind-utils openssl openssl-libs sqlite pigz ipmitool net-tools quota-nls quota net-snmp-utils libselinux-utils wget git screen minicom iotop bzip2 gzip install gcc gcc-c++ libgcc gcc-gfortran glibc libstdc++-devel glibc-devel tcl-devel zlib-devel kernel-headers kernel-devel perl-Digest-SHA1 perl-XML-Parser ksh perl-XML-Parser net-snmp-agent-libs perl-DBD-SQLite nmap rpm-build tftp-server psmisc perl-Crypt-CBC perl-Net-HTTPS-NB perl-Crypt-SSLeay syslinux perl-HTTP-Daemon perl-HTTP-Cookies perl-Sys-Syslog perl-IO-Socket-SSL perl-LWP-Protocol-https perl-CGI perl-URI perl-Digest-MD5 perl-Net-SSLeay perl-XML-LibXML perl-DB_File perl-Sys-Virt perl-Net-DNS bind-utils bind bind-libs rpcbind perl-Test-Simple perl-Test-Harness 
   
@@ -408,20 +414,18 @@ xcat_install() {
   else
      [ ! -n "$core_file" -o ! -n "$dep_file" ] && error_exit "xCAT core or dep file not found"
      [ ! -f "$core_file" -o ! -f "$dep_file" ] && error_exit "$core_file or $dep_file not found"
-     os_work=$(mktemp -d /tmp/KxCAT-XXXXXXX)
-     tar jxvf $core_file -C $os_work
-     tar jxvf $dep_file -C $os_work
-     $os_work/xcat-core/mklocalrepo.sh
-     xcat_core_repo="/etc/yum.repos.d/xcat-core.repo"
-     $os_work/xcat-dep/rh7/x86_64/mklocalrepo.sh
-     xcat_dep_repo="/etc/yum.repos.d/xcat-dep.repo"
-     repo_file="-c repofile"
+     xcat_work=$_KXCAT_HOME/share/xcat_repo
+     [ -d "$xcat_work" ] || mkdir -p $xcat_work
+     tar jxvf $core_file -C $xcat_work
+     tar jxvf $dep_file -C $xcat_work
+     $xcat_work/xcat-core/mklocalrepo.sh
+     $xcat_work/xcat-dep/rh7/x86_64/mklocalrepo.sh
      yum -y install xCAT xCAT-server --disablerepo=* --enablerepo=xcat-dep --enablerepo=xcat-core
+     local_repo_opt="--disablerepo=* --enablerepo=xcat-dep --enablerepo=xcat-core"
   fi
-  exit
   [ -f /etc/profile.d/xcat.sh ] || error_exit "/etc/profile.d/xcat.sh file not found"
   #mv /etc/profile.d/xcat.* $_KXCAT_HOME/etc
-  [ ! -f /tftpboot/xcat/xnba.efi -o ! -f /tftpboot/xcat/xnba.kpxe ] && (rpm -e --nodeps $(rpm -qa | grep xnba-undi); yum $repo_file -y install xnba-undi)
+  [ ! -f /tftpboot/xcat/xnba.efi -o ! -f /tftpboot/xcat/xnba.kpxe ] && (rpm -e --nodeps $(rpm -qa | grep xnba-undi); yum $repo_file -y install xnba-undi $local_repo_opt)
 }
 
 xcat_env() {
@@ -620,6 +624,9 @@ xcat_node_set() {
 }
 
 xcat_done() {
+   local link_name
+   link_name=$1
+
    source /etc/profile.d/kxcat.sh
    #makehosts all 2>/dev/null
    echo
@@ -643,8 +650,7 @@ xcat_done() {
 xcat_req "$auto" "$OS_ISO"
 xcat_init
 xcat_install "$auto" "$core_file" "$dep_file"
-exit
 xcat_env
 xcat_image
 xcat_node_set
-xcat_done
+xcat_done $link_name
