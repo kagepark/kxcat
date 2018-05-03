@@ -433,17 +433,21 @@ xcat_install() {
      [ ! -n "$core_file" -o ! -n "$dep_file" ] && error_exit "xCAT core or dep file not found"
      [ ! -f "$core_file" -o ! -f "$dep_file" ] && error_exit "$core_file or $dep_file not found"
      xcat_work=$_KXCAT_HOME/share/xcat_repo
-     [ -d "$xcat_work" ] || mkdir -p $xcat_work
+     if [ ! -d "$xcat_work" ]; then
+     mkdir -p $xcat_work
      tar jxvf $core_file -C $xcat_work
      tar jxvf $dep_file -C $xcat_work
+     fi
+     if [ ! -f /etc/yum.repos.d/xcat-core.repo -o ! -f /etc/yum.repos.d/xcat-dep.repo ]; then 
      $xcat_work/xcat-core/mklocalrepo.sh
      $xcat_work/xcat-dep/rh7/x86_64/mklocalrepo.sh
+     fi
      yum -y install xCAT xCAT-server xCAT-genesis-base --disablerepo=* --enablerepo=xcat-dep --enablerepo=xcat-core
      local_repo_opt="--disablerepo=* --enablerepo=xcat-dep --enablerepo=xcat-core"
   fi
   [ -f /etc/profile.d/xcat.sh ] || error_exit "/etc/profile.d/xcat.sh file not found"
   #mv /etc/profile.d/xcat.* $_KXCAT_HOME/etc
-  [ ! -f /tftpboot/xcat/xnba.efi -o ! -f /tftpboot/xcat/xnba.kpxe ] && (rpm -e --nodeps $(rpm -qa | grep xnba-undi); yum $repo_file -y install xnba-undi $local_repo_opt)
+  [ ! -f /tftpboot/xcat/xnba.efi -o ! -f /tftpboot/xcat/xnba.kpxe ] && (rpm -e --nodeps $(rpm -qa | grep xnba-undi); yum -y install xnba-undi $local_repo_opt)
 }
 
 xcat_env() {
