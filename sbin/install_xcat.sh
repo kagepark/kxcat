@@ -113,7 +113,7 @@ xcat_init() {
   domainname $DOMAIN_NAME
   sed -i "/^_KXC_VERSION=/c \
 _KXC_VERSION=$(git describe --tags) " $_KXCAT_HOME/bin/kxcat
-#  rm -fr $_KXCAT_HOME/.git
+  rm -fr $_KXCAT_HOME/.git
 
   if [ -f /etc/hostname ]; then
       grep "^$MGT_HOSTNAME$" /etc/hostname >& /dev/null || echo "$MGT_HOSTNAME" > /etc/hostname
