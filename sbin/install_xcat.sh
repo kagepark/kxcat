@@ -135,7 +135,7 @@ xcat_init() {
       [ -d /global ] || mkdir /global
       if ! mountpoint /global >& /dev/null; then
          [ -b $global_dev ] || error_exit "$global_dev is not block device"
-         mkfs.xfs $global_dev
+         mkfs.xfs -f $global_dev
          mount $global_dev /global
       fi
       [ -n "$(awk '{if($2 == "/global") print}' /etc/fstab)" ] || echo "$global_dev \t /global\txfs\tdefaults\t0 0" >> /etc/fstab
