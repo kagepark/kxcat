@@ -37,13 +37,16 @@ _KXC_VERSION=$(git describe --tags) " $_KXCAT_HOME/bin/kxcat
        exit
      fi
    else
+     echo "Stop service"
      systemctl stop kxcat
+     echo "update files"
      rsync -a ../ $_KXCAT_HOME/
      cd $_KXCAT_HOME
      if [ -d .git ]; then
        sed -i "/^_KXC_VERSION=/c \
 _KXC_VERSION=$(git describe --tags) " $_KXCAT_HOME/bin/kxcat
      fi
+     echo "Start service"
      systemctl start kxcat
    fi
 else
