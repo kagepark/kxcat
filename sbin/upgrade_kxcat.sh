@@ -24,26 +24,30 @@ update_scripts() {
    done
 }
 
-if [ "$1" == "force" ]; then
-   _KXCAT_HOME=$(dirname $(readlink -f $0))
-   if [ -d $_KXCAT_HOME/.git ]; then
-      git reset --hard HEAD
-      git clean -f -d
-      git fetch -all
-      sed -i "/^_KXC_VERSION=/c \
-_KXC_VERSION=$(git describe --tags) " $_KXCAT_HOME/../bin/kxcat
-   fi
-elif [ -f /etc/profile.d/kxcat.sh ]; then
+if [ -f /etc/profile.d/kxcat.sh ]; then
    . /etc/profile.d/kxcat.sh
-   cd $_KXCAT_HOME
-   if [ -d .git ]; then
-      git pull
-      sed -i "/^_KXC_VERSION=/c \
+   if [ "$1" == "auto" ]; then
+     cd $_KXCAT_HOME
+     if [ -d .git ]; then
+       git pull
+       sed -i "/^_KXC_VERSION=/c \
 _KXC_VERSION=$(git describe --tags) " $_KXCAT_HOME/bin/kxcat
+     else
+       echo "Not found git information"
+       exit
+     fi
+   else
+     systemctl stop kxcat
+     rsync -a ../ $_KXCAT_HOME/
+     cd $_KXCAT_HOME
+     if [ -d .git ]; then
+       sed -i "/^_KXC_VERSION=/c \
+_KXC_VERSION=$(git describe --tags) " $_KXCAT_HOME/bin/kxcat
+     fi
+     systemctl start kxcat
    fi
 else
    echo "/etc/profile.d/kxcat.sh not found"
    exit
 fi
 update_scripts $_KXCAT_HOME && echo "If you need update boot scripts then using \"kxcat update <group name> -b\" or \"kxcat update <group name>\" command" || echo "Not installed xCAT yet"
-
