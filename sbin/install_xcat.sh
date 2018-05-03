@@ -216,6 +216,7 @@ stop)
   systemctl stop dhcpd
   systemctl stop httpd
   systemctl stop nfs
+  systemctl stop rpcbind.socket
   systemctl stop rpcbind
   systemctl stop ntpd
   ;;
@@ -443,6 +444,7 @@ xcat_env() {
      fi
   fi
   _k_servicectl ntpd stop
+  _k_servicectl ntpdate stop
   _k_servicectl ntpdate start
   _k_servicectl ntpd start
 #  _k_servicectl ntpd on 35
@@ -451,7 +453,8 @@ xcat_env() {
   if ! grep "^RPCNFSDCOUNT=" /etc/sysconfig/nfs >&/dev/null; then
       echo "RPCNFSDCOUNT=128" >> /etc/sysconfig/nfs
   fi
-  _k_servicectl nfs restart
+  _k_servicectl nfs stop
+  _k_servicectl nfs start
 #  _k_servicectl nfs on 35
   # APACHE
   if ! grep "^<IfModule mpm_worker_module>" /etc/httpd/conf/httpd.conf >& /dev/null; then
@@ -466,7 +469,8 @@ xcat_env() {
     MaxConnectionsPerChild 10000
 </IfModule>" >> /etc/httpd/conf/httpd.conf
   fi
-  _k_servicectl httpd restart
+  _k_servicectl httpd stop
+  _k_servicectl httpd start
 #  _k_servicectl httpd on 35
 
   # Patch post.xcat file
