@@ -420,7 +420,7 @@ xcat_install() {
      tar jxvf $dep_file -C $xcat_work
      $xcat_work/xcat-core/mklocalrepo.sh
      $xcat_work/xcat-dep/rh7/x86_64/mklocalrepo.sh
-     yum -y install xCAT xCAT-server --disablerepo=* --enablerepo=xcat-dep --enablerepo=xcat-core
+     yum -y install xCAT xCAT-server xCAT-genesis-base --disablerepo=* --enablerepo=xcat-dep --enablerepo=xcat-core
      local_repo_opt="--disablerepo=* --enablerepo=xcat-dep --enablerepo=xcat-core"
   fi
   [ -f /etc/profile.d/xcat.sh ] || error_exit "/etc/profile.d/xcat.sh file not found"
