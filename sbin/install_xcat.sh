@@ -32,12 +32,14 @@ opt=($*)
 for ((ii=0;ii<${#opt[*]};ii++)); do
     if [ "${opt[$ii]}" == "--help" -o "${opt[$ii]}" == "help" -o "${opt[$ii]}" == "-help" ]; then
         echo "
-$(basename $0) [-auto] [-core <xcat core> -dep <xcat dep> [-iso <iso file>]] [-link <cmd name>]
+$(basename $0) [-auto] [-core <xcat core> -dep <xcat dep> [-iso <iso file>]] [-link <cmd name>] [-gdev <global dev>]
 
 <iso file>  : Installed OS iso file on MGT node
 <xcat core> : xcat core file
 <xcat dep>  : xcat dep file
 <cmd name>  : make a soft link from kxcat to <cmd name>
+<global dev>: block device path(ex: /dev/sdb) for /global directory
+              This device will automatically formatted
 
 example procedure)
 1. setup xCAT network device
@@ -65,6 +67,9 @@ example procedure)
     elif [ "${opt[$ii]}" == "-link" ]; then
         ii=$(($ii+1))
         link_name=${opt[$ii]}
+    elif [ "${opt[$ii]}" == "-gdev" ]; then
+        ii=$(($ii+1))
+        global_dev=${opt[$ii]}
     fi
 done
 if [ "$auto" != "1" ]; then
@@ -123,6 +128,18 @@ MGT_IP_INFO=($(echo $MGT_NIC_INFO | awk -F\/ '{print $1}') $(cidr2mask $(echo $M
 
 # temporary disable
 xcat_init() {
+  local global_dev
+  global_dev=$1
+
+  if [ -n "$global_dev" ]; then
+      [ -d /global ] || mkdir /global
+      if ! mountpoint /global >& /dev/null; then
+         [ -b $global_dev ] || error_exit "$global_dev is not block device"
+         mkfs.xfs $global_dev
+         mount $global_dev /global
+      fi
+      [ -n "$(awk '{if($2 == "/global") print}' /etc/fstab)" ] || echo "$global_dev \t /global\txfs\tdefaults\t0 0" >> /etc/fstab
+  fi
   hostname $MGT_HOSTNAME
   domainname $DOMAIN_NAME
   sed -i "/^_KXC_VERSION=/c \
@@ -652,7 +669,7 @@ xcat_done() {
 }
 
 xcat_req "$auto" "$OS_ISO"
-xcat_init
+xcat_init "$global_dev"
 xcat_install "$auto" "$core_file" "$dep_file"
 xcat_env
 xcat_image
