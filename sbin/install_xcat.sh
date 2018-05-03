@@ -85,25 +85,6 @@ _KXCAT_HOME=$(dirname $(dirname $(readlink -f $0)))
 . $_KXCAT_HOME/etc/kxcat.cfg
 
 [ ! -n "$OS_ISO" ] && error_exit "OS_ISO not found"
-if [ -n "$iso_file" -a ! -f "$OS_ISO" ]; then
-    [ -d $(dirname $OS_ISO) ] || mkdir -p $(dirname $OS_ISO)
-    mv $iso_file $OS_ISO
-    echo
-    echo "Moving \"$iso_file\" to \"$OS_ISO\""
-    echo
-    iso_file=$OS_ISO
-    sleep 10
-fi
-chk_iso=0
-while read line; do
-     if [ ! -f "$line" ]; then
-         echo "$line not found"
-         continue
-     fi
-     chk_iso=1
-done < <(echo $OS_ISO | sed "s/,/\n/g")
-[ "$chk_iso" == "0" ] && error_exit "OS_ISO file not found"
-
 [ ! -n "$GROUP_NETWORK" ] && error_exit "GROUP_NETWORK not found"
 [ ! -n "$GROUP_NETMASK" ] && error_exit "GROUP_NETMASK not found"
 [ ! -n "$GROUP_NET_DEV" ] && error_exit "GROUP_NET_DEV not found"
@@ -128,19 +109,6 @@ MGT_IP_INFO=($(echo $MGT_NIC_INFO | awk -F\/ '{print $1}') $(cidr2mask $(echo $M
 
 # temporary disable
 xcat_init() {
-  local global_dev
-  global_dev=$1
-
-  if [ -n "$global_dev" ]; then
-      [ -d /global ] || mkdir /global
-      if ! mountpoint /global >& /dev/null; then
-         [ -b $global_dev ] || error_exit "$global_dev is not block device"
-         df | grep -v "/global" | grep "^$global_dev" >& /dev/null && error_exit "Looks $global_dev OS device"
-         mkfs.xfs -f $global_dev
-         mount $global_dev /global
-      fi
-      [ -n "$(awk '{if($2 == "/global") print}' /etc/fstab)" ] || echo "$global_dev                /global                 xfs     defaults        0 0" >> /etc/fstab
-  fi
   hostname $MGT_HOSTNAME
   domainname $DOMAIN_NAME
   sed -i "/^_KXC_VERSION=/c \
@@ -371,9 +339,42 @@ net.core.rmem_default = 262144
 
 
 xcat_req() {
-  local auto repo_file os_iso
+  local auto repo_file os_iso iso_file global_dev
   auto=$1
   os_iso=$2
+  iso_file=$3
+  global_dev=$4
+
+  if [ -n "$global_dev" ]; then
+      [ -d /global ] || mkdir /global
+      if ! mountpoint /global >& /dev/null; then
+         [ -b $global_dev ] || error_exit "$global_dev is not block device"
+         df | grep -v "/global" | grep "^$global_dev" >& /dev/null && error_exit "Looks $global_dev OS device"
+         mkfs.xfs -f $global_dev
+         mount $global_dev /global
+      fi
+      [ -n "$(awk '{if($2 == "/global") print}' /etc/fstab)" ] || echo "$global_dev                /global                 xfs     defaults        0 0" >> /etc/fstab
+  fi
+
+  if [ -n "$iso_file" -a ! -f "$OS_ISO" ]; then
+    [ -d $(dirname $OS_ISO) ] || mkdir -p $(dirname $OS_ISO)
+    mv $iso_file $OS_ISO
+    echo
+    echo "Moving \"$iso_file\" to \"$OS_ISO\""
+    echo
+    iso_file=$OS_ISO
+    sleep 10
+  fi
+  chk_iso=0
+  while read line; do
+     if [ ! -f "$line" ]; then
+         echo "$line not found"
+         continue
+     fi
+     chk_iso=1
+  done < <(echo $OS_ISO | sed "s/,/\n/g")
+  [ "$chk_iso" == "0" ] && error_exit "OS_ISO file not found"
+
 
   if [ "$auto" == "1" ]; then
      ping -c 3 google.com  >& /dev/null || error_exit "Please setup outside network for auto installation for require packages"
@@ -647,6 +648,7 @@ xcat_node_set() {
       fi
       mkdef -t node $node_name groups=all,n id=$node_snum arch=$base_arch mac=$node_mac mgt=$([ "$POWER_MODE" == "xcat" ] && echo ipmi || echo ${POWER_MODE}) $BMC_STR netboot=xnba provmethod= $CONSOLE_STR xcatmaster=${MGT_IP}
    done
+   #makehosts all 2>/dev/null
 }
 
 xcat_done() {
@@ -654,7 +656,6 @@ xcat_done() {
    link_name=$1
 
    source /etc/profile.d/kxcat.sh
-   #makehosts all 2>/dev/null
    echo
    echo "Restart service"
    $_KXCAT_HOME/bin/kxcat_service stop
@@ -673,8 +674,8 @@ xcat_done() {
    echo "KxCAT Install done"
 }
 
-xcat_req "$auto" "$OS_ISO"
-xcat_init "$global_dev"
+xcat_req "$auto" "$OS_ISO" "$iso_file" "$global_dev"
+xcat_init 
 xcat_install "$auto" "$core_file" "$dep_file"
 xcat_env
 xcat_image
