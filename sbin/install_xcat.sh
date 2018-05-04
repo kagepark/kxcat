@@ -450,8 +450,8 @@ xcat_install() {
      mkdir -p $xcat_work
      tar jxvf $core_file -C $xcat_work
      tar jxvf $dep_file -C $xcat_work
-     $xcat_work/xcat-core/mklocalrepo.sh
-     $xcat_work/xcat-dep/rh7/x86_64/mklocalrepo.sh
+     ( cd $xcat_work/xcat-core && ./mklocalrepo.sh)
+     ( cd $xcat_work/xcat-dep/rh7/x86_64 && ./mklocalrepo.sh)
      fi
      yum -y install xCAT xCAT-server xCAT-genesis-base --disablerepo=* --enablerepo=xcat-dep --enablerepo=xcat-core
      local_repo_opt="--disablerepo=* --enablerepo=xcat-dep --enablerepo=xcat-core"
