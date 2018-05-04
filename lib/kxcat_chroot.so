@@ -21,7 +21,7 @@ chroot() {
              echo "1. Run \"chroot ${root_path}/rootimg\" command"
              echo "2. Modify netboot image"
              echo "3. \"Control + d\" for exit"
-             echo "4. Run \"scix update $1\" command for update to image file"
+             echo "4. Run \"$(basename $0) update $1\" command for update to image file"
        else
            echo "${root_path}/rootimg directory not found"
        fi
