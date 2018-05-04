@@ -453,7 +453,7 @@ xcat_install() {
      ( cd $xcat_work/xcat-core && ./mklocalrepo.sh)
      ( cd $xcat_work/xcat-dep/rh7/x86_64 && ./mklocalrepo.sh)
      fi
-     yum -y install xCAT xCAT-server xCAT-genesis-base --disablerepo=* --enablerepo=xcat-dep --enablerepo=xcat-core
+     yum -y install xCAT xCAT-server xCAT-genesis-base --disablerepo=* --enablerepo=xcat-*dep --enablerepo=xcat-*core
      local_repo_opt="--disablerepo=* --enablerepo=xcat-dep --enablerepo=xcat-core"
   fi
   [ -f /etc/profile.d/xcat.sh ] || error_exit "/etc/profile.d/xcat.sh file not found"
