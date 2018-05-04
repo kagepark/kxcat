@@ -78,7 +78,6 @@ example procedure)
         prefix=${opt[$ii]}
     fi
 done
-[ -f /etc/profile.d/kxcat.sh -o -f /etc/profile.d/xcat.sh -o -f /etc/profile.d/xcat.sh ] && error_exit "Already installed on this system"
 ps -ef |grep -e xcatd -e kxcat  | grep -v grep >& /dev/null && error_exit "Already installed on this system"
 if [ "$auto" != "1" ]; then
     [ ! -n "$core_file" -o ! -f "$core_file" ] && error_exit "xcat core ($core_file) not found"
