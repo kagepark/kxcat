@@ -450,8 +450,6 @@ xcat_install() {
      mkdir -p $xcat_work
      tar jxvf $core_file -C $xcat_work
      tar jxvf $dep_file -C $xcat_work
-     fi
-     if [ ! -f /etc/yum.repos.d/xcat-core.repo -o ! -f /etc/yum.repos.d/xcat-dep.repo ]; then 
      $xcat_work/xcat-core/mklocalrepo.sh
      $xcat_work/xcat-dep/rh7/x86_64/mklocalrepo.sh
      fi
