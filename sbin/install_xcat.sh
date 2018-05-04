@@ -32,14 +32,17 @@ opt=($*)
 for ((ii=0;ii<${#opt[*]};ii++)); do
     if [ "${opt[$ii]}" == "--help" -o "${opt[$ii]}" == "help" -o "${opt[$ii]}" == "-help" ]; then
         echo "
-$(basename $0) [-auto] [-core <xcat core> -dep <xcat dep> [-iso <iso file>]] [-link <cmd name>] [-gdev <global dev>]
+$(basename $0) [-auto] [-core <xcat core> -dep <xcat dep> [-iso <iso file>]] [-link <cmd name>] [-gdev <global dev>] [-prefix <dir>]
 
-<iso file>  : Installed OS iso file on MGT node
-<xcat core> : xcat core file
-<xcat dep>  : xcat dep file
-<cmd name>  : make a soft link from kxcat to <cmd name>
-<global dev>: block device path(ex: /dev/sdb) for /global directory
-              This device will automatically formatted
+-auto             : Install xCAT from internet
+-core <iso file>  : Installed OS iso file on MGT node
+-dep <xcat core>  : xcat core file
+-iso <xcat dep>   : xcat dep file
+-link <cmd name>  : make a soft link from kxcat to <cmd name>
+-gdev <global dev>: block device path(ex: /dev/sdb) for /global directory
+                    This device will automatically formatted
+-prefix <dir>     : Install KxCAT on current directory
+                    default: install on /opt/kxcat directory
 
 example procedure)
 1. setup xCAT network device
@@ -70,6 +73,9 @@ example procedure)
     elif [ "${opt[$ii]}" == "-gdev" ]; then
         ii=$(($ii+1))
         global_dev=${opt[$ii]}
+    elif [ "${opt[$ii]}" == "-prefix" ]; then
+        ii=$(($ii+1))
+        prefix=${opt[$ii]}
     fi
 done
 if [ "$auto" != "1" ]; then
@@ -77,7 +83,10 @@ if [ "$auto" != "1" ]; then
     [ ! -n "$dep_file" -o ! -f "$dep_file" ] && error_exit "xcat dep ($dep_file) not found"
 fi
 
-_KXCAT_HOME=$(dirname $(dirname $(readlink -f $0)))
+[ -d "$prefix" ] || mkdir -p $prefix
+[ "$(dirname $(dirname $(readlink -f $0)))" == "$prefix" ] || rsync -a $(dirname $(dirname $(readlink -f $0)))/ $prefix/
+_KXCAT_HOME=$prefix
+rm -f $prefix/sbin/$(basename $0)
 
 [ -f $_KXCAT_HOME/lib/klib.so ] || error_exit "klib.so file not found"
 . $_KXCAT_HOME/lib/klib.so
