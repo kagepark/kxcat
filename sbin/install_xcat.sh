@@ -29,6 +29,7 @@ cidr2mask() {
 }
 
 opt=($*)
+prefix="/opt/KxCAT"
 for ((ii=0;ii<${#opt[*]};ii++)); do
     if [ "${opt[$ii]}" == "--help" -o "${opt[$ii]}" == "help" -o "${opt[$ii]}" == "-help" ]; then
         echo "
@@ -84,8 +85,8 @@ if [ "$auto" != "1" ]; then
     [ ! -n "$dep_file" -o ! -f "$dep_file" ] && error_exit "xcat dep ($dep_file) not found"
 fi
 
-[ -d "$prefix" ] || mkdir -p $prefix
-[ "$(dirname $(dirname $(readlink -f $0)))" == "$prefix" ] || rsync -a $(dirname $(dirname $(readlink -f $0)))/ $prefix/
+[ -d "$(dirname $prefix)" ] || mkdir -p $(dirname $prefix)
+[ "$(dirname $(dirname $(readlink -f $0)))" == "$prefix" ] || cp -a $(dirname $(dirname $(readlink -f $0))) $prefix
 _KXCAT_HOME=$prefix
 rm -f $prefix/sbin/$(basename $0)
 
