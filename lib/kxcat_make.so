@@ -157,7 +157,7 @@ make() {
          echo "  -b : xCAT base package list only"
 #         echo "${FUNCNAME} <group> <Image>"
          echo
-         echo "   get image names : scix images"
+         echo "   get image names : $(basename $0) images"
          exit
     fi
 
