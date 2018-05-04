@@ -70,6 +70,11 @@ node() {
 
     [ "$chk_input" == "0" ] && error_exit "input parameter not found. please look \"$(basename $0) change\" for help"
     desthost=$(echo $destname|sed "s/ /,/g")
+    boot_node=$(
+       for ii in $destname; do
+           echo $(lsdef $ii -i groups) | grep -v "groups=all,n" | awk '{print $3}'
+       done
+    )
 
 #    echo chdef -t node -o $desthost $arch_str $bmcip_str $bmcuser_str $bmcpass_str $mac_str $powerm_str $netboot_str $image_str $postboot_str $postscript_str $clean_str $alias_str $kernel_arg_str $sol_str 
     if [ -n "$kernel_arg_str" ]; then
@@ -79,14 +84,16 @@ node() {
     fi
 
     [ -n "$alias_str" ] && makehosts $desthost
-    if [ "$bootmode" == "boot" ]; then
-        nodeset $desthost boot
-    elif [ "$bootmode" == "install" ]; then
-        nodeset $desthost osimage
-    else
-        change_boot_mode=$(echo $(echo $(lsdef $desthost -i currstate) | sed "s/Object name: /\n/g" | grep "currstate=boot" | awk '{print $1}') | sed "s/ /,/g")
-        nodeset $desthost osimage
+    if [ -n "$boot_node" ]; then
+      if [ "$bootmode" == "boot" ]; then
+        nodeset $(echo $boot_node | sed "s/ /,/g") boot
+      elif [ "$bootmode" == "install" ]; then
+        nodeset $(echo $boot_node | sed "s/ /,/g") osimage
+      else
+        change_boot_mode=$(echo $(echo $(lsdef $(echo $boot_node | sed "s/ /,/g") -i currstate) | sed "s/Object name: /\n/g" | grep "currstate=boot" | awk '{print $1}') | sed "s/ /,/g")
+        nodeset $(echo $boot_node | sed "s/ /,/g") osimage
         [ -n "$change_boot_mode" ] && nodeset $change_boot_mode boot 
+      fi
     fi
 }
 
@@ -114,8 +121,8 @@ change() {
     local hostname opt
     opt=("$@")
     if (( ${#opt[@]} < 3 )); then
-         echo "${FUNCNAME} <host|image> <name> <arg1=val1> ...." 
-         echo "  host options: "
+         echo "$(basename $0) ${FUNCNAME} <host|node|image> <dest> <arg1=val1> ...." 
+         echo "  host|node options: "
          echo "    emac=<eth0 mac>"
          echo "    bip=<bmc ip>"
          echo "    buser=<bmc_user>"
