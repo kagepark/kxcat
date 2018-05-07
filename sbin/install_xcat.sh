@@ -551,6 +551,7 @@ ${network_ip_rev}.IN-ADDR.ARPA	IN SOA	${MGT_HOSTNAME}.${DOMAIN_NAME}. root.${MGT
 \$ORIGIN ${network_ip_rev}.IN-ADDR.ARPA.
 1.0			PTR	${MGT_HOSTNAME}.${DOMAIN_NAME}.
 " > /var/named/db.${network_ip}
+    chown named:named /var/named/db.${network_ip}
   done
 
   echo "
@@ -577,6 +578,7 @@ ${DOMAIN_NAME}		IN SOA	${MGT_HOSTNAME}.${DOMAIN_NAME}. root.${MGT_HOSTNAME}.${DO
 \$ORIGIN ${DOMAIN_NAME}.
 ${MGT_HOSTNAME}			A	$(_k_net_add_ip $GROUP_NETWORK 1)
 "  > /var/named/db.${DOMAIN_NAME}
+    chown named:named /var/named/db.${DOMAIN_NAME}
 
   # NFS patch
   if ! grep "^RPCNFSDCOUNT=" /etc/sysconfig/nfs >&/dev/null; then
