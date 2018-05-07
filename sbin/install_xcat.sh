@@ -282,11 +282,15 @@ EOF
   if [ -f /etc/sysconfig/selinux ]; then
     grep -v "^#" /etc/sysconfig/selinux  | grep enforcing >& /dev/null && sed -i "s/SELINUX=enforcing/SELINUX=disabled/g" /etc/sysconfig/selinux
   fi
-  [ "$(getenforce)" == "Disabled" ] || setenforce 0
+  #[ "$(getenforce)" == "Disabled" ] || setenforce 0
+  if [ "$(getenforce)" != "Disabled" ]; then
+      echo "Please reboot this management for disable SELinux"
+      exit
+  fi
 
   #SSH password-less
   if ! ssh -q -o ConnectTimeout=5 -o CheckHostIP=no -o StrictHostKeychecking=no -o PasswordAuthentication=no localhost hostname >& /dev/null; then
-      ssh-keygen -t rsa 
+      echo -e  'y\n'|ssh-keygen -q -t rsa -N "" -f ~/.ssh/id_rsa
       cp -a ~/.ssh/id_rsa.pub ~/.ssh/authorized_keys
       chmod 644 ~/.ssh/authorized_keys
       chmod 600 ~/.ssh/id_rsa
