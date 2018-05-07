@@ -153,7 +153,7 @@ change() {
     unset opt[0]
     destname=${opt[1]}
     unset opt[1]
-    if [ "$type" == "host" ]; then
+    if [ "$type" == "host" -o "$type" == "node" ]; then
         node "${opt[@]}"
     elif [ "$type" == "image" ]; then
         image "${opt[@]}"
