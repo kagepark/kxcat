@@ -52,7 +52,7 @@ if [ -f /etc/sysconfig/selinux ]; then
     grep -v "^#" /etc/sysconfig/selinux  | grep enforcing >& /dev/null && sed -i "s/SELINUX=enforcing/SELINUX=disabled/g" /etc/sysconfig/selinux
 fi
 if [ "$(getenforce)" != "Disabled" ]; then
-      echo"      
+      echo "      
 *** Please reboot this management for disabled SELinux configuration ***
 
 example procedure)
