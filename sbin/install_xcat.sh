@@ -48,6 +48,26 @@ rev_ip() {
     done
 }
 
+if [ -f /etc/sysconfig/selinux ]; then
+    grep -v "^#" /etc/sysconfig/selinux  | grep enforcing >& /dev/null && sed -i "s/SELINUX=enforcing/SELINUX=disabled/g" /etc/sysconfig/selinux
+fi
+if [ "$(getenforce)" != "Disabled" ]; then
+      echo"      
+*** Please reboot this management for disabled SELinux configuration ***
+
+example procedure)
+1. setup xCAT network device
+2. disable selinux configuration
+3. disable firewall
+4. copy share/kxcat.cfg share/kxcat_sw.cfg to etc directory and modify cfg files
+5. copy OS iso file to some location (ex: CentOS-7-x86_64-DVD-1708.iso)
+6. download and copy xCAT core and dep file to share directory (for below example)
+   (download site: https://xcat.org/download.html)
+7. $(basename $0) -iso ~/CentOS-7-x86_64-DVD-1708.iso -core ../share/xcat-core-2.14.0-linux.tar.bz2 -dep ../share/xcat-dep-201804041617.tar.bz2
+      "
+      exit
+fi
+
 opt=($*)
 prefix="/opt/KxCAT"
 for ((ii=0;ii<${#opt[*]};ii++)); do
@@ -281,14 +301,6 @@ EOF
   _k_servicectl firewalld off
   _k_servicectl libvirtd off
   _k_servicectl NetworkManager off
-  if [ -f /etc/sysconfig/selinux ]; then
-    grep -v "^#" /etc/sysconfig/selinux  | grep enforcing >& /dev/null && sed -i "s/SELINUX=enforcing/SELINUX=disabled/g" /etc/sysconfig/selinux
-  fi
-  #[ "$(getenforce)" == "Disabled" ] || setenforce 0
-  if [ "$(getenforce)" != "Disabled" ]; then
-      echo "Please reboot this management for disable SELinux"
-      exit
-  fi
 
   #SSH password-less
   if ! ssh -q -o ConnectTimeout=5 -o CheckHostIP=no -o StrictHostKeychecking=no -o PasswordAuthentication=no localhost hostname >& /dev/null; then
