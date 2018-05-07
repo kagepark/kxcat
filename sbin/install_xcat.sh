@@ -763,7 +763,7 @@ xcat_node_set() {
    for ((node_snum=1; node_snum<=$MAX_NODES; node_snum++)); do
       node_name=n$(printf "%05d" $node_snum)
       echo "Setup $node_name"
-      node_info=$([ -f server_list.cfg ] && awk -F\| -v num=$node_snum '{if($1==num) print}' server_list.cfg)
+      node_info=$([ -f $_KXCAT_HOME/sbin/server_list.cfg ] && awk -F\| -v num=$node_snum '{if($1==num) print}' $_KXCAT_HOME/sbin/server_list.cfg)
       node_mac=$(echo $node_info | awk -F\| '{print $2}')
       node_bmc_IP=$(echo $node_info | awk -F\| '{print $3}')
       [ -n "$node_mac" ] || node_mac="00:00:00:00:00:00"
