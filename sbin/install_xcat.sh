@@ -49,10 +49,10 @@ rev_ip() {
 }
 
 if [ -f /etc/sysconfig/selinux ]; then
-    grep -v "^#" /etc/sysconfig/selinux  | grep enforcing >& /dev/null && sed -i "s/SELINUX=enforcing/SELINUX=disabled/g" /etc/sysconfig/selinux
-fi
-if [ "$(getenforce)" != "Disabled" ]; then
-      echo "      
+    if grep -v "^#" /etc/sysconfig/selinux  | grep enforcing >& /dev/null; then
+         sed -i "s/SELINUX=enforcing/SELINUX=disabled/g" /etc/sysconfig/selinux
+         echo "      
+
 *** Please reboot this management for disabled SELinux configuration ***
 
 example procedure)
@@ -64,8 +64,9 @@ example procedure)
 6. download and copy xCAT core and dep file to share directory (for below example)
    (download site: https://xcat.org/download.html)
 7. $(basename $0) -iso ~/CentOS-7-x86_64-DVD-1708.iso -core ../share/xcat-core-2.14.0-linux.tar.bz2 -dep ../share/xcat-dep-201804041617.tar.bz2
-      "
-      exit
+        "
+         exit
+    fi
 fi
 
 opt=($*)
