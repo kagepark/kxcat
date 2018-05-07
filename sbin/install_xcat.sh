@@ -104,6 +104,8 @@ if [ "$auto" != "1" ]; then
     [ ! -n "$core_file" -o ! -f "$core_file" ] && error_exit "xcat core ($core_file) not found"
     [ ! -n "$dep_file" -o ! -f "$dep_file" ] && error_exit "xcat dep ($dep_file) not found"
 fi
+install_dir=$(dirname $(dirname $(readlink -f $0)))
+[ -f "$install_dir/etc/kxcat.cfg" ] || error_exit "$install_dir/etc/kxcat.cfg file not found"
 
 [ -d "$(dirname $prefix)" ] || mkdir -p $(dirname $prefix)
 [ "$(dirname $(dirname $(readlink -f $0)))" == "$prefix" ] || cp -a $(dirname $(dirname $(readlink -f $0))) $prefix
