@@ -550,7 +550,7 @@ ${network_ip_rev}.IN-ADDR.ARPA	IN SOA	${MGT_HOSTNAME}.${DOMAIN_NAME}. root.${MGT
 			NS	${MGT_HOSTNAME}.${DOMAIN_NAME}.
 \$ORIGIN ${network_ip_rev}.IN-ADDR.ARPA.
 1.0			PTR	${MGT_HOSTNAME}.${DOMAIN_NAME}.
-" > /var/named/db.${network_ip_rev}
+" > /var/named/db.${network_ip}
   done
 
   echo "
