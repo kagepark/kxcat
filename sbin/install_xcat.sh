@@ -718,7 +718,10 @@ node_short=" /install/postscripts/xcatdsklspost
 #  tabdump site
   chdef -t site -o clustersite domain=$DOMAIN_NAME
   chdef -t site forwarders=$MGT_IP
-  makedns all 2>/dev/null
+  #makedns all 2>/dev/null
+  _k_servicectl named stop
+  _k_servicectl named start
+  makedns -n 2>/dev/null
 
   chtab key=master site.value=$MGT_IP
   chtab key=dhcpinterfaces site.value=$GROUP_NET_DEV
