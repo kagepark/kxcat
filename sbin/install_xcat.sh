@@ -784,6 +784,7 @@ xcat_node_set() {
 xcat_done() {
    local link_name
    link_name=$1
+   [ -n "$link_name" ] || link_name=kix
 
    source /etc/profile.d/kxcat.sh
    echo

@@ -1,4 +1,7 @@
 # KxCAT
+it will be changed name from KxCAT to kix.
+(Kage Interface for xCAT)
+Short name will be easy use.
 
 requirement : 
   - MGT node
@@ -39,7 +42,7 @@ KxCAT has enhanced HPC structure based on xCAT design.
 
 
 KxCAT profile file : /etc/profile.d/kxcat.sh
-command : kxcat
+command : kix
 
 Config File:
 <KxCAT HOME>/etc/kxcat.cfg
