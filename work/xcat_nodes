@@ -1,0 +1,101 @@
+#!/usr/bin/python
+import sqlite3
+import os, signal
+import sys
+import time
+from datetime import datetime
+
+state_db_file="/etc/xcat/nodelist.sqlite" #<node:0>,<status:2>,<statustime:3>
+mode_db_file="/etc/xcat/chain.sqlite" # <node:hostname:0>,<currstat:mode:1>
+alias_db_file="/etc/xcat/hosts.sqlite" # <node:hostname:0>,<hostnames:alias:2>
+mgt_db_file="/etc/xcat/nodehm.sqlite" 
+id_db_file="/etc/xcat/ppc.sqlite" 
+
+
+group=False
+if len(sys.argv) == 2:
+   group=sys.argv[1]
+
+#ID
+conn = sqlite3.connect(id_db_file)
+c = conn.cursor()
+if group:
+    sqr="select  node,id from ppc where node like '" + (group + '%') + "' order by cast(id as interger)"
+else:
+    sqr="select  node,id from ppc order by cast(id as interger)"
+
+get_rc=c.execute(sqr).fetchall()
+conn.close()
+
+print("%8s %15s %15s %10s %5s %13s" % ("Nodes","Hostname","Alias","Mode","H.C.","OS State"))
+for ii in get_rc:
+   #ID
+   nodename="n%05d" % int(ii[1])
+
+   # Alias
+   conn = sqlite3.connect(alias_db_file)
+   c = conn.cursor()
+   sqr="select hostnames from hosts where node='%s'" % (ii[0])
+   get_rc=c.execute(sqr).fetchone()
+   conn.close()
+   if get_rc is None or get_rc[0] is None or get_rc[0] == "":
+      alias_str="-"
+   else:
+      alias_str=get_rc[0]
+
+
+   #MGT
+   conn = sqlite3.connect(mgt_db_file)
+   c = conn.cursor()
+   sqr="select mgt from nodehm where node='%s'" % (ii[0])
+   get_rc=c.execute(sqr).fetchone()
+   conn.close()
+   if get_rc is None:
+      mgt_str="-"
+   else:
+      mgt_str=get_rc[0]
+
+   # Node state
+   conn = sqlite3.connect(state_db_file)
+   c = conn.cursor()
+   sqr="select status,statustime from nodelist where node='%s'" % (ii[0])
+   get_rc=c.execute(sqr).fetchone()
+   conn.close()
+   if get_rc[0] is None or get_rc[0] == "":
+      state="-"
+   else:
+      if get_rc[1] is None:
+         node_time=0
+      else:
+         node_time=int(time.mktime(time.strptime(get_rc[1],"%m-%d-%Y %H:%M:%S")))
+      now_time=int(datetime.now().strftime("%s"))
+      if get_rc[0] == "maint":
+         if (now_time - node_time) > (400 * 2):
+             state="maint"
+         else:
+             state="*maint"
+      else:
+         if (now_time - node_time) > (400 * 2):
+             state="Unknown"
+         else:
+             state=get_rc[0]
+      
+   # Mode
+   conn = sqlite3.connect(mode_db_file)
+   c = conn.cursor()
+   sqr="select currstate from chain where node='%s'" % (ii[0])
+   get_rc=c.execute(sqr).fetchone()
+   conn.close()
+   if get_rc is None or get_rc[0] == "" or nodename == ii[0]:
+      mode_str="-"
+   else:
+      mode_str=get_rc[0].split(" ")[0]
+
+   # hostname
+   if nodename == ii[0]:
+      hostname="-"
+   else:
+      hostname=ii[0]
+
+
+   print("%8s %15s %15s %10s %5s %13s" % (nodename,hostname,alias_str,mode_str,mgt_str,state))
