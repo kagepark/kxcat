@@ -9,6 +9,10 @@ error_exit() {
    exit 1
 }
 
+mask2cidr() {
+    ipcalc -p 1.1.1.1 $1 | sed "s/PREFIX=/\//g"
+}
+
 cidr2mask() {
   local i mask=""
   local full_octets=$(($1/8))
@@ -77,9 +81,9 @@ for ((ii=0;ii<${#opt[*]};ii++)); do
 $(basename $0) [-auto] [-core <xcat core> -dep <xcat dep> [-iso <iso file>]] [-link <cmd name>] [-gdev <global dev>] [-prefix <dir>]
 
 -auto             : Install xCAT from internet
--core <iso file>  : Installed OS iso file on MGT node
--dep <xcat core>  : xcat core file
--iso <xcat dep>   : xcat dep file
+-core <xcat core> : xcat core file
+-dep <xcat dep>   : xcat dep file
+-iso <OS iso file>: Installed OS iso file on MGT node
 -link <cmd name>  : make a soft link from kxcat to <cmd name>
 -gdev <global dev>: block device path(ex: /dev/sdb) for /global directory
                     This device will automatically formatted
@@ -120,7 +124,7 @@ example procedure)
         prefix=${opt[$ii]}
     fi
 done
-ps -ef |grep -e xcatd -e kxcat  | grep -v grep >& /dev/null && error_exit "Already installed on this system"
+ps -ef |grep -e xcatd -e kxcat  | grep -v -e grep -e dhclient >& /dev/null && error_exit "Already installed on this system"
 if [ "$auto" != "1" ]; then
     [ ! -n "$core_file" -o ! -f "$core_file" ] && error_exit "xcat core ($core_file) not found"
     [ ! -n "$dep_file" -o ! -f "$dep_file" ] && error_exit "xcat dep ($dep_file) not found"
@@ -145,6 +149,7 @@ rm -f $prefix/sbin/$(basename $0)
 [ ! -n "$DOMAIN_NAME" ] && error_exit "DOMAIN_NAME not found"
 [ ! -n "$MGT_HOSTNAME" ] && error_exit "MGT_HOSTNAME not found"
 [ ! -n "$MGT_IP" ] && error_exit "MGT_IP not found"
+[ ! -n "$GW_DEV" ] && error_exit "GW_DEV not found"
 [ ! -n "$MAX_NODES" ] && error_exit "MAX_NODES not found"
 [ ! -n "$POWER_MODE" ] && error_exit "POWER_MODE not found"
 if [ "$POWER_MODE" == "ipmi" -o "$POWER_MODE" == "xcat" ]; then
@@ -153,11 +158,13 @@ if [ "$POWER_MODE" == "ipmi" -o "$POWER_MODE" == "xcat" ]; then
    [ ! -n "$SOL_DEV" ] && error_exit "SOL_DEV not found"
    [ ! -n "$SOL_SPEED" ] && error_exit "SOL_SPEED not found"
 fi
+echo $MGT_IP
 [ -d /sys/class/net/$GROUP_NET_DEV ] || error_exit "GROUP_NET_DEV($GROUP_NET_DEV) not found"
 #MGT_IP_INFO=($(ifconfig $GROUP_NET_DEV | grep "inet " | awk '{printf "%s %s",$2,$4}'))
 MGT_NIC_INFO=$(ip -4 addr show $GROUP_NET_DEV | grep "inet " | awk '{printf "%s",$2}')
+echo $MGT_NIC_INFO
 MGT_IP_INFO=($(echo $MGT_NIC_INFO | awk -F\/ '{print $1}') $(cidr2mask $(echo $MGT_NIC_INFO | awk -F\/ '{print $2}')))
-[ "$MGT_IP" == "${MGT_IP_INFO[0]}" ] || error_exit "MGT_IP and ${GROUP_NET_DEV} IPs are different"
+[ "$MGT_IP" == "${MGT_IP_INFO[0]}" ] || error_exit "MGT_IP($MGT_IP) and ${GROUP_NET_DEV} IP(${MGT_IP_INFO[1]})s are different"
 [ "$GROUP_NETMASK" == "${MGT_IP_INFO[1]}" ] || error_exit "GROUP_NETMASK and ${GROUP_NET_DEV} NETMASKs are different"
 #MGT_IP=$(_k_net_add_ip $GROUP_NETWORK 1)
 
@@ -410,10 +417,10 @@ xcat_req() {
 
   if [ -n "$iso_file" -a ! -f "$OS_ISO" ]; then
     [ -d $(dirname $OS_ISO) ] || mkdir -p $(dirname $OS_ISO)
-    mv $iso_file $OS_ISO
     echo
     echo "Moving \"$iso_file\" to \"$OS_ISO\""
     echo
+    mv $iso_file $OS_ISO
     iso_file=$OS_ISO
     sleep 10
   fi
@@ -425,9 +432,10 @@ xcat_req() {
      fi
      chk_iso=1
   done < <(echo $OS_ISO | sed "s/,/\n/g")
-  [ "$chk_iso" == "0" ] && error_exit "OS_ISO file not found"
+  [ "$chk_iso" == "0" ] && error_exit "OS_ISO($OS_ISO) file not found"
 
 
+  repo_file=""
   if [ "$auto" == "1" ]; then
      ping -c 3 google.com  >& /dev/null || error_exit "Please setup outside network for auto installation for require packages"
   else
@@ -468,7 +476,9 @@ gpgcheck=0
   _k_servicectl dhcpd stop
   rpm -qa |grep libvirt-client >& /dev/null && yum erase libvirt-client
 
-  umount $os_iso_dir && rm -fr $os_work
+  if [ "$auto" != "1" ]; then
+      umount $os_iso_dir && rm -fr $os_work
+  fi
 }
 
 xcat_install() {
@@ -629,7 +639,7 @@ ${MGT_HOSTNAME}			A	$(_k_net_add_ip $GROUP_NETWORK 1)
         mv /opt/xcat/share/xcat/install/scripts/post.xcat /opt/xcat/share/xcat/install/scripts/post.xcat.orig
         echo "#KG post fix
 if [ -d /etc/systemd/system ]; then 
-  for ii in initial-setup.service initial-setup-text.service initial-setup-graphical.service firewalld.service libvirtd.service; do
+  for ii in initial-setup.service initial-setup-text.service initial-setup-graphical.service libvirtd.service; do
     for jj in multi-user.target.wants graphical.target.wants; do
       if [ -f /etc/systemd/system/\$jj/\$ii ]; then
          rm -f /etc/systemd/system/\$jj/\$ii && echo \"rm /etc/systemd/system/\$jj/\$ii\" >> /tmp/ks.postinstall.log
@@ -805,7 +815,48 @@ xcat_done() {
    echo "KxCAT Install done"
 }
 
+xcat_firewall() {
+    cluster_network=${GROUP_IP}$(mask2cidr $GROUP_NETMASK)
+    mpi_network=${MPI_IP}$(mask2cidr $GROUP_NETMASK)
+    xcat_zone=trusted
+
+    systemctl status NetworkManager >& /dev/null && (systemctl disable NetworkManager ; systemctl stop NetworkManager)
+    systemctl status firewalld >& /dev/null || (systemctl enable firewalld; systemctl start firewalld)
+
+    # Outside Rule
+    default_zone_dev=$(firewall-cmd --get-active-zones | grep interfaces | head -n 1| sed "s/interfaces://g")
+    echo $default_zone_dev | grep $GW_DEV >& /dev/null || \
+        firewall-cmd --add-interface=$GW_DEV --permanent
+    firewall-cmd --list-service | grep -w ssh >& /dev/null || \
+        firewall-cmd --add-service=ssh --permanent
+
+    # Cluster Rule
+    echo $default_zone_dev | grep $GROUP_NET_DEV >& /dev/null && \
+       firewall-cmd --remove-interface=$GROUP_NET_DEV --permanent
+    firewall-cmd --zone=$xcat_zone --list-interface | grep -w $GROUP_NET_DEV >& /dev/null || \
+        firewall-cmd --zone=$xcat_zone --add-interface=$GROUP_NET_DEV --permanent
+    firewall-cmd --zone=$xcat_zone --list-sources | grep -w "$cluster_network" >& /dev/null || \
+        firewall-cmd --zone=$xcat_zone --add-source=$cluster_network --permanent
+
+    # MPI Rule
+    if [ -n "$MPI_DEV" -a -n "$mpi_network" ]; then
+        echo $default_zone_dev | grep -w $MPI_DEV >& /dev/null && \
+            firewall-cmd --remove-interface=$MPI_DEV --permanent
+        firewall-cmd --zone=$xcat_zone --list-interface | grep -w $MPI_DEV >& /dev/null || \
+            firewall-cmd --zone=$xcat_zone --add-interface=$MPI_DEV --permanent
+        firewall-cmd --zone=$xcat_zone --list-sources | grep -w "$mpi_network" >& /dev/null || \
+            firewall-cmd --zone=$xcat_zone --add-source=$mpi_network --permanent
+    fi
+    firewall-cmd --reload
+    firewall-cmd --get-active-zones
+    echo "GW RULE"
+    firewall-cmd --list-ports
+    firewall-cmd --list-services
+    sleep 10
+}
+
 xcat_req "$auto" "$OS_ISO" "$iso_file" "$global_dev"
+xcat_firewall
 xcat_init 
 xcat_install "$auto" "$core_file" "$dep_file"
 xcat_env
