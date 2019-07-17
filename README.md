@@ -9,12 +9,14 @@ requirement :
     + HDD : Minimum 1TB HDD(SATA) (Recommend: over 4ea HDDs, Raid controller(Raid 5), over 1TB space, XFS)
     + Memory: minimum 2GB (Recommend: over 16GB)
   - compute node (Disk-less)
-    + NIC : Minimum 1G x 1ea
-    + Memory: minimum 5GB (Recommend: over 8GB)
+    + NIC : Minimum 1G x 1ea (not recommend device model: virtio)
+    + Memory: minimum 6GB (Recommend: over 8GB)
+    + boot optioin : (1.Network PXE Boot)
   - compute node (Diskful)
-    + NIC : Minimum 1G x 1ea
-    + Memory: minimum 2GB (Recommend: over 8GB)
-    + HDD: minimum over 50GB 1ea SATA
+    + NIC : Minimum 1G x 1ea (not recommend device model: virtio)
+    + Memory: minimum 3GB (Recommend: over 8GB)
+    + HDD: minimum over 50GB 1ea SATA (Support Disk bus : SATA or SCSI, not support Disk bus : VirtIO)
+    + boot optioin : (1.Network PXE Boot, 2.Disk Boot)
   - Packages
     + kgt (Opensource) for tool (Auto install)
       + /opt/kgt
