@@ -45,12 +45,15 @@ KxCAT profile file : /etc/profile.d/kxcat.sh
 command : kix
 
 Config File:
-<KxCAT HOME>/etc/kxcat.cfg
-<KxCAT HOME>/etc/kxcat_sw.cfg
+```
+# vi <KxCAT HOME>/etc/kxcat.cfg
+# vi <KxCAT HOME>/etc/kxcat_sw.cfg
+```
 
 ## Install:
-<KxCAT HOME>/sbin/install_kxcat.sh
-
+```
+# <KxCAT HOME>/sbin/install_kxcat.sh
+```
 ## Help: 
  - it will keep changing command to grouped function and descriptions
  - This will be initial command and descriptions
