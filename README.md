@@ -41,9 +41,14 @@ KxCAT has enhanced HPC structure based on xCAT function.
    - Multi OS (CentOS, RHEL, ...)
    - Multi type of HPC (Diskless, Diskful)
 
-KxCAT profile file : /etc/profile.d/kxcat.sh
-command : kix
-
+KxCAT profile file : 
+```
+# source /etc/profile.d/kxcat.sh
+```
+command : 
+``` 
+# kix
+```
 Config File:
 ```
 # vi <KxCAT HOME>/etc/kxcat.cfg
