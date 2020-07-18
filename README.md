@@ -1,5 +1,5 @@
 # KxCAT
-it will be changed name from KxCAT to kix.
+it will be changed CLI name from KxCAT to kix.
 
 (Kage Interface for xCAT)
 
