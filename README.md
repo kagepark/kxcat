@@ -5,6 +5,8 @@ it will be changed CLI name from KxCAT to kix.
 
 Short name will be easy use.
 
+See more detail : Wiki(https://github.com/kagepark/kxcat/wiki)
+
 ## requirement : 
   - MGT node
     - NIC : Minimum Two 1G (Recommend: 1G x 1ea, 10G x 1ea)
